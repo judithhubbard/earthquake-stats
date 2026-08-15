@@ -135,7 +135,7 @@ export const copy = {
     yearsCount: "{n} of {max}",
 
     /* Footer and failures. */
-    generated: "Catalogue snapshot built {when}; live events appended from the USGS one-day feed.",
+    generated: "Catalog snapshot built {when}; live events appended from the USGS one-day feed.",
     errorCatalog: "Could not load the catalog: {message}",
     errorNoHistory: "Not enough history yet to draw a reference range.",
     errorBoot:
@@ -266,7 +266,7 @@ export const copy = {
       "wobble look like a pattern, so we checked day by day as well — 365 separate bars — and " +
       "got the same answer." +
       "\n\nWeather follows the seasons, " +
-      "and the seasons show nothing. Why is that? Earthquakes typically start ten kilometres or more underground. A big " +
+      "and the seasons show nothing. Why is that? Earthquakes typically start ten kilometers or more underground. A big " +
       "storm presses on the ground about as hard as the moon does, and the moon, in the next " +
       "panel, does nothing." +
       "\n\nThere are a few locations where there are slight differences between earthquake rates between " +
