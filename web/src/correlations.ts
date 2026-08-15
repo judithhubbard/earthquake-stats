@@ -238,20 +238,24 @@ function binVerdict(bins: Bin[]): { verdict: string; note: string } {
 
   const shared = { bin: worst.full, percent: Math.abs(worst.deviation).toFixed(1),
                    bins: bins.length };
-  const note = stray.count === 0
+  const tally = stray.count === 0
     ? fill(C.biggestAllInside, shared)
     : fill(C.biggestSomeOutside, {
         ...shared,
         n: stray.count,
-        verb: stray.count === 1 ? "sits" : "sit",
+        verb: stray.count === 1 ? "falls" : "fall",
         expected: stray.expected < 0.5
           ? C.outsideFewer
           : fill(C.outsideAbout, { n: stray.expected.toFixed(1) }),
       });
 
   return test.statistic <= test.critical
-    ? { verdict: C.verdictNo, note }
-    : { verdict: C.verdictNotReally, note: `${note} ${C.outsideGrey}` };
+    ? { verdict: C.verdictNo, note: `${tally} ${C.withinNormal}` }
+    : { verdict: C.verdictNotReally,
+        note: `${tally} ${fill(C.outsideGrey, {
+          chi: test.statistic.toFixed(1), df: test.df,
+          critical: test.critical.toFixed(1),
+        })}` };
 }
 
 function scatterVerdict(c: Correlation | null, driver: string): { verdict: string; note: string } {

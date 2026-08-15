@@ -86,9 +86,9 @@ export const copy = {
 
     /* The small print under the cumulative chart. */
     noteBand:
-      "Each faint line is one of the {years} past years. The darker band holds the middle half " +
-      "of them and the lighter band the middle 90%, so a line inside the shading is an " +
-      "ordinary year.",
+      "Each faint line is one of the {years} previous years. The darker band spans the middle " +
+      "50% of those years and the lighter band the middle 90%. A line inside the shading is " +
+      "within the normal range.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
@@ -216,14 +216,13 @@ export const copy = {
     detail: "Each one checked against {count} earthquakes since {from}.",
 
     guide:
-      "<strong>How to read these.</strong> Flip a coin ten times and you rarely get exactly " +
-      "five heads. Earthquakes are the same. Even when nothing is going on, some months turn " +
-      "out busier than others. The grey band shows how much of that variation to expect. A bar inside " +
-      "the grey means that earthquakes are behaving randomly. A bar that sticks out might be " +
-      "worth a look — but the band is drawn to hold about 19 bars in 20, so on a chart with " +
-      "many bars, one or two poking out is normal too. Each panel says how many to expect.",
+      "<strong>How to read these charts.</strong> Earthquakes do not arrive evenly, so counts " +
+      "vary between groups even when nothing is driving them. The grey band is ±2 standard " +
+      "deviations, which should contain 95.45% of the data. Points inside it are consistent " +
+      "with random variation. About 1 in 20 will fall outside even when there is no effect, so " +
+      "a single point beyond the band is expected rather than surprising.",
 
-    legendBand: "Range expected from chance alone",
+    legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
     legendBelow: "Fewer than average",
     subtitleSince: "Magnitude {threshold} and up, since {from}",
@@ -235,24 +234,26 @@ export const copy = {
        breath, because saying "inside the grey" and then "one bar is outside"
        about the same bar reads as a contradiction. */
     biggestAllInside:
-      "{bin} is furthest from average, by {percent}%, and every one of the {bins} bars sits " +
-      "inside the grey.",
+      "The largest deviation is {bin}, at {percent}%. All {bins} data points fall within ±2σ.",
     biggestSomeOutside:
-      "{bin} is furthest from average, by {percent}%. {n} of the {bins} bars {verb} outside the " +
-      "grey, and chance alone would put {expected} there.",
-    outsideFewer: "less than one",
+      "The largest deviation is {bin}, at {percent}%. {n} of {bins} data points {verb} outside " +
+      "±2σ, where random variation alone would produce {expected}.",
+    outsideFewer: "fewer than one",
     outsideAbout: "about {n}",
+    /** Appended once the tally is stated, to say what it means. */
+    withinNormal: "This is within the normal range.",
     outsideGrey:
-      "Taken together the bars are a little more spread out than luck usually gives. Worth a " +
-      "second look, but it proves nothing by itself.",
+      "Across all groups the spread is larger than random variation usually produces " +
+      "(χ² = {chi} on {df} degrees of freedom, against a 5% threshold of {critical}). That " +
+      "warrants a second look, but is not evidence of a cause on its own.",
 
     /* Verdict lines shared by the scatter panels. */
     verdictMaybe: "Maybe, but only just.",
     scatterStrength:
-      "If there were a link, the dots would trend in one direction or the other. Over {years} years they score {r}, and " +
-      "anything under {critical} counts as no link.",
-    scatterNull: "Years with more {driver} get no more earthquakes than quiet ones.",
-    scatterHint: "With this few years, treat it as a hint, not an answer.",
+      "The correlation coefficient over {years} years is {r}. With this many years, |r| must " +
+      "exceed {critical} to be statistically significant at the 5% level.",
+    scatterNull: "Years with more {driver} have no more earthquakes than years with less.",
+    scatterHint: "Treat this as suggestive rather than established.",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain: "",
