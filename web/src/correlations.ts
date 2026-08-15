@@ -511,9 +511,8 @@ async function boot() {
   for (const fn of redraw) fn();
 
   el.method.textContent = fill(copy.correlations.method, {
-    count: kept, raw: raw.toLocaleString(), binMagnitude: BIN_MAGNITUDE,
-    from: FIRST_YEAR, yearMagnitude: MIN_MAGNITUDE,
-    yearRaw: annual.raw.toLocaleString(), yearCount: annual.kept.toLocaleString(),
+    count: kept, raw: raw.toLocaleString(),
+    binMagnitude: BIN_MAGNITUDE, from: FIRST_YEAR,
   });
 
   const sources = ["USGS ComCat"];

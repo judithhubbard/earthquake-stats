@@ -379,10 +379,7 @@ export const copy = {
       "strongly clustered in time and space; including them would violate the independence the " +
       "error bands assume. Roughly half of the catalogue goes when they do." +
       "\n\nThe first three panels start from the {raw} earthquakes of magnitude {binMagnitude} " +
-      "and up recorded since {from}, and use the {count} of those that are not aftershocks. The " +
-      "last two compare whole years, so they use magnitude {yearMagnitude} and up, where the " +
-      "counts can be trusted from one decade to the next: {yearRaw} recorded, {yearCount} after " +
-      "the aftershocks come out.",
+      "and up recorded since {from}, and use the {count} of those that are not aftershocks.",
     sources: "Data: {list}.",
     errorLoad: "Could not load the data.",
   },
