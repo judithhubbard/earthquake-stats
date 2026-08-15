@@ -374,12 +374,6 @@ export const copy = {
     oklahomaLegendBars: "Earthquakes that year",
     oklahomaLegendRate: "Normal rate before 2009 — about {rate} a year",
 
-    method:
-      "Aftershocks are left out of every panel here, on purpose. Aftershock sequences are " +
-      "strongly clustered in time and space; including them would violate the independence the " +
-      "error bands assume. Roughly half of the catalogue goes when they do." +
-      "\n\nThe first three panels start from the {raw} earthquakes of magnitude {binMagnitude} " +
-      "and up recorded since {from}, and use the {count} of those that are not aftershocks.",
     sources: "Data: {list}.",
     errorLoad: "Could not load the data.",
   },

@@ -25,7 +25,6 @@ const el = {
   answer: document.getElementById("answer")!,
   answerDetail: document.getElementById("answer-detail")!,
   panels: document.getElementById("panels")!,
-  method: document.getElementById("method")!,
   sources: document.getElementById("sources")!,
 };
 
@@ -509,11 +508,6 @@ async function boot() {
 
   el.panels.replaceChildren(...built);
   for (const fn of redraw) fn();
-
-  el.method.textContent = fill(copy.correlations.method, {
-    count: kept, raw: raw.toLocaleString(),
-    binMagnitude: BIN_MAGNITUDE, from: FIRST_YEAR,
-  });
 
   const sources = ["USGS ComCat"];
   for (const s of [context.temperature, context.sunspots]) if (s) sources.push(s.source);
