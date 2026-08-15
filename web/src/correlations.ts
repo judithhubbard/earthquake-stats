@@ -2,6 +2,7 @@ import * as Plot from "@observablehq/plot";
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
 import { readTheme, type Theme } from "./chart";
 import { MIN_MAGNITUDE, dayIndex } from "./stats";
+import { copy, fill } from "./copy";
 import {
   FULL_MOON_DAY, chiSquare, lunarBins, monthBins, pearson, weekdayBins,
   type Bin, type Correlation,
@@ -210,28 +211,22 @@ function binVerdict(bins: Bin[]): { verdict: string; note: string } {
   const test = chiSquare(bins);
   const worst = bins.reduce((a, b) =>
     Math.abs(b.deviation) > Math.abs(a.deviation) ? b : a);
-  const biggest = `${worst.full} is furthest from average, by ` +
-    `${Math.abs(worst.deviation).toFixed(1)}%.`;
+  const biggest = fill(copy.correlations.biggestGap,
+    { bin: worst.full, percent: Math.abs(worst.deviation).toFixed(1) });
 
-  if (test.statistic <= test.critical) {
-    return { verdict: "No.", note: `${biggest} That is inside the grey, so it is just luck.` };
-  }
-  return {
-    verdict: "Not really.",
-    note: `${biggest} The bars wobble a little more than luck usually gives. Worth a second ` +
-          "look, but it proves nothing by itself.",
-  };
+  return test.statistic <= test.critical
+    ? { verdict: copy.correlations.verdictNo, note: `${biggest} ${copy.correlations.insideGrey}` }
+    : { verdict: copy.correlations.verdictNotReally, note: `${biggest} ${copy.correlations.outsideGrey}` };
 }
 
 function scatterVerdict(c: Correlation | null, driver: string): { verdict: string; note: string } {
   if (!c) return { verdict: "Not enough data.", note: "" };
-  const strength = `If there were a link, the dots would line up. Over ${c.n} years they ` +
-    `score ${c.r.toFixed(2)}, and anything under ${c.critical.toFixed(2)} counts as no link.`;
+  const strength = fill(copy.correlations.scatterStrength,
+    { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2) });
   return c.significant
-    ? { verdict: "Maybe, but only just.",
-        note: `${strength} With this few years, treat it as a hint, not an answer.` }
-    : { verdict: "No.",
-        note: `${strength} Years with more ${driver} get no more earthquakes than quiet ones.` };
+    ? { verdict: copy.correlations.verdictMaybe, note: `${strength} ${copy.correlations.scatterHint}` }
+    : { verdict: copy.correlations.verdictNo,
+        note: `${strength} ${fill(copy.correlations.scatterNull, { driver })}` };
 }
 
 /* ---------------- build ---------------- */
@@ -277,7 +272,7 @@ async function boot() {
     meta = m;
     context = res.ok ? await res.json() : {};
   } catch (err) {
-    el.answer.textContent = "Could not load the data.";
+    el.answer.textContent = copy.correlations.errorLoad;
     el.answerDetail.textContent = (err as Error).message;
     return;
   }
@@ -292,43 +287,33 @@ async function boot() {
   const lastComplete = dayIndex(Date.now()).year - 1;
   const yearly = annualCounts(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
 
-  el.answer.innerHTML = "<strong>No.</strong>";
-  el.answerDetail.textContent =
-    `Each one checked against ${times.length.toLocaleString()} earthquakes since ${FIRST_YEAR}.`;
+  el.answer.innerHTML = copy.correlations.answer;
+  el.answerDetail.textContent = fill(copy.correlations.detail,
+    { count: times.length.toLocaleString(), from: FIRST_YEAR });
 
-  el.guide.innerHTML =
-    "<strong>How to read these.</strong> Flip a coin ten times and you rarely get exactly " +
-    "five heads. Earthquakes are the same. Even when nothing is going on, some months come " +
-    "out busier than others. The grey band shows how much of that to expect. A bar inside " +
-    "the grey means nothing is happening. A bar that sticks out is worth a look.";
+  el.guide.innerHTML = copy.correlations.guide;
 
   const legend: LegendKey[] = [
-    { color: theme.band, label: "Range expected from chance alone", band: true },
-    { color: theme.up, label: "More earthquakes than average" },
-    { color: theme.down, label: "Fewer than average" },
+    { color: theme.band, label: copy.correlations.legendBand, band: true },
+    { color: theme.up, label: copy.correlations.legendAbove },
+    { color: theme.down, label: copy.correlations.legendBelow },
   ];
-  const since = `Magnitude ${BIN_MAGNITUDE} and up, since ${FIRST_YEAR}`;
+  const since = fill(copy.correlations.subtitleSince,
+    { threshold: BIN_MAGNITUDE, from: FIRST_YEAR });
 
   const built: HTMLElement[] = [];
 
-  const weekday = weekdayBins(times);
-  built.push(panel("Do earthquakes prefer a day of the week?",
-    binVerdict(weekday).verdict,
-    `${binVerdict(weekday).note} Start here. A fault cannot know it is Tuesday, so this ` +
-    "panel shows what nothing looks like. Every other panel is judged against it.",
-    (w) => binChart(weekday, w), undefined, `Day of the week · ${since}`, legend));
+  built.push(panel(copy.correlations.weekdayQuestion,
+    binVerdict(weekdayBins(times)).verdict,
+    `${binVerdict(weekdayBins(times)).note} ${copy.correlations.weekdayExplain}`,
+    (w) => binChart(weekdayBins(times), w), undefined,
+    fill(copy.correlations.weekdaySubtitle, { since }), legend));
 
-  const month = monthBins(times);
-  built.push(panel("Do earthquakes have a season? Is there such a thing as earthquake weather?",
-    binVerdict(month).verdict,
-    `${binVerdict(month).note} Months are counted per day, because February is short.` +
-    "\n\nWhat about real weather, the hot still days people remember? Checking that properly " +
-    "would mean looking up the weather above every earthquake, a much bigger job than anything " +
-    "here. But two things already point the same way. Weather follows the seasons, and the " +
-    "seasons show nothing. And earthquakes start ten kilometres underground. A big storm " +
-    "presses on the ground about as hard as the moon does, and the moon, in the next panel, " +
-    "does almost nothing.",
-    (w) => binChart(month, w), undefined, `Month of the year · ${since}`, legend));
+  built.push(panel(copy.correlations.monthQuestion,
+    binVerdict(monthBins(times)).verdict,
+    `${binVerdict(monthBins(times)).note} ${copy.correlations.monthExplain}`,
+    (w) => binChart(monthBins(times), w), undefined,
+    fill(copy.correlations.monthSubtitle, { since }), legend));
 
   // We do not claim the small spring/neap excess this data seems to show. The
   // three magnitude thresholds that appeared to agree are nested samples, so
@@ -336,45 +321,35 @@ async function boot() {
   // contaminated of them clears significance; and the directional test was
   // picked after an eight-bin version came out messy. At daily resolution the
   // predicted two humps are simply absent, which is the honest answer.
-  built.push(panel("Does the moon set off earthquakes?",
-    "No.",
-    "If the moon set off earthquakes you would see two humps here — one at new moon and one " +
-    "at full, when the sun and moon line up and pull together hardest. There are no humps. " +
-    "Every bar sits inside the grey." +
-    "\n\nThat does not prove the moon does nothing at all. Careful studies find a small effect " +
-    "on some faults, a percent or two, mostly where ocean tides press on the seafloor. This " +
-    "chart is not sensitive enough to see something that small — and neither is anything else " +
-    "you could use to plan your day.",
+  built.push(panel(copy.correlations.moonQuestion, copy.correlations.moonVerdict, copy.correlations.moonExplain,
     (w) => binChart(lunarBins(times), w, {
       ticks: ["1", "5", "10", "15", "20", "25", "30"],
-      markers: [{ at: "1", label: "new moon" },
-                { at: String(FULL_MOON_DAY), label: "full moon" }],
+      markers: [{ at: "1", label: copy.correlations.moonNewMoon },
+                { at: String(FULL_MOON_DAY), label: copy.correlations.moonFullMoon }],
     }),
-    { label: "But can the moon predict earthquakes? We looked at 79 of the biggest",
-      url: TIDES_ARTICLE },
-    `Day of the lunar cycle · ${since}`, legend));
+    { label: copy.correlations.moonLink, url: TIDES_ARTICLE },
+    fill(copy.correlations.moonSubtitle, { since }), legend));
 
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
-    const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    const v = scatterVerdict(c, "warming");
-    built.push(panel("Is climate change causing earthquakes?", v.verdict,
-      `${v.note} When ice melts or groundwater drains away, the weight pressing on the crust ` +
-      "changes, and in a few places that has been tied to small earthquakes. But it is slow " +
-      "and local, and it never shows up in the world total.",
-      (w) => scatterChart(points, w, "Global temperature (°C above 1951–1980)", "M6+ earthquakes"),
-      undefined, `Each dot is one year, ${FIRST_YEAR} onward`));
+    const v = scatterVerdict(pearson(points.map((p) => p.x), points.map((p) => p.y)),
+                             copy.correlations.climateDriver);
+    built.push(panel(copy.correlations.climateQuestion, v.verdict,
+      `${v.note} ${copy.correlations.climateExplain}`,
+      (w) => scatterChart(points, w, copy.correlations.climateAxis,
+                          fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
+      undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR })));
   }
 
   if (context.sunspots) {
     const points = seriesPoints(context.sunspots, yearly);
-    const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    const v = scatterVerdict(c, "solar activity");
-    built.push(panel("Does solar activity trigger earthquakes?", v.verdict,
-      `${v.note} The sun runs on a clear 11-year cycle, which makes it a tempting thing to ` +
-      "line earthquakes up against. They do not line up.",
-      (w) => scatterChart(points, w, "Sunspot number", "M6+ earthquakes"),
-      undefined, `Each dot is one year, ${FIRST_YEAR} onward`));
+    const v = scatterVerdict(pearson(points.map((p) => p.x), points.map((p) => p.y)),
+                             copy.correlations.solarDriver);
+    built.push(panel(copy.correlations.solarQuestion, v.verdict,
+      `${v.note} ${copy.correlations.solarExplain}`,
+      (w) => scatterChart(points, w, copy.correlations.solarAxis,
+                          fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
+      undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR })));
   }
 
   if (context.oklahoma) {
@@ -386,27 +361,17 @@ async function boot() {
     const rate = background.reduce((a, b) => a + b.count, 0) / Math.max(1, background.length);
     const peak = rows.reduce((a, b) => (b.count > a.count ? b : a), rows[0]);
 
-    built.push(panel("Can people cause earthquakes?",
-      "Yes — and this is what a real effect looks like.",
-      `Oklahoma used to get about ${rate.toFixed(0)} earthquakes of magnitude 3 or more a ` +
-      `year. In ${peak.year} it got ${peak.count.toLocaleString()}. The cause was wastewater ` +
-      "from oil and gas drilling, pumped back down into the ground. That raised the pressure " +
-      "on faults that were already close to slipping. When the state limited the pumping, the " +
-      "earthquakes died away again." +
-      "\n\nCan you tell whether one particular earthquake was our doing? Usually not from the " +
-      "earthquake itself — a man-made magnitude 4 shakes the ground just like a natural one. " +
-      "You tell from the pattern. A quiet place suddenly gets hundreds. They sit right next " +
-      "to the wells. They start when the pumping starts, and fade when it stops. Any one of " +
-      "them could be a coincidence. All of them together cannot be." +
-      "\n\nNow look back at the panels above. Same method, same data. Here it finds something " +
-      "enormous. There it finds nothing.",
+    built.push(panel(copy.correlations.oklahomaQuestion, copy.correlations.oklahomaVerdict,
+      fill(copy.correlations.oklahomaExplain, {
+        rate: rate.toFixed(0), peakYear: peak.year, peak: peak.count.toLocaleString(),
+      }),
       (w) => Plot.plot({
         width: w,
         height: Math.max(210, Math.min(270, w * 0.31)),
         marginLeft: 56, marginRight: 14, marginBottom: 38, marginTop: 12,
         style: { background: "transparent", color: theme.text, fontSize: "12px" },
         x: { label: null, tickFormat: "d", interval: 1, ticks: 8, tickSize: 0, tickPadding: 8 },
-        y: { label: "Earthquakes per year", labelAnchor: "center", labelOffset: 46,
+        y: { label: copy.correlations.oklahomaAxis, labelAnchor: "center", labelOffset: 46,
              grid: true, zero: true },
         color: { type: "identity" },
         marks: [
@@ -424,27 +389,22 @@ async function boot() {
           })),
         ],
       }),
-      undefined,
-      "Earthquakes of magnitude 3 or more in Oklahoma, each year",
-      [{ color: theme.up, label: "Earthquakes that year" },
-       { color: theme.muted, label: `Normal rate before 2009 — about ${rate.toFixed(0)} a year` }]));
+      undefined, copy.correlations.oklahomaSubtitle,
+      [{ color: theme.up, label: copy.correlations.oklahomaLegendBars },
+       { color: theme.muted, label: fill(copy.correlations.oklahomaLegendRate, { rate: rate.toFixed(0) }) }]));
   }
 
   el.panels.replaceChildren(...built);
   for (const fn of redraw) fn();
 
-  el.method.textContent =
-    "Aftershocks are left out of every panel here, on purpose. An earthquake " +
-    "predicts other earthquakes better than anything else we know of: leave the aftershocks " +
-    "in and one big rupture and its hundreds of followers would swamp every chart on the " +
-    "page. Stripping them out is what makes it possible to look for anything smaller." +
-    `\n\nThe first three panels use ${times.length.toLocaleString()} earthquakes of magnitude ` +
-    `5 and up since ${FIRST_YEAR}. The last two compare whole years, so they use magnitude 6 ` +
-    "and up, where the counts can be trusted from one decade to the next.";
+  el.method.textContent = fill(copy.correlations.method, {
+    count: times.length.toLocaleString(), binMagnitude: BIN_MAGNITUDE,
+    from: FIRST_YEAR, yearMagnitude: MIN_MAGNITUDE,
+  });
 
   const sources = ["USGS ComCat"];
   for (const s of [context.temperature, context.sunspots]) if (s) sources.push(s.source);
-  el.sources.textContent = `Data: ${sources.join("; ")}.`;
+  el.sources.textContent = fill(copy.correlations.sources, { list: sources.join("; ") });
 }
 
 let resizeTimer: number | undefined;

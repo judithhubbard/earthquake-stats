@@ -236,6 +236,27 @@ panel shows a "Read our analysis" link for any event listed there. It is
 hand-maintained and **not** written by the pipeline, so entries survive a
 rebuild; it ships empty.
 
+## Editing the text
+
+**Almost every word the site says lives in `web/src/copy.ts`.** Change the text
+between the quote marks and that is the whole job:
+
+```ts
+answerAverage: "<strong>No.</strong> {year} is running about average.",
+```
+
+Things in `{curly braces}` are filled in with live numbers when the page loads.
+Keep them spelled as they are; you can move one around inside a sentence, use it
+twice, or drop one you do not want. `<strong>…</strong>` makes text bold.
+
+The one exception is the prose block on the front page — the headline, and the
+"Then why does it feel like there are more?" section — which is plain HTML in
+`web/index.html`, because it is a page of writing rather than labels wrapped
+around numbers.
+
+After editing: `cd web && npm run build`, or just commit and push, since the site
+rebuilds on every push.
+
 ## Things that will bite you
 
 **Revisions, not new events, are the hard part.** Magnitudes get revised for weeks

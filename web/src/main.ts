@@ -5,6 +5,7 @@ import {
   empiricalBand, equivalentMagnitude, verdict, type Measure, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
+import { copy, fill } from "./copy";
 
 /**
  * First year of the reference window, and the earliest year shown anywhere.
@@ -182,9 +183,11 @@ function buildYearPicker(years: number[], theme: ReturnType<typeof readTheme>) {
   const atCap = state.highlights.size >= MAX_HIGHLIGHTS;
 
   el.yearSummary.textContent = selected.length === 0
-    ? "None"
-    : selected.length <= 3 ? selected.join(", ") : `${selected.length} years`;
-  el.yearCount.textContent = `${selected.length} of ${MAX_HIGHLIGHTS}`;
+    ? copy.home.yearsNone
+    : selected.length <= 3 ? selected.join(", ")
+    : fill(copy.home.yearsSome, { n: selected.length });
+  el.yearCount.textContent = fill(copy.home.yearsCount,
+    { n: selected.length, max: MAX_HIGHLIGHTS });
   el.yearClear.disabled = selected.length === 0;
 
   // Keep a selected year's row even if it has no events, so it can be unchecked
@@ -384,7 +387,7 @@ function highlightedEvents(tier: Tier, minMag: number,
 function buildMapLegend(highlights: Highlight[]) {
   el.mapLegend.replaceChildren();
   if (highlights.length === 0) {
-    el.mapLegend.textContent = "Select a year to plot its earthquakes.";
+    el.mapLegend.textContent = copy.home.mapEmpty;
     return;
   }
   for (const { year, color } of highlights) {
@@ -437,7 +440,7 @@ async function updateLargest(listYear: number) {
   const info = store.detailTierFor(MIN_MAGNITUDE);
   if (!info) {
     el.largestList.replaceChildren();
-    el.largestNote.textContent = "No event details available at this magnitude.";
+    el.largestNote.textContent = copy.home.largestNoDetail;
     return;
   }
 
@@ -446,7 +449,7 @@ async function updateLargest(listYear: number) {
   try {
     [tier, detail] = await Promise.all([store.load(info.threshold), store.loadDetail(info)]);
   } catch {
-    el.largestNote.textContent = "Could not load event details.";
+    el.largestNote.textContent = copy.home.largestFailed;
     return;
   }
 
@@ -509,23 +512,21 @@ async function updateLargest(listYear: number) {
       analysis.target = "_blank";
       analysis.rel = "noopener noreferrer";
       analysis.className = "largest-post";
-      analysis.textContent = "Read our analysis →";
+      analysis.textContent = copy.home.readAnalysis;
       item.append(analysis);
     }
     el.largestList.append(item);
   }
 
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
+  const threshold = `M${info.threshold}+`;
   if (shown.length === 0) {
-    el.largestNote.textContent =
-      `No M${info.threshold}+ ${kind} recorded in ${listYear}.`;
+    el.largestNote.textContent = fill(copy.home.largestEmpty, { threshold, kind, year: listYear });
     return;
   }
-
-  const parts = [`${rows.length} M${info.threshold}+ ${kind}`];
-  if (rows.length > shown.length) parts.push(`— showing the first ${shown.length}`);
-  parts.push("· each links to its USGS event page.");
-  el.largestNote.textContent = parts.join(" ");
+  el.largestNote.textContent = fill(
+    rows.length > shown.length ? copy.home.largestTruncated : copy.home.largestNote,
+    { n: rows.length, threshold, kind, shown: shown.length });
 }
 
 /* ---------------- render ---------------- */
@@ -539,7 +540,8 @@ async function update() {
   try {
     tier = await store.load(minMag);
   } catch (err) {
-    el.chart.replaceChildren(errorBox(`Could not load the catalog: ${(err as Error).message}`));
+    el.chart.replaceChildren(errorBox(fill(copy.home.errorCatalog,
+      { message: (err as Error).message })));
     return;
   }
 
@@ -558,8 +560,8 @@ async function update() {
   const counts = annualCounts(curves, majorCurves, currentYear, today, refYears);
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const subject = state.measure === "moment"
-    ? `moment release from ${magLabel(minMag)} earthquakes`
-    : `${magLabel(minMag)} ${kind}`;
+    ? fill(copy.home.cumulativeSubjectMoment, { threshold: magLabel(minMag) })
+    : fill(copy.home.cumulativeSubjectCount, { threshold: magLabel(minMag), kind });
 
   writeHeadline(result, currentYear);
   writeNote(refYears.length, liveAdded);
@@ -568,20 +570,19 @@ async function update() {
   buildListYears(curves.years, currentYear);
   void updateLargest(state.listYear ?? currentYear);
 
-  el.chartTitle.textContent =
-    `Cumulative ${subject} worldwide — against ${REFERENCE_START}–${currentYear - 1}`;
+  el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
+    subject, from: REFERENCE_START, to: currentYear - 1,
+  });
   el.annualTitle.textContent = state.measure === "moment"
-    ? "Moment released per year, worldwide"
-    : `${magLabel(minMag)} ${kind} per year, worldwide`;
+    ? copy.home.annualTitleMoment
+    : fill(copy.home.annualTitleCount, { threshold: magLabel(minMag), kind });
 
   lastRender = () => {
     const theme = readTheme(document.body);
     buildYearPicker(curves.years, theme);
 
     if (band.length === 0 || refYears.length === 0) {
-      el.chart.replaceChildren(errorBox(
-        "Not enough history yet to draw a reference range.",
-      ));
+      el.chart.replaceChildren(errorBox(copy.home.errorNoHistory));
       return;
     }
 
@@ -598,8 +599,8 @@ async function update() {
     const figure = renderChart({
       curves, band, refYears, highlights, today, theme, width,
       yLabel: state.measure === "moment"
-        ? "Moment this year (×10²⁰ N·m)"
-        : `${magLabel(minMag)} events this year`,
+        ? copy.home.axisCumulativeMoment
+        : fill(copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),
     });
     el.chart.replaceChildren(figure);
     figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
@@ -607,13 +608,13 @@ async function update() {
     el.annualChart.replaceChildren(renderAnnualChart({
       counts, highlights, refYears, theme, width,
       yLabel: state.measure === "moment"
-        ? "Moment per year (×10²⁰ N·m)"
-        : `${magLabel(minMag)} events per year`,
+        ? copy.home.axisAnnualMoment
+        : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
     }));
 
     const mapEvents = highlightedEvents(tier, minMag, highlights);
     buildMapLegend(highlights);
-    el.mapTitle.textContent = `${magLabel(minMag)} earthquakes, selected years`;
+    el.mapTitle.textContent = fill(copy.home.mapTitle, { threshold: magLabel(minMag) });
 
     if (land) {
       el.map.replaceChildren(renderMap({ land, events: mapEvents, theme, width }));
@@ -626,17 +627,27 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
                      from: number, to: number): HTMLElement {
   const wrap = document.createElement("p");
   wrap.className = "legend";
-  const entries: [string, string, boolean][] = [
-    ...highlights.map((h) => [h.color, String(h.year), false] as [string, string, boolean]),
-    [theme.history, `Other years, ${from}–${to}`, false],
-    [theme.median, "Reference median", false],
-    [theme.band, `Middle 90% of ${from}–${to}`, true],
+  // Each swatch is drawn in the style of the mark it stands for. Flat bars for
+  // everything made the reference median -- a thin dashed line on the chart --
+  // look identical to a highlighted year's solid accent, and identical again to
+  // the faint past years, which share its colour.
+  type Kind = "accent" | "faint" | "dashed" | "band";
+  const entries: { color: string; label: string; kind: Kind }[] = [
+    ...highlights.map((h) => ({ color: h.color, label: String(h.year), kind: "accent" as Kind })),
+    { color: theme.history, label: fill(copy.home.legendOtherYears, { from, to }), kind: "faint" },
+    { color: theme.median, label: copy.home.legendMedian, kind: "dashed" },
+    { color: theme.band, label: fill(copy.home.legendBand, { from, to }), kind: "band" },
   ];
-  for (const [color, label, isBand] of entries) {
+  for (const { color, label, kind } of entries) {
     const span = document.createElement("span");
     const swatch = document.createElement("i");
-    swatch.style.background = color;
-    if (isBand) swatch.className = "swatch-band";
+    swatch.className = `swatch-${kind}`;
+    if (kind === "dashed") {
+      swatch.style.backgroundImage =
+        `repeating-linear-gradient(to right, ${color} 0 4px, transparent 4px 7px)`;
+    } else {
+      swatch.style.background = color;
+    }
     span.append(swatch, document.createTextNode(label));
     wrap.append(span);
   }
@@ -654,62 +665,47 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
   const moment = state.measure === "moment";
 
   if (!result || result.count === 0) {
-    el.answer.innerHTML = "<strong>No.</strong>";
+    el.answer.innerHTML = copy.home.answerNothingYet;
     el.answerDetail.textContent = moment
-      ? `No moment released worldwide yet in ${currentYear}.`
-      : `No ${magLabel(MIN_MAGNITUDE)} ${kind} recorded worldwide yet in ${currentYear}.`;
+      ? fill(copy.home.detailNoneMoment, { year: currentYear })
+      : fill(copy.home.detailNoneCount,
+             { threshold: magLabel(MIN_MAGNITUDE), kind, year: currentYear });
     return;
   }
 
   const pct = result.percentile * 100;
 
-  if (pct > 95) {
-    el.answer.innerHTML =
-      `<strong>Yes.</strong> ${currentYear} is ahead of almost every year since ${REFERENCE_START}.`;
-  } else if (pct < 5) {
-    el.answer.innerHTML =
-      `<strong>No — less.</strong> ${currentYear} is quieter than almost every year since ${REFERENCE_START}.`;
-  } else if (pct >= 75) {
-    el.answer.innerHTML = `<strong>No.</strong> ${currentYear} is busy, but not unusually so.`;
-  } else if (pct <= 25) {
-    el.answer.innerHTML = `<strong>No.</strong> ${currentYear} is running on the quiet side.`;
-  } else {
-    el.answer.innerHTML = `<strong>No.</strong> ${currentYear} is running about average.`;
-  }
+  const answer = pct > 95 ? copy.home.answerBusiest
+    : pct < 5 ? copy.home.answerQuietest
+    : pct >= 75 ? copy.home.answerBusy
+    : pct <= 25 ? copy.home.answerQuiet
+    : copy.home.answerAverage;
+  el.answer.innerHTML = fill(answer, { year: currentYear, from: REFERENCE_START });
 
+  const shared = { from: REFERENCE_START, to: currentYear - 1, percentile: ordinal(pct) };
   el.answerDetail.textContent = moment
-    ? `${withUnit(result.count)} released worldwide so far — as much as a single ` +
-      `M${equivalentMagnitude(result.count).toFixed(1)} earthquake — against a median of ` +
-      `${withUnit(result.medianToDate)} for this date. The ${ordinal(pct)} percentile of ` +
-      `${REFERENCE_START}–${currentYear - 1}.`
-    : `${fmt(result.count)} ${magLabel(MIN_MAGNITUDE)} ${kind} worldwide so far, against a ` +
-      `median of ${fmt(result.medianToDate)} for this date — the ${ordinal(pct)} percentile of ` +
-      `${REFERENCE_START}–${currentYear - 1}.`;
+    ? fill(copy.home.detailMoment, {
+        ...shared, count: withUnit(result.count),
+        equivalent: equivalentMagnitude(result.count).toFixed(1),
+        median: withUnit(result.medianToDate),
+      })
+    : fill(copy.home.detailCount, {
+        ...shared, count: fmt(result.count), threshold: magLabel(MIN_MAGNITUDE), kind,
+        median: fmt(result.medianToDate),
+      });
 }
 
 function writeNote(refCount: number, liveAdded: number) {
-  const notes: string[] = [
-    `Each faint line is a past year. The shaded band covers the middle 90% of ${refCount} of them, ` +
-    "so a year inside the band is an ordinary year.",
-  ];
+  const notes: string[] = [fill(copy.home.noteBand, { years: refCount })];
 
-  if (state.measure === "moment") {
-    notes.push(
-      "Moment measures how much the ground moved, not how often. One great earthquake can " +
-      "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
-    );
-  }
+  if (state.measure === "moment") notes.push(copy.home.noteMoment);
 
   if (effectiveMainshocksOnly()) {
-    notes.push(
-      "Aftershocks have been removed, so each earthquake sequence counts once. Deciding which " +
-      "events belong to a sequence is a judgement call, and different choices give different counts.",
-    );
+    notes.push(copy.home.noteMainshocks);
     if (liveAdded > 0) {
-      notes.push(
-        `${liveAdded} event${liveAdded === 1 ? "" : "s"} from the last day ` +
-        `${liveAdded === 1 ? "is" : "are"} too recent to have been sorted, and counted as separate.`,
-      );
+      notes.push(fill(copy.home.noteLiveUnclassified, {
+        n: liveAdded, s: liveAdded === 1 ? "" : "s", is: liveAdded === 1 ? "is" : "are",
+      }));
     }
   }
 
@@ -724,10 +720,9 @@ function writeNote(refCount: number, liveAdded: number) {
  * seismicity, and it would read as a finding.
  */
 function writeAnnualNote(currentYear: number) {
-  el.annualNote.textContent =
-    `The darker part of each bar is the ${magLabel(MAJOR_MAGNITUDE)} share. ` +
-    `${currentYear} is still going: the solid bar is the year so far, and the dashed outline is ` +
-    "where it lands at the usual pace.";
+  el.annualNote.textContent = fill(copy.home.noteAnnual, {
+    major: magLabel(MAJOR_MAGNITUDE), year: currentYear,
+  });
 }
 
 function errorBox(message: string): HTMLElement {
@@ -752,9 +747,8 @@ async function boot() {
     meta = await loadMeta();
   } catch (err) {
     el.answer.textContent = "Could not load the catalogue.";
-    el.answerDetail.textContent =
-      `${(err as Error).message}. Run the pipeline first: python3 pipeline/fetch.py --backfill && ` +
-      "python3 pipeline/decluster.py && python3 pipeline/build.py";
+    el.answerDetail.textContent = fill(copy.home.errorBoot,
+      { message: (err as Error).message });
     return;
   }
 
@@ -769,9 +763,8 @@ async function boot() {
     if (control) control.hidden = true;
   }
 
-  el.generated.textContent =
-    `Catalogue snapshot built ${new Date(meta.generated).toUTCString()}; ` +
-    "live events appended from the USGS one-day feed.";
+  el.generated.textContent = fill(copy.home.generated,
+    { when: new Date(meta.generated).toUTCString() });
 
   const newest = Math.max(...meta.tiers.map((t) => t.lastTime ?? 0));
   await Promise.all([pollLive(newest), loadPosts()]);
@@ -779,7 +772,7 @@ async function boot() {
 
   // Coastlines arrive after the first paint; the charts do not wait on them.
   loadLand().then((geo) => { land = geo; lastRender?.(); })
-    .catch(() => { el.mapLegend.textContent = "Could not load the basemap."; });
+    .catch(() => { el.mapLegend.textContent = copy.home.errorBasemap; });
 
   window.setInterval(async () => {
     await pollLive(newest);
