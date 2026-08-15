@@ -53,7 +53,6 @@ python3 pipeline/magnitudes.py         # ~25 min, once — see "Homogenising mag
 python3 pipeline/decluster.py          # ~40 s over the full catalogue
 python3 pipeline/build.py
 python3 pipeline/context.py            # temperature, sunspots, Oklahoma
-python3 pipeline/sequences.py          # aftershock stack, Omori decay, examples
 cd web && npm install && npm run dev
 ```
 
@@ -65,7 +64,6 @@ python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
 python3 pipeline/decluster.py
 python3 pipeline/build.py
 python3 pipeline/context.py
-python3 pipeline/sequences.py
 ```
 
 Moment tensors arrive within days to weeks of an event, so recent years keep
@@ -287,39 +285,16 @@ roughly a tenth. This is a second reason no trend line is drawn.
 projections, magnitude tiers) deleted working, tested code with no way back.
 `git init` before the next round of changes.
 
-## The aftershocks page
+## The aftershocks page (disabled)
 
-`/aftershocks.html` answers "can earthquakes cause earthquakes?" — the one
-correlation on this site that is overwhelming, and the counterweight to a
-front page whose answer is always "no".
+`/aftershocks.html` — "can earthquakes cause earthquakes?" — is built but **not
+published**: it has no entry in `vite.config.ts` and nothing links to it, so it
+is absent from `dist/` and 404s on the live site.
 
-`pipeline/sequences.py` measures three things:
-
-**The stack.** Every M7+ mainshock laid on top of every other, aligned on the
-moment it struck, counting M5+ events within 300 km day by day. One sequence is
-an anecdote; 632 stacked is a law. Background is one earthquake per three weeks;
-the day itself is 7.5 — about 150×. Drawn on a log vertical scale, because on a
-linear one the day-of spike is the entire chart and the two interesting features
-— the rise beforehand and the long tail after — are flat against the axis.
-
-**The decay.** The same events in log-spaced bins, where Omori's 1/t appears as
-a straight line. Fitted, **p = 0.81** against the 1.0 of a perfect one-over-time.
-
-**Two sequences by name.** Tōhoku 2011 had 31 M5+ events within 150 km in the
-preceding 30 days; Sumatra 2004 had none. Two of the largest earthquakes ever
-recorded, one that announced itself and one that did not.
-
-The foreshock fraction is threshold-dependent and the page says so. Of M5+
-events, within 3 days and 100 km:
-
-| followed by an event at least… | share |
-|---|---:|
-| any amount larger | 15.2% |
-| **0.5 larger** | **8.3%** |
-| 1.0 larger | 3.5% |
-
-The page quotes 8.3%, which is what lands in the usually-cited 5–10% range.
-Quoting the 15.2% would have been true and misleading.
+Everything needed to revive it is still here: `web/aftershocks.html`,
+`web/src/aftershocks.ts`, the `aftershocks` block in `web/src/copy.ts`, and
+`pipeline/sequences.py`. Add the entry back to `vite.config.ts` and re-add a
+link to switch it on.
 
 ## The correlations page
 
