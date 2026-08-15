@@ -644,13 +644,22 @@ async function update() {
       .sort((a, b) => a[1] - b[1])
       .map(([year, slot]) => ({
         year,
+        label: yearLabel(year),
         color: theme.series[slot % theme.series.length],
         through: year === currentYear ? today : DAYS - 1,
       }));
 
+    // Day 0 of the window is 1 January only in the calendar view; the rolling
+    // view starts it on today's date, so the axis has to be told.
+    const dayToDate = (day: number) => {
+      const start = Date.UTC(currentYear, 0, 1) + shift;
+      const end = Date.UTC(currentYear + 1, 0, 1) + shift;
+      return new Date(start + (day / DAYS) * (end - start));
+    };
+
     const width = Math.max(320, el.chart.clientWidth || 800);
     const figure = renderChart({
-      curves, band, refYears, highlights, today, theme, width,
+      curves, band, refYears, highlights, today, theme, width, dayToDate,
       yLabel: state.measure === "moment"
         ? copy.home.axisCumulativeMoment
         : fill(copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),

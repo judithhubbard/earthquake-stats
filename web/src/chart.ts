@@ -7,9 +7,7 @@
  */
 
 import * as Plot from "@observablehq/plot";
-import {
-  DAYS, dayIndexToDate, type AnnualCount, type BandPoint, type YearCurves,
-} from "./stats";
+import { DAYS, type AnnualCount, type BandPoint, type YearCurves } from "./stats";
 
 export interface Theme {
   surface: string;
@@ -50,19 +48,36 @@ export function readTheme(el: HTMLElement): Theme {
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-function monthTicks(): number[] {
-  const start = Date.UTC(2001, 0, 1);
-  const span = Date.UTC(2002, 0, 1) - start;
-  return MONTHS.map((_, m) => Math.round(((Date.UTC(2001, m, 1) - start) / span) * DAYS));
+/**
+ * Where each month begins along the axis.
+ *
+ * Day 0 is not necessarily 1 January: the rolling view starts the window on
+ * today's date, so the months arrive in a different order and at different
+ * offsets. Walking the axis and marking where the month changes gets this right
+ * for any window start, which hard-coded January offsets did not.
+ */
+function monthTicks(dayToDate: (day: number) => Date): number[] {
+  const ticks: number[] = [];
+  let previous = -1;
+  for (let day = 0; day < DAYS; day++) {
+    const month = dayToDate(day).getUTCMonth();
+    if (month !== previous) {
+      ticks.push(day);
+      previous = month;
+    }
+  }
+  return ticks;
 }
 
-function formatDay(day: number): string {
-  const date = dayIndexToDate(day);
+function formatDay(day: number, dayToDate: (day: number) => Date): string {
+  const date = dayToDate(day);
   return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
 export interface Highlight {
   year: number;
+  /** What to print at the end of the line: "2026", or "2025–26" when rolling. */
+  label: string;
   color: string;
   /** Last day index to draw; the current year stops at today. */
   through: number;
@@ -79,12 +94,14 @@ export interface ChartOptions {
   yLabel: string;
   /** Suppress half-step tick labels; counts have no halves. */
   wholeNumbers?: boolean;
+  /** Real date for a day index, which the rolling window shifts. */
+  dayToDate: (day: number) => Date;
 }
 
-interface EndPoint { day: number; value: number; year: number; color: string; }
+interface EndPoint { day: number; value: number; label: string; color: string; }
 
 export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
-  const { curves, band, refYears, highlights, today, theme, width } = opts;
+  const { curves, band, refYears, highlights, today, theme, width, dayToDate } = opts;
 
   const highlighted = new Set(highlights.map((h) => h.year));
   const history: { day: number; value: number; year: number }[] = [];
@@ -101,7 +118,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     if (!curve) continue;
     const last = Math.min(h.through, DAYS - 1);
     for (let d = 0; d <= last; d++) lines.push({ day: d, value: curve[d], year: h.year });
-    ends.push({ day: last, value: curve[last], year: h.year, color: h.color });
+    ends.push({ day: last, value: curve[last], label: h.label, color: h.color });
   }
 
   const colorFor = new Map(highlights.map((h) => [h.year, h.color]));
@@ -151,7 +168,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     }),
     Plot.text(ends, {
       x: "day", y: "value",
-      text: (d: EndPoint) => String(d.year),
+      text: (d: EndPoint) => d.label,
       dx: 9, dy: -9, textAnchor: "start",
       fill: theme.text, fontWeight: 650, fontSize: 12.5,
     }),
@@ -166,7 +183,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       fill: theme.surface, stroke: theme.axis, textPadding: 7, fontSize: 11,
       anchor: "bottom",
       title: (d: { year: number; value: number; day: number }) =>
-        `${d.year}\n${d.value.toLocaleString()} by ${formatDay(d.day)}`,
+        `${d.year}\n${d.value.toLocaleString()} by ${formatDay(d.day, dayToDate)}`,
     })),
   );
 
@@ -179,7 +196,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
         x: "day", y: "value",
         fill: theme.surface, stroke: theme.axis, textPadding: 10,
         title: (d: Record<string, number>) => {
-          const rows = [formatDay(d.day)];
+          const rows = [formatDay(d.day, dayToDate)];
           for (const h of highlights) {
             const value = d[`y${h.year}`];
             if (Number.isFinite(value)) rows.push(`${h.year}:  ${value.toLocaleString()}`);
@@ -202,8 +219,8 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     style: { background: "transparent", color: theme.text, fontSize: "12px" },
     x: {
       domain: [0, DAYS - 1],
-      ticks: monthTicks(),
-      tickFormat: (d: number) => MONTHS[dayIndexToDate(d).getUTCMonth()],
+      ticks: monthTicks(dayToDate),
+      tickFormat: (d: number) => MONTHS[dayToDate(d).getUTCMonth()],
       label: null,
       tickSize: 0,
       tickPadding: 10,
