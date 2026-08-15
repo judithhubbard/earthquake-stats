@@ -123,6 +123,12 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
 
   const colorFor = new Map(highlights.map((h) => [h.year, h.color]));
 
+  // The end-of-line label sits in the right margin. In the rolling view the
+  // line reaches the last day, so the label starts hard against the plot edge --
+  // a margin fitted to "2026" clipped "2025-26". Size it to the labels instead.
+  const longestLabel = Math.max(4, ...highlights.map((h) => h.label.length));
+  const marginRight = Math.ceil(longestLabel * 7.6) + 22;
+
   // Tooltip rows carry every highlighted year at once, so one crosshair explains
   // the whole chart rather than whichever line the pointer happens to be near.
   const primary = highlights[0];
@@ -213,7 +219,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     width,
     height: Math.max(320, Math.min(460, width * 0.5)),
     marginLeft: 70,
-    marginRight: 62,
+    marginRight,
     marginBottom: 34,
     marginTop: 16,
     style: { background: "transparent", color: theme.text, fontSize: "12px" },
