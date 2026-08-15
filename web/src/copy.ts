@@ -276,13 +276,17 @@ export const copy = {
     moonQuestion: "Does the moon set off earthquakes?",
     moonVerdict: "No.",
     moonExplain:
-      "If the moon set off earthquakes you would see two humps here — one at new moon and one " +
-      "at full, when the sun and moon line up and the tidal forces are strongest. There are no " +
-      "humps." +
-      "\n\nThat does not prove the moon does nothing at all. Careful studies find a small " +
-      "effect on a small number of very sensitive faults, mostly in regions with high subsurface fluid pressures. " +
-      "This chart shows that there are no statistical effects at the global scale, for large " +
-      "earthquakes.",
+      "This chart tests the question as it is usually asked: does the count depend on the phase " +
+      "of the moon? If it did, the simplest expectation is two peaks, at new and full moon, when " +
+      "the sun and moon pull together. There are none." +
+      "\n\nThat is not the same as testing tidal stress. The stress a tide places on a fault " +
+      "depends on the fault's orientation and depth, on ocean loading as well as the solid-earth " +
+      "tide, and on whether earthquakes respond to peak stress or to how fast stress is " +
+      "changing. Those calculations are done fault by fault, and averaging over every " +
+      "orientation on Earth, as this chart does, would dilute a real effect. Careful studies do " +
+      "find a small effect on a small number of very sensitive faults, mostly in regions with " +
+      "high subsurface fluid pressures." +
+      "\n\nWe tested the published claims of tidal precursors directly, and they did not hold up.",
     moonSubtitle: "Day of the lunar cycle · {since}",
     moonLink: "But can the moon predict earthquakes? We looked at 79 of the biggest",
     moonNewMoon: "new moon",
@@ -309,17 +313,15 @@ export const copy = {
     oklahomaQuestion: "Can people cause earthquakes?",
     oklahomaVerdict: "Yes, in some specific locations.",
     oklahomaExplain:
-      "Oklahoma used to get about {rate} earthquakes of magnitude 3 or more a year. In {peakYear} " +
-      "it got {peak}. The cause was wastewater from oil and gas drilling, pumped back down into " +
-      "the ground. That raised the pressure on faults that were already close to slipping. When " +
-      "the state limited the pumping, the earthquakes died away again." +
-      "\n\nCan you tell whether one particular earthquake was our doing? Usually not from the " +
-      "earthquake itself — a man-made magnitude 4 shakes the ground just like a natural one. You " +
-      "tell from the pattern. A quiet place suddenly gets hundreds. They sit right next to the " +
-      "wells. They start when the pumping starts, and fade when it stops. Any one of them could " +
-      "be a coincidence. All of them together cannot be." +
-      "\n\nNow look back at the panels above. Same method, same data. Here it finds something " +
-      "enormous. There it finds nothing.",
+      "Oklahoma used to get about {rate} earthquakes of magnitude 3 or more a year. In " +
+      "{peakYear} it got {peak}. The cause was wastewater from oil and gas drilling, pumped back " +
+      "down into the ground. That raised the pressure on faults that were already close to " +
+      "slipping. When the state limited the pumping, the earthquakes died away again." +
+      "\n\nAttribution rarely rests on a single earthquake. An induced magnitude 4 is " +
+      "indistinguishable from a natural one in the seismic record. The case is built on the " +
+      "pattern: the rate rose roughly a hundredfold, the events cluster within a few kilometres " +
+      "of active injection wells, they follow injection volumes in time, and they declined after " +
+      "the state restricted injection in 2015 and 2016.",
     oklahomaSubtitle: "Earthquakes of magnitude 3 or more in Oklahoma, each year",
     oklahomaAxis: "Earthquakes per year",
     oklahomaLegendBars: "Earthquakes that year",
