@@ -10,14 +10,18 @@ import type { Tier } from "./catalog";
 export const DAYS = 365;
 
 /**
- * The site reports one threshold and one reference window, deliberately.
+ * The default threshold, and the one the correlations page always uses.
  *
- * Magnitude, region and reference-period selectors all existed and were removed:
- * each one let a reader wander into a part of the catalogue where completeness
- * changes over time, and every such view needed its own caveat. M6+ globally is
- * the level at which ComCat is complete and comparable across decades.
+ * M6+ globally is the level at which ComCat is complete and comparable across
+ * decades. Region and reference-period selectors were removed for exactly that
+ * reason -- each let a reader wander somewhere the catalogue changes underneath
+ * them -- and the magnitude choice is kept narrow for the same reason: M6 and
+ * M7 are both solid, and nothing below M6 is offered.
  */
 export const MIN_MAGNITUDE = 6;
+
+/** Selectable thresholds. Each needs its own emitted tier; see build.py. */
+export const MAGNITUDES = [6, 7];
 
 /** Threshold whose share of each year is drawn as the darker part of a bar. */
 export const MAJOR_MAGNITUDE = 7;

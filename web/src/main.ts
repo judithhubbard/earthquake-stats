@@ -1,8 +1,8 @@
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
 import { renderAnnualChart, renderChart, readTheme, type Highlight } from "./chart";
 import {
-  DAYS, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear, dayIndex,
-  empiricalBand, equivalentMagnitude, verdict, type Measure, type YearCurves,
+  DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
+  dayIndex, empiricalBand, equivalentMagnitude, verdict, type Measure, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
 import { copy, fill } from "./copy";
@@ -42,6 +42,7 @@ const LIVE_FEED = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all
 const LIVE_INTERVAL_MS = 60_000;
 
 interface State {
+  minMag: number;
   measure: Measure;
   sortMode: (typeof SORT_MODES)[number]["id"];
   /** Year shown in the event list; independent of the highlighted years. */
@@ -53,6 +54,7 @@ interface State {
 }
 
 const state: State = {
+  minMag: MIN_MAGNITUDE,
   measure: "count",
   sortMode: "largest",
   listYear: null,
@@ -83,6 +85,7 @@ const el = {
   answer: document.getElementById("answer")!,
   answerDetail: document.getElementById("answer-detail")!,
   measure: document.getElementById("measure-control")!,
+  mag: document.getElementById("mag-control")!,
   catalogField: document.getElementById("catalog-field") as HTMLFieldSetElement,
   sort: document.getElementById("sort-control")!,
   catalog: document.getElementById("catalog-control")!,
@@ -267,6 +270,8 @@ function syncControlAvailability() {
 }
 
 function buildControls() {
+  buildSegmented(el.mag, MAGNITUDES.map((m) => ({ id: String(m), label: magLabel(m) })),
+    () => String(state.minMag), (id) => { state.minMag = Number(id); });
   buildSegmented(el.measure, MEASURES.map((m) => ({ id: m.id, label: m.label })),
     () => state.measure, (id) => {
       state.measure = id as Measure;
@@ -437,7 +442,7 @@ function buildListYears(years: number[], currentYear: number) {
 }
 
 async function updateLargest(listYear: number) {
-  const info = store.detailTierFor(MIN_MAGNITUDE);
+  const info = store.detailTierFor(state.minMag);
   if (!info) {
     el.largestList.replaceChildren();
     el.largestNote.textContent = copy.home.largestNoDetail;
@@ -534,7 +539,7 @@ async function updateLargest(listYear: number) {
 let lastRender: (() => void) | null = null;
 
 async function update() {
-  const minMag = MIN_MAGNITUDE;
+  const minMag = state.minMag;
 
   let tier: Tier;
   try {
@@ -549,8 +554,10 @@ async function update() {
 
   const mainshocksOnly = effectiveMainshocksOnly();
   const curves = cumulativeByYear(tier, minMag, REFERENCE_START, mainshocksOnly, state.measure);
-  const majorCurves = cumulativeByYear(
-    tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure);
+  const splitMajor = minMag < MAJOR_MAGNITUDE;
+  const majorCurves = splitMajor
+    ? cumulativeByYear(tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure)
+    : { curves: new Map<number, Float64Array>(), years: [], matched: 0 };
   const liveAdded = applyLive(curves, tier, minMag);
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
@@ -565,7 +572,7 @@ async function update() {
 
   writeHeadline(result, currentYear);
   writeNote(refYears.length, liveAdded);
-  writeAnnualNote(currentYear);
+  writeAnnualNote(currentYear, splitMajor);
 
   buildListYears(curves.years, currentYear);
   void updateLargest(state.listYear ?? currentYear);
@@ -669,7 +676,7 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
     el.answerDetail.textContent = moment
       ? fill(copy.home.detailNoneMoment, { year: currentYear })
       : fill(copy.home.detailNoneCount,
-             { threshold: magLabel(MIN_MAGNITUDE), kind, year: currentYear });
+             { threshold: magLabel(state.minMag), kind, year: currentYear });
     return;
   }
 
@@ -690,7 +697,7 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
         median: withUnit(result.medianToDate),
       })
     : fill(copy.home.detailCount, {
-        ...shared, count: fmt(result.count), threshold: magLabel(MIN_MAGNITUDE), kind,
+        ...shared, count: fmt(result.count), threshold: magLabel(state.minMag), kind,
         median: fmt(result.medianToDate),
       });
 }
@@ -719,10 +726,10 @@ function writeNote(refCount: number, liveAdded: number) {
  * 1970s, the number is dominated by how the catalogue was built rather than by
  * seismicity, and it would read as a finding.
  */
-function writeAnnualNote(currentYear: number) {
-  el.annualNote.textContent = fill(copy.home.noteAnnual, {
-    major: magLabel(MAJOR_MAGNITUDE), year: currentYear,
-  });
+function writeAnnualNote(currentYear: number, splitMajor: boolean) {
+  el.annualNote.textContent = fill(
+    splitMajor ? copy.home.noteAnnual : copy.home.noteAnnualPlain,
+    { major: magLabel(MAJOR_MAGNITUDE), year: currentYear });
 }
 
 function errorBox(message: string): HTMLElement {

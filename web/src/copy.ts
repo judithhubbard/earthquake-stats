@@ -84,6 +84,9 @@ export const copy = {
       "{n} event{s} from the last day {is} too recent to have been sorted, and counted as separate.",
 
     /* The small print under the annual chart. */
+    noteAnnualPlain:
+      "{year} is still going: the solid bar shows the year so far, and the dashed outline is " +
+      "where it will land if it continues at the usual pace.",
     noteAnnual:
       "The lighter part of each bar is the {major} share. {year} is still going: the solid bar " +
       "shows the year so far, and the dashed outline is where it will land if it continues at the usual pace.",

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-15T16:16:03.279944+00:00",
+  "generated": "2026-08-15T18:47:51.983025+00:00",
   "source": "USGS ComCat via FDSN event service",
   "minMagnitude": 4.5,
   "eventType": "earthquake",
@@ -36,6 +36,17 @@
       "bytes": 87923,
       "firstTime": 320441150,
       "lastTime": 1786791291796
+    },
+    {
+      "threshold": 7.0,
+      "name": "m7",
+      "count": 785,
+      "mainshocks": 632,
+      "homogenised": 785,
+      "hasDetail": true,
+      "bytes": 8635,
+      "firstTime": 320441150,
+      "lastTime": 1786744701564
     }
   ],
   "recent": [

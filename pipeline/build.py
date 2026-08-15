@@ -41,7 +41,7 @@ OUT_DIR = ROOT / "web" / "public" / "data"
 # comparisons are within-year -- so the catalogue's changing completeness hits
 # every bin equally and cancels, and the extra events buy real statistical power
 # (a 1.8% detectable effect against 6.2% at M6+).
-TIERS = [5.0, 6.0]
+TIERS = [5.0, 6.0, 7.0]
 
 # Tiers at or above this get an ids/places sidecar for the "largest events" list.
 DETAIL_MIN_MAGNITUDE = 6.0

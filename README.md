@@ -8,15 +8,23 @@ decadal trend cannot change between visits and cannot be checked by eye against
 the chart under it; "more than usual this year" genuinely flips, and the hero
 chart is the evidence for whichever way it lands.
 
-## One threshold, one region, one window
+## Two thresholds, one region, one window
 
-M6+ globally, 1976 onward. Magnitude, region and reference-period selectors all
-existed and were removed: each let a reader wander into a part of the catalogue
-where completeness changes over time, and each needed its own caveat. The site
-is more trustworthy with three controls than with seven.
+M6+ or M7+ globally, 1976 onward. Region and reference-period selectors existed
+and were removed: each let a reader wander into a part of the catalogue where
+completeness changes over time, and each needed its own caveat.
 
-What is left: **Measure** (count or moment), **Catalogue** (all earthquakes or
-mainshocks only), and **Years** to highlight.
+Magnitude is offered, but only M6 and M7 — both are complete and comparable
+across decades, and nothing below M6 is on the menu. Every selectable threshold
+needs its own emitted tier (`TIERS` in `pipeline/build.py`), because magnitudes
+are quantised to 0.1 in the binary and filtering a coarse tier down to a finer
+threshold would misclassify events at the boundary.
+
+Controls: **Magnitude**, **Measure** (count or moment), **Catalogue** (all
+earthquakes or mainshocks only), and **Years** to highlight.
+
+At M7+ the annual chart drops its M7+ share split, since that would be the whole
+bar.
 
 ## Architecture
 
@@ -42,6 +50,7 @@ declustering needs it. Only M6+ is emitted to the client.
 | file | contents | size |
 |---|---|---|
 | `m6.bin` | 7,993 events, packed | 86 KB |
+| `m7.bin` | 785 events, packed | 8 KB |
 | `m6.detail.json` | ids + place names for the event list | 362 KB (lazy) |
 | `land-110m` chunk | coastlines | 21 KB gzipped (lazy) |
 
