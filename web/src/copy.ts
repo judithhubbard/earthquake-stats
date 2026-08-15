@@ -236,7 +236,7 @@ export const copy = {
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:
       "We took every {threshold} earthquake recorded since {from} — {raw} of them — " +
-      "and removed the aftershocks, which leaves {count} independent earthquakes. Then we " +
+      "and removed the aftershocks, leaving {count} independent earthquakes. Then we " +
       "classified each of those by its day of the week in UTC." +
       "\n\nMore earthquakes occur on {bin}s, at {percent}% above the average. So, are {bin}s " +
       "earthquake days? No; that kind of variation is within the range of what we expect if the " +
