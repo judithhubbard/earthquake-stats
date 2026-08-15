@@ -213,7 +213,7 @@ export const copy = {
      =================================================================== */
   correlations: {
     answer: "<strong>No.</strong>",
-    detail: "Each one checked against {count} earthquakes since {from}.",
+    detail: "We checked against {count} earthquakes since {from}.",
 
     guide:
       "<strong>How to read these charts.</strong> Earthquakes do not arrive evenly, so counts " +
