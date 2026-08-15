@@ -406,15 +406,22 @@ async function boot() {
       markers: [{ at: "1", label: copy.correlations.moonNewMoon },
                 { at: String(FULL_MOON_DAY), label: copy.correlations.moonFullMoon }],
     }),
-    { label: copy.correlations.moonLink, url: TIDES_ARTICLE },
+    undefined,
     fill(copy.correlations.moonSubtitle, { since }), legend));
 
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
-    const v = scatterVerdict(pearson(points.map((p) => p.x), points.map((p) => p.y)),
-                             copy.correlations.climateDriver);
+    const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
+    const v = scatterVerdict(c, copy.correlations.climateDriver);
     built.push(panel(copy.correlations.climateQuestion, v.verdict,
-      `${v.note} ${copy.correlations.climateExplain}`,
+      fill(copy.correlations.climateExplain, {
+        threshold: `M${MIN_MAGNITUDE}+`,
+        stat: c === null ? "" : fill(
+          c.significant
+            ? copy.correlations.climateStatSignificant
+            : copy.correlations.climateStatNull,
+          { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2) }),
+      }),
       (w) => scatterChart(points, w, copy.correlations.climateAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
       undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR })));

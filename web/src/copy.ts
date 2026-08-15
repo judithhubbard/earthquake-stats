@@ -311,15 +311,27 @@ export const copy = {
     moonAllInside: "all of",
     moonAllBut: "all but {n} of",
     moonSubtitle: "Day of the lunar cycle · {since}",
-    moonLink: "But can the moon predict earthquakes? We looked at 79 of the biggest",
     moonNewMoon: "new moon",
     moonFullMoon: "full moon",
 
     climateQuestion: "Is climate change causing earthquakes?",
     climateExplain:
-      "When ice melts or groundwater drains away, the weight pressing on the crust changes, " +
-      "and in a few places that has been tied to small earthquakes. But it is slow and local, " +
-      "and it does not show up in the global total.",
+      "Some people have suggested that climate change might cause earthquakes to become more " +
+      "frequent — suggesting that melting ice, rising sea level, and changes in hydrology could " +
+      "affect the rate of earthquakes. While these things can affect earthquakes, the effects " +
+      "are very small, and there is no evidence that they cause an effect that rises above the " +
+      "level of the noise." +
+      "\n\nBelow, we show the number of {threshold} earthquakes per year, plotted against the " +
+      "global temperature in that year. {stat}",
+    /* Two versions of the statistic, so the sentence stays true if the
+       correlation ever clears the threshold. */
+    climateStatNull:
+      "The correlation coefficient over {years} years is {r}, well below the {critical} we " +
+      "would need to see for statistical significance at the 5% level.",
+    climateStatSignificant:
+      "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
+      "needed for statistical significance at the 5% level. With this few years, treat that as " +
+      "suggestive rather than established.",
     climateDriver: "warming",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
