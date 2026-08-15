@@ -4,7 +4,7 @@ import { readTheme, type Theme } from "./chart";
 import { MIN_MAGNITUDE, dayIndex } from "./stats";
 import { copy, fill } from "./copy";
 import {
-  FULL_MOON_DAY, chiSquare, fano, lunarBins, monthBins, outsideBand, pearson, weekdayBins,
+  FULL_MOON_DAY, chiSquare, lunarBins, monthBins, outsideBand, pearson, weekdayBins,
   type Bin, type Correlation,
 } from "./correlate";
 
@@ -332,15 +332,6 @@ async function boot() {
   const lastComplete = dayIndex(Date.now()).year - 1;
   const yearly = annualCounts(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
   const annual = annualTotals(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
-  // Why the year-on-year panels drop to M6+ while the within-year panels keep
-  // M5+: at M5+ the annual counts swing an order of magnitude wider than chance
-  // allows, and that excess is reporting history, not seismology. Measured
-  // rather than asserted, so the sentence cannot drift from the catalogue.
-  const fineYearly = annualCounts(fine, BIN_MAGNITUDE, FIRST_YEAR, lastComplete);
-  const dispersion = {
-    fine: fano([...fineYearly.values()]).toFixed(1),
-    coarse: fano([...yearly.values()]).toFixed(1),
-  };
   const kept = times.length.toLocaleString();
 
   el.answer.innerHTML = copy.correlations.answer;
@@ -434,7 +425,6 @@ async function boot() {
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
         binThreshold: `M${BIN_MAGNITUDE}+`,
-        fineFano: dispersion.fine, coarseFano: dispersion.coarse,
 
         stat: c === null ? "" : fill(
           c.significant
@@ -456,7 +446,6 @@ async function boot() {
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
         binThreshold: `M${BIN_MAGNITUDE}+`,
-        fineFano: dispersion.fine, coarseFano: dispersion.coarse,
 
         stat: c === null ? "" : fill(
           c.significant

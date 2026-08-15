@@ -246,21 +246,3 @@ export function springNeap(times: Float64Array | number[]): SpringNeap {
   };
 }
 
-
-/**
- * Fano factor: the variance of a set of counts divided by their mean.
- *
- * A stationary Poisson process gives 1. Well above 1 means the counts swing
- * wider than chance allows, which for annual earthquake counts is a statement
- * about the catalogue rather than about the Earth -- the reporting network grew
- * over the period, and at lower magnitudes that shows up as decade-scale drift.
- * It is the test that decides which magnitude tier the year-on-year panels can
- * safely use.
- */
-export function fano(counts: number[]): number {
-  const n = counts.length;
-  if (n < 2) return NaN;
-  const mean = counts.reduce((a, b) => a + b, 0) / n;
-  const variance = counts.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1);
-  return variance / mean;
-}

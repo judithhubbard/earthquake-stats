@@ -309,25 +309,20 @@ export const copy = {
       "affect the rate of earthquakes. While these things can affect earthquakes, the effects " +
       "are very small, and there is no evidence that they cause an effect that rises above the " +
       "level of the noise." +
-      "\n\nThe last two panels compare whole years rather than days within a year, so they use " +
-      "a different set of earthquakes: every {threshold} earthquake recorded over the {years} " +
-      "complete years since {from} — {tierRaw} of them — with the aftershocks removed, leaving " +
-      "{tierCount}. We stop using the smaller {binThreshold} earthquakes here because their " +
-      "annual counts cannot be compared from one decade to the next. Year to year, the number " +
-      "of {threshold} earthquakes varies only a little more than chance alone would predict: " +
-      "the variance is {coarseFano} times the mean, where purely random counts would give 1. " +
-      "The {binThreshold} counts give {fineFano} instead — their year-to-year scatter is three " +
-      "times wider than random variation can account for. That extra swing is the growth of " +
-      "the global seismic network, not the Earth — " +
-      "and set against a slowly rising quantity like temperature, drift of that kind is exactly " +
-      "what manufactures a correlation out of nothing." +
-      "\n\nBelow, we show the number of {threshold} earthquakes per year, plotted against the " +
-      "global temperature in that year. {stat}",
+      "\n\nBelow, we show the number of {threshold} earthquakes per year, again with the " +
+      "aftershocks removed, plotted against the global temperature in that year. Why {threshold} " +
+      "instead of {binThreshold}? Earthquake networks have improved over time, so we can detect " +
+      "earthquakes now that we could not detect in the 1970s. Because we're looking at " +
+      "year-over-year trends here, those kinds of changes in detectability could look like real " +
+      "signal. Fortunately, networks have been good enough since {from} to detect all global " +
+      "{threshold} earthquakes." +
+      "\n\nAs before, we remove aftershocks, so our initial catalog of {tierRaw} decreases to " +
+      "{tierCount}, which is plenty for this analysis. As expected, we see no change. {stat}",
     /* Two versions of the statistic, so the sentence stays true if the
        correlation ever clears the threshold. */
     climateStatNull:
       "The correlation coefficient over {years} years is {r}, well below the {critical} we " +
-      "would need to see for statistical significance at the 5% level.",
+      "would need for statistical significance at the 5% level.",
     climateStatSignificant:
       "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
       "needed for statistical significance at the 5% level. With this few years, treat that as " +
