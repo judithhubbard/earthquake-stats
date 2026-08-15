@@ -273,15 +273,40 @@ function annualCounts(tier: Tier, minMag: number, firstYear: number,
   return out;
 }
 
-/** Mainshock times at or above `minMag`, from `firstYear` onward. */
-function mainshockTimes(tier: Tier, minMag: number, firstYear: number): number[] {
+/**
+ * Mainshock times at or above `minMag`, from `firstYear` onward, plus the
+ * number of events that were considered.
+ *
+ * The panels only ever plot the mainshocks, but the prose has to be able to say
+ * how many earthquakes went in and how many came out -- quoting the surviving
+ * count on its own reads as though it were the whole catalogue, and here it is
+ * barely half of it.
+ */
+function mainshockTimes(tier: Tier, minMag: number, firstYear: number):
+    { times: number[]; raw: number } {
   const times: number[] = [];
+  let raw = 0;
   for (let i = 0; i < tier.n; i++) {
-    if (tier.mag[i] < minMag || tier.dependent[i]) continue;
+    if (tier.mag[i] < minMag) continue;
     if (dayIndex(tier.time[i]).year < firstYear) continue;
-    times.push(tier.time[i]);
+    raw++;
+    if (!tier.dependent[i]) times.push(tier.time[i]);
   }
-  return times;
+  return { times, raw };
+}
+
+/** Events at or above `minMag` in complete years, before and after declustering. */
+function annualTotals(tier: Tier, minMag: number, firstYear: number, lastYear: number):
+    { raw: number; kept: number } {
+  let raw = 0, kept = 0;
+  for (let i = 0; i < tier.n; i++) {
+    if (tier.mag[i] < minMag) continue;
+    const { year } = dayIndex(tier.time[i]);
+    if (year < firstYear || year > lastYear) continue;
+    raw++;
+    if (!tier.dependent[i]) kept++;
+  }
+  return { raw, kept };
 }
 
 async function boot() {
@@ -303,13 +328,14 @@ async function boot() {
   ]);
 
   theme = readTheme(document.body);
-  const times = mainshockTimes(fine, BIN_MAGNITUDE, FIRST_YEAR);
+  const { times, raw } = mainshockTimes(fine, BIN_MAGNITUDE, FIRST_YEAR);
   const lastComplete = dayIndex(Date.now()).year - 1;
   const yearly = annualCounts(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
+  const annual = annualTotals(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
+  const kept = times.length.toLocaleString();
 
   el.answer.innerHTML = copy.correlations.answer;
-  el.answerDetail.textContent = fill(copy.correlations.detail,
-    { count: times.length.toLocaleString(), from: FIRST_YEAR });
+  el.answerDetail.textContent = copy.correlations.detail;
 
   const legend: LegendKey[] = [
     { color: theme.bandNeutral, label: copy.correlations.legendBand, band: true },
@@ -328,7 +354,8 @@ async function boot() {
   built.push(panel(copy.correlations.weekdayQuestion,
     binVerdict(weekday),
     fill(copy.correlations.weekdayExplain, {
-      threshold: `M${BIN_MAGNITUDE}+`,
+      threshold: `M${BIN_MAGNITUDE}+`, from: FIRST_YEAR,
+      raw: raw.toLocaleString(), count: kept,
       bin: busiest.full,
       percent: busiest.deviation.toFixed(1),
     }),
@@ -344,7 +371,7 @@ async function boot() {
     binVerdict(month),
     [
       fill(copy.correlations.monthIntro, {
-        threshold: `M${BIN_MAGNITUDE}+`,
+        count: kept,
         inside: monthStray.count === 0
           ? copy.correlations.monthAllInside
           : fill(copy.correlations.monthSomeOutside, { n: monthStray.count }),
@@ -374,7 +401,7 @@ async function boot() {
   const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   built.push(panel(copy.correlations.moonQuestion, copy.correlations.moonVerdict,
     fill(copy.correlations.moonExplain, {
-      article: TIDES_ARTICLE,
+      article: TIDES_ARTICLE, count: kept,
       allBut: moonStray.count === 0
         ? copy.correlations.moonAllInside
         : fill(copy.correlations.moonAllBut, {
@@ -476,8 +503,9 @@ async function boot() {
   for (const fn of redraw) fn();
 
   el.method.textContent = fill(copy.correlations.method, {
-    count: times.length.toLocaleString(), binMagnitude: BIN_MAGNITUDE,
+    count: kept, raw: raw.toLocaleString(), binMagnitude: BIN_MAGNITUDE,
     from: FIRST_YEAR, yearMagnitude: MIN_MAGNITUDE,
+    yearRaw: annual.raw.toLocaleString(), yearCount: annual.kept.toLocaleString(),
   });
 
   const sources = ["USGS ComCat"];

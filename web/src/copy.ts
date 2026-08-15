@@ -213,7 +213,7 @@ export const copy = {
      =================================================================== */
   correlations: {
     answer: "<strong>No.</strong>",
-    detail: "We checked against {count} earthquakes since {from}.",
+    detail: "We checked.",
 
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
@@ -235,7 +235,9 @@ export const copy = {
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:
-      "We classified each {threshold} earthquake by its day of the week in UTC." +
+      "We took every {threshold} earthquake recorded since {from} — {raw} of them — " +
+      "and removed the aftershocks, which leaves {count} independent earthquakes. Then we " +
+      "classified each of those by its day of the week in UTC." +
       "\n\nMore earthquakes occur on {bin}s, at {percent}% above the average. So, are {bin}s " +
       "earthquake days? No; that kind of variation is within the range of what we expect if the " +
       "distribution is random. On the plot, the gray shows ±2 standard deviations — i.e., where " +
@@ -246,8 +248,9 @@ export const copy = {
     /* Values are filled from the data. The "right next to" line only holds while
        the two largest deviations are adjacent months, so there is a fallback. */
     monthIntro:
-      "We classified each {threshold} earthquake by the month it occurred in. {inside} Here we " +
-      "show the rate of earthquakes per day within the month, since months have different days.",
+      "We classified the same {count} independent earthquakes by the month each one occurred " +
+      "in. {inside} Here we show the rate of earthquakes per day within the month, since months " +
+      "have different days.",
     monthAllInside:
       "All months fall within ±2 standard deviations — i.e., where we expect 95.45% of the data " +
       "to fall if it is random.",
@@ -278,8 +281,9 @@ export const copy = {
        link is built from one URL held in correlations.ts. */
     moonExplain:
       "Many people have suggested that lunar tides might cause earthquakes — this is a topic " +
-      "that has shown up not just in popular culture, but research papers. Here, we show each " +
-      "earthquake classified by the lunar day when it occurred. This chart tests the question as " +
+      "that has shown up not just in popular culture, but research papers. Here, we show those " +
+      "same {count} earthquakes, classified by the lunar day on which each occurred. This chart " +
+      "tests the question as " +
       "it is usually asked: does the count depend on the phase of the moon? If it did, the " +
       "simplest expectation is two peaks, at new and full moon, when the sun and moon pull " +
       "together. That pattern does not show up. Instead, {allBut} the data points fall within " +
@@ -305,8 +309,8 @@ export const copy = {
       "affect the rate of earthquakes. While these things can affect earthquakes, the effects " +
       "are very small, and there is no evidence that they cause an effect that rises above the " +
       "level of the noise." +
-      "\n\nBelow, we show the number of {threshold} earthquakes per year, plotted against the " +
-      "global temperature in that year. {stat}",
+      "\n\nBelow, we show the number of {threshold} earthquakes per year, again with the " +
+      "aftershocks removed, plotted against the global temperature in that year. {stat}",
     /* Two versions of the statistic, so the sentence stays true if the
        correlation ever clears the threshold. */
     climateStatNull:
@@ -321,8 +325,8 @@ export const copy = {
     solarQuestion: "Does solar activity trigger earthquakes?",
     solarExplain:
       "There is a popular hypothesis that solar activity causes earthquakes. We checked, just to " +
-      "make sure. The plot below shows the number of {threshold} earthquakes per year, plotted " +
-      "against the number of sunspots. {stat}",
+      "make sure. The plot below shows the number of {threshold} earthquakes per year, again " +
+      "with the aftershocks removed, plotted against the number of sunspots. {stat}",
     /* This one runs closer to the threshold than the climate panel, so the
        second version is not hypothetical. */
     solarStatNull:
@@ -366,10 +370,12 @@ export const copy = {
     method:
       "Aftershocks are left out of every panel here, on purpose. Aftershock sequences are " +
       "strongly clustered in time and space; including them would violate the independence the " +
-      "error bands assume." +
-      "\n\nThe first three panels use {count} earthquakes of magnitude {binMagnitude} and up " +
-      "since {from}. The last two compare whole years, so they use magnitude {yearMagnitude} " +
-      "and up, where the counts can be trusted from one decade to the next.",
+      "error bands assume. Roughly half of the catalogue goes when they do." +
+      "\n\nThe first three panels start from the {raw} earthquakes of magnitude {binMagnitude} " +
+      "and up recorded since {from}, and use the {count} of those that are not aftershocks. The " +
+      "last two compare whole years, so they use magnitude {yearMagnitude} and up, where the " +
+      "counts can be trusted from one decade to the next: {yearRaw} recorded, {yearCount} after " +
+      "the aftershocks come out.",
     sources: "Data: {list}.",
     errorLoad: "Could not load the data.",
   },
