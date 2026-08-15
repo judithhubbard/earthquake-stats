@@ -116,6 +116,70 @@ export const copy = {
   },
 
   /* ===================================================================
+     THE AFTERSHOCKS PAGE
+     =================================================================== */
+  aftershocks: {
+    answer: "<strong>Yes.</strong> It is the strongest pattern in the whole subject.",
+    detail:
+      "Nothing else on this site comes close. An earthquake makes another earthquake nearby " +
+      "far more likely — for a while, and in a way that follows a rule you can write down.",
+
+    stackQuestion: "What happens around a big earthquake?",
+    stackVerdict: "Everything changes, and not symmetrically.",
+    stackExplain:
+      "This is {anchors} large earthquakes laid on top of each other, lined up on the moment " +
+      "each one struck, counting the earthquakes nearby day by day. One sequence on its own is " +
+      "a story. Six hundred stacked is a law." +
+      "\n\nOrdinarily this patch of ground produces an earthquake about once every " +
+      "{backgroundPeriod} weeks. On the day of the big one it produces {peak}. Notice the " +
+      "scale on the left climbs by factors of ten rather than in even steps, so a gentle-" +
+      "looking slope is really a collapse." +
+      "\n\nLook to the left of the line too. The rate is already creeping up days beforehand.",
+    stackSubtitle: "Earthquakes per day within {radius} km, {days} days either side",
+    stackAxis: "Earthquakes per day",
+    stackMarker: "the big one",
+
+    decayQuestion: "How long do aftershocks last?",
+    decayVerdict: "They fade, but slowly, and by a rule.",
+    decayExplain:
+      "Aftershocks die away roughly in proportion to one over the time elapsed. An hour after " +
+      "the mainshock they arrive about ten times faster than ten hours after, and ten times " +
+      "faster again than a hundred hours after. On a chart where both scales climb by factors " +
+      "of ten, that rule is a straight line — and here it is." +
+      "\n\nThis is Omori's law, written down in 1894 and still one of the few things in " +
+      "seismology you can set your watch by. Fitted to this data the slope comes out at {p}, " +
+      "against the 1.0 of a perfect one-over-time." +
+      "\n\nIt also means aftershocks never quite stop. They just become too rare to notice.",
+    decaySubtitle: "Days after the mainshock (both scales by factors of ten)",
+    decayAxisX: "Days after",
+    decayAxisY: "Earthquakes per day",
+    decayReference: "one over time",
+
+    examplesQuestion: "Do big earthquakes warn you first?",
+    examplesVerdict: "Sometimes. Not reliably.",
+    examplesExplain:
+      "Two of the largest earthquakes ever recorded, drawn the same way. One spent weeks " +
+      "rumbling before it broke. The other arrived out of a clear sky." +
+      "\n\nAbout {half}% of earthquakes turn out to have come shortly before a bigger one " +
+      "nearby — foreshocks, but only in hindsight. The trouble is the other {rest}%, which look " +
+      "exactly the same at the time and are never followed by anything bigger. That is the " +
+      "difficulty of earthquake prediction in one number.",
+    exampleWith: "{mag} · {place}",
+    exampleForeshocks: "{n} earthquakes in the 30 days before",
+    exampleNone: "nothing in the 30 days before",
+    examplesAxis: "Earthquakes per day",
+    examplesSubtitle: "Earthquakes per day within {radius} km, {days} days either side",
+
+    method:
+      "Earthquakes of magnitude {minMagnitude} and up, within {radius} km of a magnitude " +
+      "{anchorMagnitude} or larger mainshock. The foreshock figures count any earthquake " +
+      "followed within {foreshockDays} days, and {foreshockKm} km, by one at least half a " +
+      "magnitude larger. Every number on this page moves if you change those choices, which " +
+      "is why they are written here.",
+    errorLoad: "Could not load the data.",
+  },
+
+  /* ===================================================================
      THE CORRELATIONS PAGE
      =================================================================== */
   correlations: {

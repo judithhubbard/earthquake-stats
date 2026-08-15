@@ -3,34 +3,32 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Do earthquakes follow the moon, the weather, or the sun?</title>
-    <meta name="description" content="The moon, the seasons, the day of the week, sunspots, the climate — each tested against the USGS earthquake catalogue." />
+    <title>Can earthquakes cause earthquakes?</title>
+    <meta name="description" content="Aftershocks, Omori's law, and why only some big earthquakes announce themselves — measured on the USGS catalogue." />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <main>
       <header class="hero">
         <p class="eyebrow"><a href="./" class="back-link">← Are there more earthquakes than usual?</a></p>
-        <h1>Do earthquakes follow the moon, the weather, or the&nbsp;sun?</h1>
+        <h1>Can earthquakes cause&nbsp;earthquakes?</h1>
         <p class="answer" id="answer">Loading…</p>
         <p class="answer-detail" id="answer-detail"></p>
       </header>
 
-      <p class="guide" id="guide"></p>
-
       <section class="panel" id="panels"></section>
 
       <p>
-        <a class="explore" href="aftershocks.html">
-          Can earthquakes cause earthquakes? <span class="arrow">→</span>
+        <a class="explore" href="correlations.html">
+          Do earthquakes follow the moon or the weather? <span class="arrow">→</span>
         </a>
       </p>
 
       <footer>
         <p id="method"></p>
-        <p id="sources"></p>
+        <p>Data: USGS ComCat.</p>
       </footer>
     </main>
-    <script type="module" src="/src/correlations.ts"></script>
+    <script type="module" src="/src/aftershocks.ts"></script>
   </body>
 </html>

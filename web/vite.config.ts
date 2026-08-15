@@ -12,6 +12,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         correlations: resolve(__dirname, "correlations.html"),
+        aftershocks: resolve(__dirname, "aftershocks.html"),
       },
     },
   },
