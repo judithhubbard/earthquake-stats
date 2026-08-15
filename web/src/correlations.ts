@@ -124,7 +124,7 @@ function binChart(bins: Bin[], width: number,
   return Plot.plot({
     width,
     height: Math.max(200, Math.min(260, width * 0.3)),
-    marginLeft: 54,
+    marginLeft: 68,
     marginRight: 14,
     marginBottom: 38,
     marginTop: 12,
@@ -142,7 +142,10 @@ function binChart(bins: Bin[], width: number,
       domain: [-limit, limit],
       label: "Difference from average",
       labelAnchor: "center",
-      labelOffset: 44,
+      labelOffset: 52,
+      // No arrow: this axis runs both ways from zero, so pointing it one way
+      // would say that only the upward half counts as a difference.
+      labelArrow: null,
       tickFormat: (d: number) => `${d > 0 ? "+" : ""}${d.toFixed(0)}%`,
       grid: true,
     },
@@ -162,10 +165,19 @@ function binChart(bins: Bin[], width: number,
         fillOpacity: 0.9, inset: 7,
       }),
       Plot.ruleY([0], { stroke: theme.axis, strokeWidth: 1.2 }),
-      ...(opts.markers ?? []).map((m) => Plot.text([m], {
-        x: "at", frameAnchor: "top", text: "label",
-        dy: 2, fill: theme.muted, fontSize: 11, fontWeight: 600,
-      })),
+      // A labelled rule, not a floating word: the whole question on the moon
+      // chart is whether anything happens *at* new and full moon, so those two
+      // days have to be findable at a glance.
+      ...(opts.markers ?? []).flatMap((m) => [
+        Plot.ruleX([m], {
+          x: "at", stroke: theme.text, strokeOpacity: 0.35,
+          strokeWidth: 1, strokeDasharray: "3,3",
+        }),
+        Plot.text([m], {
+          x: "at", frameAnchor: "top", text: "label",
+          dy: 1, fill: theme.text, fontSize: 11, fontWeight: 600,
+        }),
+      ]),
       Plot.tip(bins, Plot.pointerX({
         x: "label", y: "deviation",
         fill: theme.surface, stroke: theme.axis, textPadding: 9, fontSize: 11,
@@ -182,12 +194,12 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
   return Plot.plot({
     width,
     height: Math.max(210, Math.min(300, width * 0.36)),
-    marginLeft: 62,
+    marginLeft: 68,
     marginBottom: 42,
     marginTop: 12,
     style: { background: "transparent", color: theme.text, fontSize: "12px" },
     x: { label: xLabel, labelAnchor: "center", grid: true, nice: true },
-    y: { label: yLabel, labelAnchor: "center", labelOffset: 48, grid: true, nice: true },
+    y: { label: yLabel, labelAnchor: "center", labelOffset: 52, grid: true, nice: true },
     color: { type: "identity" },
     marks: [
       Plot.dot(points, {
@@ -368,10 +380,10 @@ async function boot() {
       (w) => Plot.plot({
         width: w,
         height: Math.max(210, Math.min(270, w * 0.31)),
-        marginLeft: 56, marginRight: 14, marginBottom: 38, marginTop: 12,
+        marginLeft: 68, marginRight: 14, marginBottom: 38, marginTop: 12,
         style: { background: "transparent", color: theme.text, fontSize: "12px" },
         x: { label: null, tickFormat: "d", interval: 1, ticks: 8, tickSize: 0, tickPadding: 8 },
-        y: { label: copy.correlations.oklahomaAxis, labelAnchor: "center", labelOffset: 46,
+        y: { label: copy.correlations.oklahomaAxis, labelAnchor: "center", labelOffset: 52,
              grid: true, zero: true },
         color: { type: "identity" },
         marks: [

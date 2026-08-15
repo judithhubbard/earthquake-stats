@@ -73,7 +73,7 @@ export const copy = {
     /* The small print under the cumulative chart. */
     noteBand:
       "Each faint line is a past year. The shaded band covers the middle 90% of {years} of " +
-      "them, so a year inside the band is an ordinary year.",
+      "them, so a line inside the band is an ordinary year.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
@@ -85,8 +85,8 @@ export const copy = {
 
     /* The small print under the annual chart. */
     noteAnnual:
-      "The darker part of each bar is the {major} share. {year} is still going: the solid bar " +
-      "is the year so far, and the dashed outline is where it lands at the usual pace.",
+      "The lighter part of each bar is the {major} share. {year} is still going: the solid bar " +
+      "shows the year so far, and the dashed outline is where it will land if it continues at the usual pace.",
 
     /* The map and the year list beside it. */
     mapEmpty: "Select a year to plot its earthquakes.",
@@ -124,9 +124,9 @@ export const copy = {
 
     guide:
       "<strong>How to read these.</strong> Flip a coin ten times and you rarely get exactly " +
-      "five heads. Earthquakes are the same. Even when nothing is going on, some months come " +
-      "out busier than others. The grey band shows how much of that to expect. A bar inside " +
-      "the grey means nothing is happening. A bar that sticks out is worth a look.",
+      "five heads. Earthquakes are the same. Even when nothing is going on, some months turn " +
+      "out busier than others. The grey band shows how much of that variation to expect. A bar inside " +
+      "the grey means that earthquakes are behaving randomly. A bar that sticks out might be worth a look.",
 
     legendBand: "Range expected from chance alone",
     legendAbove: "More earthquakes than average",
@@ -139,13 +139,13 @@ export const copy = {
     biggestGap: "{bin} is furthest from average, by {percent}%.",
     insideGrey: "That is inside the grey, so it is just luck.",
     outsideGrey:
-      "The bars wobble a little more than luck usually gives. Worth a second look, but it " +
+      "The bars show a little more variation than a random process would usually give. Worth a second look, but it " +
       "proves nothing by itself.",
 
     /* Verdict lines shared by the scatter panels. */
     verdictMaybe: "Maybe, but only just.",
     scatterStrength:
-      "If there were a link, the dots would line up. Over {years} years they score {r}, and " +
+      "If there were a link, the dots would trend in one direction or the other. Over {years} years they score {r}, and " +
       "anything under {critical} counts as no link.",
     scatterNull: "Years with more {driver} get no more earthquakes than quiet ones.",
     scatterHint: "With this few years, treat it as a hint, not an answer.",
@@ -159,12 +159,12 @@ export const copy = {
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
     monthExplain:
       "Months are counted per day, because February is short." +
-      "\n\nWhat about real weather, the hot still days people remember? Checking that properly " +
-      "would mean looking up the weather above every earthquake, a much bigger job than " +
-      "anything here. But two things already point the same way. Weather follows the seasons, " +
-      "and the seasons show nothing. And earthquakes start ten kilometres underground. A big " +
+      "\n\nWeather follows the seasons, " +
+      "and the seasons show nothing. Why is that? Earthquakes typically start ten kilometres or more underground. A big " +
       "storm presses on the ground about as hard as the moon does, and the moon, in the next " +
-      "panel, does almost nothing.",
+      "panel, does nothing." +
+      "\n\nThere are a few locations where there are slight differences between earthquake rates between " +
+      "summer and winter, but they are rare and associated with large swings, like the South Asian monsoon.",
     monthSubtitle: "Month of the year · {since}",
 
     moonQuestion: "Does the moon set off earthquakes?",
@@ -174,7 +174,7 @@ export const copy = {
       "at full, when the sun and moon line up and pull together hardest. There are no humps. " +
       "Every bar sits inside the grey." +
       "\n\nThat does not prove the moon does nothing at all. Careful studies find a small " +
-      "effect on some faults, a percent or two, mostly where ocean tides press on the seafloor. " +
+      "effect on a small number of faults, mostly where ocean tides press on the seafloor. " +
       "This chart is not sensitive enough to see something that small — and neither is anything " +
       "else you could use to plan your day.",
     moonSubtitle: "Day of the lunar cycle · {since}",
