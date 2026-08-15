@@ -309,8 +309,20 @@ export const copy = {
       "affect the rate of earthquakes. While these things can affect earthquakes, the effects " +
       "are very small, and there is no evidence that they cause an effect that rises above the " +
       "level of the noise." +
-      "\n\nBelow, we show the number of {threshold} earthquakes per year, again with the " +
-      "aftershocks removed, plotted against the global temperature in that year. {stat}",
+      "\n\nThe last two panels compare whole years rather than days within a year, so they use " +
+      "a different set of earthquakes: every {threshold} earthquake recorded over the {years} " +
+      "complete years since {from} — {tierRaw} of them — with the aftershocks removed, leaving " +
+      "{tierCount}. We stop using the smaller {binThreshold} earthquakes here because their " +
+      "annual counts cannot be compared from one decade to the next. Year to year, the number " +
+      "of {threshold} earthquakes varies only a little more than chance alone would predict: " +
+      "the variance is {coarseFano} times the mean, where purely random counts would give 1. " +
+      "The {binThreshold} counts give {fineFano} instead — their year-to-year scatter is three " +
+      "times wider than random variation can account for. That extra swing is the growth of " +
+      "the global seismic network, not the Earth — " +
+      "and set against a slowly rising quantity like temperature, drift of that kind is exactly " +
+      "what manufactures a correlation out of nothing." +
+      "\n\nBelow, we show the number of {threshold} earthquakes per year, plotted against the " +
+      "global temperature in that year. {stat}",
     /* Two versions of the statistic, so the sentence stays true if the
        correlation ever clears the threshold. */
     climateStatNull:
@@ -325,8 +337,8 @@ export const copy = {
     solarQuestion: "Does solar activity trigger earthquakes?",
     solarExplain:
       "There is a popular hypothesis that solar activity causes earthquakes. We checked, just to " +
-      "make sure. The plot below shows the number of {threshold} earthquakes per year, again " +
-      "with the aftershocks removed, plotted against the number of sunspots. {stat}",
+      "make sure. The plot below uses the same {tierCount} independent {threshold} earthquakes, " +
+      "one count per year, plotted against the number of sunspots. {stat}",
     /* This one runs closer to the threshold than the climate panel, so the
        second version is not hypothetical. */
     solarStatNull:
