@@ -318,10 +318,10 @@ export const copy = {
       "down into the ground. That raised the pressure on faults that were already close to " +
       "slipping. When the state limited the pumping, the earthquakes died away again." +
       "\n\nAttribution rarely rests on a single earthquake. An induced magnitude 4 is " +
-      "indistinguishable from a natural one in the seismic record. The case is built on the " +
-      "pattern: the rate rose roughly a hundredfold, the events cluster within a few kilometres " +
-      "of active injection wells, they follow injection volumes in time, and they declined after " +
-      "the state restricted injection in 2015 and 2016.",
+      "indistinguishable from a natural one in the seismic record. But the pattern is " +
+      "indisputable: the rate rose roughly a hundredfold, with events clustering within a few " +
+      "kilometers of active injection wells. They followed injection volumes. And then, they " +
+      "declined after the state restricted injection in 2015 and 2016.",
     oklahomaSubtitle: "Earthquakes of magnitude 3 or more in Oklahoma, each year",
     oklahomaAxis: "Earthquakes per year",
     oklahomaLegendBars: "Earthquakes that year",
