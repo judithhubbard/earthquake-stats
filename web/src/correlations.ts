@@ -24,7 +24,6 @@ interface Context { generated: string; temperature?: Series; sunspots?: Series;
 const el = {
   answer: document.getElementById("answer")!,
   answerDetail: document.getElementById("answer-detail")!,
-  guide: document.getElementById("guide")!,
   panels: document.getElementById("panels")!,
   method: document.getElementById("method")!,
   sources: document.getElementById("sources")!,
@@ -330,8 +329,6 @@ async function boot() {
   el.answerDetail.textContent = fill(copy.correlations.detail,
     { count: times.length.toLocaleString(), from: FIRST_YEAR });
 
-  el.guide.innerHTML = copy.correlations.guide;
-
   const legend: LegendKey[] = [
     { color: theme.bandNeutral, label: copy.correlations.legendBand, band: true },
     { color: theme.up, label: copy.correlations.legendAbove },
@@ -342,10 +339,18 @@ async function boot() {
 
   const built: HTMLElement[] = [];
 
+  // The busiest day, not the furthest from average: the sentence says "more
+  // earthquakes occur on", so it has to name a day that is actually above it.
+  const weekday = weekdayBins(times);
+  const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
   built.push(panel(copy.correlations.weekdayQuestion,
-    binVerdict(weekdayBins(times)).verdict,
-    `${binVerdict(weekdayBins(times)).note} ${copy.correlations.weekdayExplain}`.trim(),
-    (w) => binChart(weekdayBins(times), w), undefined,
+    binVerdict(weekday).verdict,
+    fill(copy.correlations.weekdayExplain, {
+      threshold: `M${BIN_MAGNITUDE}+`,
+      bin: busiest.full,
+      percent: busiest.deviation.toFixed(1),
+    }),
+    (w) => binChart(weekday, w), undefined,
     fill(copy.correlations.weekdaySubtitle, { since }), legend));
 
   built.push(panel(copy.correlations.monthQuestion,

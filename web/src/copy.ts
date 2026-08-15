@@ -215,13 +215,6 @@ export const copy = {
     answer: "<strong>No.</strong>",
     detail: "We checked against {count} earthquakes since {from}.",
 
-    guide:
-      "<strong>How to read these charts.</strong> Earthquakes do not arrive evenly, so counts " +
-      "vary between groups even when nothing is driving them. The grey band is ±2 standard " +
-      "deviations, which should contain 95.45% of the data. Points inside it are consistent " +
-      "with random variation. About 1 in 20 will fall outside even when there is no effect, so " +
-      "a single point beyond the band is expected rather than surprising.",
-
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
     legendBelow: "Fewer than average",
@@ -257,7 +250,12 @@ export const copy = {
     scatterHint: "Treat this as suggestive rather than established.",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
-    weekdayExplain: "",
+    weekdayExplain:
+      "We classified each {threshold} earthquake by its day of the week in UTC." +
+      "\n\nMore earthquakes occur on {bin}s, at {percent}% above the average. So, are {bin}s " +
+      "earthquake days? No; that kind of variation is within the range of what we expect if the " +
+      "distribution is random. On the plot, the gray shows ±2 standard deviations — i.e., where " +
+      "we expect 95.45% to fall.",
     weekdaySubtitle: "Day of the week · {since}",
 
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
