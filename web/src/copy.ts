@@ -226,28 +226,12 @@ export const copy = {
     /* The furthest bar, and how many stray bars to expect anyway. Said in one
        breath, because saying "inside the grey" and then "one bar is outside"
        about the same bar reads as a contradiction. */
-    biggestAllInside:
-      "The largest deviation is {bin}, at {percent}%. All {bins} data points fall within ±2σ.",
-    biggestSomeOutside:
-      "The largest deviation is {bin}, at {percent}%. {n} of {bins} data points {verb} outside " +
-      "±2σ, where random variation alone would produce {expected}.",
-    outsideFewer: "fewer than one",
-    outsideAbout: "about {n}",
     /** Appended once the tally is stated, to say what it means. The band is
         built on the null hypothesis, so it is right to name the null. */
-    withinNormal: "This is within the range expected if there is no effect.",
-    outsideGrey:
-      "Across all groups the spread is larger than random variation usually produces " +
-      "(χ² = {chi} on {df} degrees of freedom, against a 5% threshold of {critical}). That " +
-      "warrants a second look, but is not evidence of a cause on its own.",
 
     /* Verdict lines shared by the scatter panels. */
     verdictMaybe: "Maybe, but only just.",
-    scatterStrength:
-      "The correlation coefficient over {years} years is {r}. With this many years, |r| must " +
-      "exceed {critical} to be statistically significant at the 5% level.",
-    scatterNull: "Years with more {driver} have no more earthquakes than years with less.",
-    scatterHint: "Treat this as suggestive rather than established.",
+    verdictNotEnough: "Not enough data.",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:
@@ -332,14 +316,22 @@ export const copy = {
       "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
       "needed for statistical significance at the 5% level. With this few years, treat that as " +
       "suggestive rather than established.",
-    climateDriver: "warming",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
     solarQuestion: "Does solar activity trigger earthquakes?",
     solarExplain:
-      "The sun runs on a clear 11-year cycle, which makes it a tempting thing to line " +
-      "earthquakes up against. They do not line up.",
-    solarDriver: "solar activity",
+      "There is a popular hypothesis that solar activity causes earthquakes. We checked, just to " +
+      "make sure. The plot below shows the number of {threshold} earthquakes per year, plotted " +
+      "against the number of sunspots. {stat}",
+    /* This one runs closer to the threshold than the climate panel, so the
+       second version is not hypothetical. */
+    solarStatNull:
+      "As expected, the correlation coefficient is {r}; it does not reach the {critical} needed " +
+      "for statistical significance at the 5% level.",
+    solarStatSignificant:
+      "The correlation coefficient is {r}, which does reach the {critical} needed for " +
+      "statistical significance at the 5% level. On {years} years of data, treat that as " +
+      "suggestive rather than established.",
     solarAxis: "Sunspot number",
 
     scatterSubtitle: "Each dot is one year, {from} onward",

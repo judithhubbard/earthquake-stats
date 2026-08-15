@@ -230,43 +230,23 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
 
 /* ---------------- verdicts ---------------- */
 
-function binVerdict(bins: Bin[]): { verdict: string; note: string } {
-  const C = copy.correlations;
+/**
+ * The one-word answer for a bar panel, from a chi-square across its bins.
+ *
+ * Only the verdict: each panel writes its own explanation now, with its own
+ * figures, so a shared note would repeat them in a second voice.
+ */
+function binVerdict(bins: Bin[]): string {
   const test = chiSquare(bins);
-  const worst = bins.reduce((a, b) =>
-    Math.abs(b.deviation) > Math.abs(a.deviation) ? b : a);
-  const stray = outsideBand(bins);
-
-  const shared = { bin: worst.full, percent: Math.abs(worst.deviation).toFixed(1),
-                   bins: bins.length };
-  const tally = stray.count === 0
-    ? fill(C.biggestAllInside, shared)
-    : fill(C.biggestSomeOutside, {
-        ...shared,
-        n: stray.count,
-        verb: stray.count === 1 ? "falls" : "fall",
-        expected: stray.expected < 0.5
-          ? C.outsideFewer
-          : fill(C.outsideAbout, { n: stray.expected.toFixed(1) }),
-      });
-
   return test.statistic <= test.critical
-    ? { verdict: C.verdictNo, note: `${tally} ${C.withinNormal}` }
-    : { verdict: C.verdictNotReally,
-        note: `${tally} ${fill(C.outsideGrey, {
-          chi: test.statistic.toFixed(1), df: test.df,
-          critical: test.critical.toFixed(1),
-        })}` };
+    ? copy.correlations.verdictNo
+    : copy.correlations.verdictNotReally;
 }
 
-function scatterVerdict(c: Correlation | null, driver: string): { verdict: string; note: string } {
-  if (!c) return { verdict: "Not enough data.", note: "" };
-  const strength = fill(copy.correlations.scatterStrength,
-    { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2) });
-  return c.significant
-    ? { verdict: copy.correlations.verdictMaybe, note: `${strength} ${copy.correlations.scatterHint}` }
-    : { verdict: copy.correlations.verdictNo,
-        note: `${strength} ${fill(copy.correlations.scatterNull, { driver })}` };
+/** The same for a scatter panel, from the correlation against its 5% threshold. */
+function scatterVerdict(c: Correlation | null): string {
+  if (!c) return copy.correlations.verdictNotEnough;
+  return c.significant ? copy.correlations.verdictMaybe : copy.correlations.verdictNo;
 }
 
 /* ---------------- build ---------------- */
@@ -346,7 +326,7 @@ async function boot() {
   const weekday = weekdayBins(times);
   const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
   built.push(panel(copy.correlations.weekdayQuestion,
-    binVerdict(weekday).verdict,
+    binVerdict(weekday),
     fill(copy.correlations.weekdayExplain, {
       threshold: `M${BIN_MAGNITUDE}+`,
       bin: busiest.full,
@@ -361,7 +341,7 @@ async function boot() {
   const gap = Math.abs(month.indexOf(ranked[0]) - month.indexOf(ranked[1]));
   const word = (d: number) => (d >= 0 ? "more" : "fewer");
   built.push(panel(copy.correlations.monthQuestion,
-    binVerdict(month).verdict,
+    binVerdict(month),
     [
       fill(copy.correlations.monthIntro, {
         threshold: `M${BIN_MAGNITUDE}+`,
@@ -412,8 +392,7 @@ async function boot() {
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    const v = scatterVerdict(c, copy.correlations.climateDriver);
-    built.push(panel(copy.correlations.climateQuestion, v.verdict,
+    built.push(panel(copy.correlations.climateQuestion, scatterVerdict(c),
       fill(copy.correlations.climateExplain, {
         threshold: `M${MIN_MAGNITUDE}+`,
         stat: c === null ? "" : fill(
@@ -429,10 +408,16 @@ async function boot() {
 
   if (context.sunspots) {
     const points = seriesPoints(context.sunspots, yearly);
-    const v = scatterVerdict(pearson(points.map((p) => p.x), points.map((p) => p.y)),
-                             copy.correlations.solarDriver);
-    built.push(panel(copy.correlations.solarQuestion, v.verdict,
-      `${v.note} ${copy.correlations.solarExplain}`,
+    const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
+    built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c),
+      fill(copy.correlations.solarExplain, {
+        threshold: `M${MIN_MAGNITUDE}+`,
+        stat: c === null ? "" : fill(
+          c.significant
+            ? copy.correlations.solarStatSignificant
+            : copy.correlations.solarStatNull,
+          { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2) }),
+      }),
       (w) => scatterChart(points, w, copy.correlations.solarAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
       undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR })));
