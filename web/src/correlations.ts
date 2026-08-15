@@ -435,6 +435,9 @@ async function boot() {
     built.push(panel(copy.correlations.oklahomaQuestion, copy.correlations.oklahomaVerdict,
       fill(copy.correlations.oklahomaExplain, {
         rate: rate.toFixed(0), peakYear: peak.year, peak: peak.count.toLocaleString(),
+        // Computed rather than asserted: the peak is ~286x the background rate,
+        // not the hundredfold that gets quoted.
+        ratio: Math.round(peak.count / Math.max(rate, 1e-9)),
       }),
       (w) => Plot.plot({
         width: w,

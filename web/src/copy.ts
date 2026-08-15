@@ -340,15 +340,24 @@ export const copy = {
     oklahomaQuestion: "Can people cause earthquakes?",
     oklahomaVerdict: "Yes, in some specific locations.",
     oklahomaExplain:
-      "Oklahoma used to get about {rate} earthquakes of magnitude 3 or more a year. In " +
-      "{peakYear} it got {peak}. The cause was wastewater from oil and gas drilling, pumped back " +
-      "down into the ground. That raised the pressure on faults that were already close to " +
-      "slipping. When the state limited the pumping, the earthquakes died away again." +
-      "\n\nAttribution rarely rests on a single earthquake. An induced magnitude 4 is " +
-      "indistinguishable from a natural one in the seismic record. But the pattern is " +
-      "indisputable: the rate rose roughly a hundredfold, with events clustering within a few " +
-      "kilometers of active injection wells. They followed injection volumes. And then, they " +
-      "declined after the state restricted injection in 2015 and 2016.",
+      "After looking at the plot below, you might be surprised to discover that people actually " +
+      "can, and do, cause earthquakes. This occurs in places where human activities affect the " +
+      "stresses and fluid pressures in the crust enough to cause faults to slip. Oil and gas " +
+      "extraction is high on this list, due to the fluid injection and extraction involved. " +
+      "Geothermal production can trigger earthquakes. Even activities like building dams can " +
+      "cause seismicity to increase." +
+      "\n\nCase in point: Oklahoma. The state used to get about {rate} earthquakes of magnitude " +
+      "3 or more a year. In {peakYear} it got {peak}. The cause was wastewater from oil and gas " +
+      "drilling, pumped back down into the ground. That raised the pressure on faults that were " +
+      "already close to slipping. When the state limited the pumping, the earthquakes died away " +
+      "again." +
+      "\n\nWe can never point to a specific cause for a specific earthquake — each one is the " +
+      "product of the accumulated stresses and conditions over hundreds or thousands of years, " +
+      "and the earthquake waves don't tell us which parts of those stresses were natural vs. " +
+      "artificial. To assess human impacts, we have to look at patterns. In Oklahoma, the rate " +
+      "rose by a factor of {ratio}, with events clustering within a few kilometers of active " +
+      "injection wells. They followed injection volumes. And then, they declined after the state " +
+      "restricted injection in 2015 and 2016.",
     oklahomaSubtitle: "Earthquakes of magnitude 3 or more in Oklahoma, each year",
     oklahomaAxis: "Earthquakes per year",
     oklahomaLegendBars: "Earthquakes that year",
