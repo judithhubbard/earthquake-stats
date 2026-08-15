@@ -360,7 +360,8 @@ async function boot() {
   // contaminated of them clears significance; and the directional test was
   // picked after an eight-bin version came out messy. At daily resolution the
   // predicted two humps are simply absent, which is the honest answer.
-  built.push(panel(copy.correlations.moonQuestion, copy.correlations.moonVerdict, copy.correlations.moonExplain,
+  built.push(panel(copy.correlations.moonQuestion, copy.correlations.moonVerdict,
+    `${binVerdict(lunarBins(times)).note} ${copy.correlations.moonExplain}`,
     (w) => binChart(lunarBins(times), w, {
       ticks: ["1", "5", "10", "15", "20", "25", "30"],
       markers: [{ at: "1", label: copy.correlations.moonNewMoon },

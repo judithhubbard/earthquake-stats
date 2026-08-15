@@ -276,8 +276,8 @@ export const copy = {
     moonVerdict: "No.",
     moonExplain:
       "If the moon set off earthquakes you would see two humps here — one at new moon and one " +
-      "at full, when the sun and moon line up and the tidal forces are strongest. There are no humps; " +
-      "every bar sits inside the grey." +
+      "at full, when the sun and moon line up and the tidal forces are strongest. There are no " +
+      "humps." +
       "\n\nThat does not prove the moon does nothing at all. Careful studies find a small " +
       "effect on a small number of very sensitive faults, mostly in regions with high subsurface fluid pressures. " +
       "This chart shows that there are no statistical effects at the global scale, for large " +
