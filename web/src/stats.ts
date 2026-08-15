@@ -26,13 +26,21 @@ export const MAGNITUDES = [6, 7];
 /** Threshold whose share of each year is drawn as the darker part of a bar. */
 export const MAJOR_MAGNITUDE = 7;
 
-/** Elapsed fraction of the year, as an index 0..364. Leap-safe. */
-export function dayIndex(ms: number): { year: number; day: number } {
-  const date = new Date(ms);
+/**
+ * Elapsed fraction of the year, as an index 0..364. Leap-safe.
+ *
+ * `shift` slides the whole calendar so that some other date behaves as though
+ * it were 1 January. That is how the rolling-year view works: shift by the
+ * number of days from 1 January to tomorrow, and "year 2025" becomes the twelve
+ * months ending today. Every downstream calculation -- the band, the
+ * percentile, the annual bars -- then works unchanged.
+ */
+export function dayIndex(ms: number, shift = 0): { year: number; day: number } {
+  const date = new Date(ms - shift);
   const year = date.getUTCFullYear();
   const start = Date.UTC(year, 0, 1);
   const end = Date.UTC(year + 1, 0, 1);
-  const frac = (ms - start) / (end - start);
+  const frac = (ms - shift - start) / (end - start);
   return { year, day: Math.min(DAYS - 1, Math.max(0, Math.floor(frac * DAYS))) };
 }
 
@@ -72,14 +80,15 @@ export function equivalentMagnitude(moment: number): number {
 
 export function cumulativeByYear(tier: Tier, minMag: number, minYear: number,
                                  mainshocksOnly = false,
-                                 measure: Measure = "count"): YearCurves {
+                                 measure: Measure = "count",
+                                 shift = 0): YearCurves {
   const daily = new Map<number, Float64Array>();
   let matched = 0;
 
   for (let i = 0; i < tier.n; i++) {
     if (tier.mag[i] < minMag) continue;
     if (mainshocksOnly && tier.dependent[i]) continue;
-    const { year, day } = dayIndex(tier.time[i]);
+    const { year, day } = dayIndex(tier.time[i], shift);
     if (year < minYear) continue;
     let bucket = daily.get(year);
     if (!bucket) {

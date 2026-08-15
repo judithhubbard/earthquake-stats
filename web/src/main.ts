@@ -27,6 +27,10 @@ const MEASURES = [
   { id: "count", label: "Count" },
   { id: "moment", label: "Moment" },
 ] as const;
+const WINDOWS = [
+  { id: "calendar", label: "This year" },
+  { id: "rolling", label: "Last 365 days" },
+] as const;
 const SORT_MODES = [
   { id: "largest", label: "Largest" },
   { id: "recent", label: "Recent" },
@@ -43,6 +47,7 @@ const LIVE_INTERVAL_MS = 60_000;
 
 interface State {
   minMag: number;
+  window: (typeof WINDOWS)[number]["id"];
   measure: Measure;
   sortMode: (typeof SORT_MODES)[number]["id"];
   /** Year shown in the event list; independent of the highlighted years. */
@@ -55,12 +60,35 @@ interface State {
 
 const state: State = {
   minMag: MIN_MAGNITUDE,
+  window: "calendar",
   measure: "count",
   sortMode: "largest",
   listYear: null,
   catalogMode: "all",
   highlights: new Map(),
 };
+
+/**
+ * How far to slide the calendar so the window starts behaving like 1 January.
+ *
+ * Zero for calendar years. For the rolling view it is the distance from
+ * 1 January to *tomorrow*, which makes the twelve months ending today into a
+ * complete "year" -- and every past window run to the same date, so a full year
+ * is only ever compared against full years.
+ */
+function calendarShift(): number {
+  if (state.window === "calendar") return 0;
+  const now = new Date();
+  const tomorrow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  return tomorrow - Date.UTC(now.getUTCFullYear(), 0, 1);
+}
+
+/** "2025" for a calendar year, "2025–26" for a window that straddles two. */
+function yearLabel(year: number): string {
+  return state.window === "calendar"
+    ? String(year)
+    : `${year}–${String(year + 1).slice(2)}`;
+}
 
 /**
  * Moment ignores declustering: aftershocks release real energy, so removing
@@ -86,6 +114,7 @@ const el = {
   answerDetail: document.getElementById("answer-detail")!,
   measure: document.getElementById("measure-control")!,
   mag: document.getElementById("mag-control")!,
+  window: document.getElementById("window-control")!,
   catalogField: document.getElementById("catalog-field") as HTMLFieldSetElement,
   sort: document.getElementById("sort-control")!,
   catalog: document.getElementById("catalog-control")!,
@@ -187,7 +216,7 @@ function buildYearPicker(years: number[], theme: ReturnType<typeof readTheme>) {
 
   el.yearSummary.textContent = selected.length === 0
     ? copy.home.yearsNone
-    : selected.length <= 3 ? selected.join(", ")
+    : selected.length <= 3 ? selected.map(yearLabel).join(", ")
     : fill(copy.home.yearsSome, { n: selected.length });
   el.yearCount.textContent = fill(copy.home.yearsCount,
     { n: selected.length, max: MAX_HIGHLIGHTS });
@@ -218,7 +247,7 @@ function buildYearPicker(years: number[], theme: ReturnType<typeof readTheme>) {
       void update();
     });
 
-    row.append(box, document.createTextNode(String(year)));
+    row.append(box, document.createTextNode(yearLabel(year)));
     if (on) {
       const dot = document.createElement("i");
       dot.className = "dot";
@@ -272,6 +301,15 @@ function syncControlAvailability() {
 function buildControls() {
   buildSegmented(el.mag, MAGNITUDES.map((m) => ({ id: String(m), label: magLabel(m) })),
     () => String(state.minMag), (id) => { state.minMag = Number(id); });
+  buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
+    () => state.window, (id) => {
+      state.window = id as State["window"];
+      // "2025" means the calendar year in one mode and August-to-August in the
+      // other. Carrying a selection across would quietly point it elsewhere.
+      state.highlights.clear();
+      state.listYear = null;
+      claimSlot(dayIndex(Date.now(), calendarShift()).year);
+    });
   buildSegmented(el.measure, MEASURES.map((m) => ({ id: m.id, label: m.label })),
     () => state.measure, (id) => {
       state.measure = id as Measure;
@@ -327,12 +365,12 @@ async function pollLive(afterMs: number) {
  * year's count fall the moment the user switches to mainshocks -- so they are
  * presumed independent, matching how build.py treats unclassified events.
  */
-function applyLive(curves: YearCurves, tier: Tier, minMag: number): number {
+function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number): number {
   const cutoff = tier.info.lastTime ?? 0;
   let added = 0;
   for (const event of liveEvents) {
     if (event.mag < minMag || event.time <= cutoff) continue;
-    const { year, day } = dayIndex(event.time);
+    const { year, day } = dayIndex(event.time, shift);
     const curve = curves.curves.get(year);
     if (!curve) continue;
     for (let d = day; d < DAYS; d++) curve[d] += 1;
@@ -363,14 +401,14 @@ function lowerBound(tier: Tier, t: number): number {
  * Each year's slice is found by binary search rather than scanning the tier,
  * which matters at M4.5 where a full pass is 294k rows on every re-render.
  */
-function highlightedEvents(tier: Tier, minMag: number,
-                           highlights: Highlight[]): MapEvent[] {
+function highlightedEvents(tier: Tier, minMag: number, highlights: Highlight[],
+                           shift: number): MapEvent[] {
   const out: MapEvent[] = [];
   const mainshocksOnly = effectiveMainshocksOnly();
 
   for (const { year, color } of highlights) {
-    const start = lowerBound(tier, Date.UTC(year, 0, 1));
-    const end = lowerBound(tier, Date.UTC(year + 1, 0, 1));
+    const start = lowerBound(tier, Date.UTC(year, 0, 1) + shift);
+    const end = lowerBound(tier, Date.UTC(year + 1, 0, 1) + shift);
     for (let i = start; i < end; i++) {
       if (tier.mag[i] < minMag) continue;
       if (mainshocksOnly && tier.dependent[i]) continue;
@@ -379,7 +417,7 @@ function highlightedEvents(tier: Tier, minMag: number,
 
     const cutoff = tier.info.lastTime ?? 0;
     for (const event of liveEvents) {
-      const { year: liveYear } = dayIndex(event.time);
+      const { year: liveYear } = dayIndex(event.time, shift);
       if (liveYear !== year || event.mag < minMag || event.time <= cutoff) continue;
       out.push({ lat: event.lat, lon: event.lon, mag: event.mag, year, color });
     }
@@ -400,7 +438,7 @@ function buildMapLegend(highlights: Highlight[]) {
     const dot = document.createElement("i");
     dot.className = "dot-swatch";
     dot.style.background = color;
-    entry.append(dot, document.createTextNode(String(year)));
+    entry.append(dot, document.createTextNode(yearLabel(year)));
     el.mapLegend.append(entry);
   }
 }
@@ -435,13 +473,13 @@ function buildListYears(years: number[], currentYear: number) {
   for (const year of available) {
     const option = document.createElement("option");
     option.value = String(year);
-    option.textContent = String(year);
+    option.textContent = yearLabel(year);
     option.selected = year === state.listYear;
     el.largestYear.append(option);
   }
 }
 
-async function updateLargest(listYear: number) {
+async function updateLargest(listYear: number, shift: number) {
   const info = store.detailTierFor(state.minMag);
   if (!info) {
     el.largestList.replaceChildren();
@@ -458,8 +496,8 @@ async function updateLargest(listYear: number) {
     return;
   }
 
-  const yearStart = Date.UTC(listYear, 0, 1);
-  const yearEnd = Date.UTC(listYear + 1, 0, 1);
+  const yearStart = Date.UTC(listYear, 0, 1) + shift;
+  const yearEnd = Date.UTC(listYear + 1, 0, 1) + shift;
   const cutoff = tier.info.lastTime ?? 0;
   const rows: { id: string; mag: number; time: number; place: string }[] = [];
 
@@ -526,7 +564,8 @@ async function updateLargest(listYear: number) {
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const threshold = `M${info.threshold}+`;
   if (shown.length === 0) {
-    el.largestNote.textContent = fill(copy.home.largestEmpty, { threshold, kind, year: listYear });
+    el.largestNote.textContent = fill(copy.home.largestEmpty,
+      { threshold, kind, year: yearLabel(listYear) });
     return;
   }
   el.largestNote.textContent = fill(
@@ -550,15 +589,22 @@ async function update() {
     return;
   }
 
-  const { year: currentYear, day: today } = dayIndex(Date.now());
+  const shift = calendarShift();
+  const { year: currentYear } = dayIndex(Date.now(), shift);
+  // A rolling window always ends today, so it is complete: the current "year"
+  // runs the full 365 days, and is compared only against equally complete ones.
+  const rolling = state.window === "rolling";
+  const today = rolling ? DAYS - 1 : dayIndex(Date.now(), shift).day;
 
   const mainshocksOnly = effectiveMainshocksOnly();
-  const curves = cumulativeByYear(tier, minMag, REFERENCE_START, mainshocksOnly, state.measure);
+  const curves = cumulativeByYear(
+    tier, minMag, REFERENCE_START, mainshocksOnly, state.measure, shift);
   const splitMajor = minMag < MAJOR_MAGNITUDE;
   const majorCurves = splitMajor
-    ? cumulativeByYear(tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure)
+    ? cumulativeByYear(
+        tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure, shift)
     : { curves: new Map<number, Float64Array>(), years: [], matched: 0 };
-  const liveAdded = applyLive(curves, tier, minMag);
+  const liveAdded = applyLive(curves, tier, minMag, shift);
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
   const band = empiricalBand(curves, refYears);
@@ -572,10 +618,10 @@ async function update() {
 
   writeHeadline(result, currentYear);
   writeNote(refYears.length, liveAdded);
-  writeAnnualNote(currentYear, splitMajor);
+  writeAnnualNote(currentYear, splitMajor, rolling);
 
   buildListYears(curves.years, currentYear);
-  void updateLargest(state.listYear ?? currentYear);
+  void updateLargest(state.listYear ?? currentYear, shift);
 
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
     subject, from: REFERENCE_START, to: currentYear - 1,
@@ -608,6 +654,7 @@ async function update() {
       yLabel: state.measure === "moment"
         ? copy.home.axisCumulativeMoment
         : fill(copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),
+      wholeNumbers: state.measure === "count",
     });
     el.chart.replaceChildren(figure);
     figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
@@ -617,9 +664,10 @@ async function update() {
       yLabel: state.measure === "moment"
         ? copy.home.axisAnnualMoment
         : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
+      wholeNumbers: state.measure === "count",
     }));
 
-    const mapEvents = highlightedEvents(tier, minMag, highlights);
+    const mapEvents = highlightedEvents(tier, minMag, highlights, shift);
     buildMapLegend(highlights);
     el.mapTitle.textContent = fill(copy.home.mapTitle, { threshold: magLabel(minMag) });
 
@@ -640,10 +688,11 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
   // the faint past years, which share its colour.
   type Kind = "accent" | "faint" | "dashed" | "band";
   const entries: { color: string; label: string; kind: Kind }[] = [
-    ...highlights.map((h) => ({ color: h.color, label: String(h.year), kind: "accent" as Kind })),
+    ...highlights.map((h) => ({ color: h.color, label: yearLabel(h.year), kind: "accent" as Kind })),
     { color: theme.history, label: fill(copy.home.legendOtherYears, { from, to }), kind: "faint" },
     { color: theme.median, label: copy.home.legendMedian, kind: "dashed" },
-    { color: theme.band, label: fill(copy.home.legendBand, { from, to }), kind: "band" },
+    { color: theme.bandInner, label: copy.home.legendBandInner, kind: "band" },
+    { color: theme.band, label: copy.home.legendBand, kind: "band" },
   ];
   for (const { color, label, kind } of entries) {
     const span = document.createElement("span");
@@ -674,29 +723,30 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
   if (!result || result.count === 0) {
     el.answer.innerHTML = copy.home.answerNothingYet;
     el.answerDetail.textContent = moment
-      ? fill(copy.home.detailNoneMoment, { year: currentYear })
+      ? fill(copy.home.detailNoneMoment, { year: yearLabel(currentYear) })
       : fill(copy.home.detailNoneCount,
-             { threshold: magLabel(state.minMag), kind, year: currentYear });
+             { threshold: magLabel(state.minMag), kind, year: yearLabel(currentYear) });
     return;
   }
 
   const pct = result.percentile * 100;
 
-  const answer = pct > 95 ? copy.home.answerBusiest
-    : pct < 5 ? copy.home.answerQuietest
-    : pct >= 75 ? copy.home.answerBusy
-    : pct <= 25 ? copy.home.answerQuiet
-    : copy.home.answerAverage;
-  el.answer.innerHTML = fill(answer, { year: currentYear, from: REFERENCE_START });
+  const roll = state.window === "rolling";
+  const answer = pct > 95 ? (roll ? copy.home.rollingBusiest : copy.home.answerBusiest)
+    : pct < 5 ? (roll ? copy.home.rollingQuietest : copy.home.answerQuietest)
+    : pct >= 75 ? (roll ? copy.home.rollingBusy : copy.home.answerBusy)
+    : pct <= 25 ? (roll ? copy.home.rollingQuiet : copy.home.answerQuiet)
+    : (roll ? copy.home.rollingAverage : copy.home.answerAverage);
+  el.answer.innerHTML = fill(answer, { year: yearLabel(currentYear), from: REFERENCE_START });
 
   const shared = { from: REFERENCE_START, to: currentYear - 1, percentile: ordinal(pct) };
   el.answerDetail.textContent = moment
-    ? fill(copy.home.detailMoment, {
+    ? fill(roll ? copy.home.detailMomentRolling : copy.home.detailMoment, {
         ...shared, count: withUnit(result.count),
         equivalent: equivalentMagnitude(result.count).toFixed(1),
         median: withUnit(result.medianToDate),
       })
-    : fill(copy.home.detailCount, {
+    : fill(roll ? copy.home.detailCountRolling : copy.home.detailCount, {
         ...shared, count: fmt(result.count), threshold: magLabel(state.minMag), kind,
         median: fmt(result.medianToDate),
       });
@@ -726,10 +776,12 @@ function writeNote(refCount: number, liveAdded: number) {
  * 1970s, the number is dominated by how the catalogue was built rather than by
  * seismicity, and it would read as a finding.
  */
-function writeAnnualNote(currentYear: number, splitMajor: boolean) {
-  el.annualNote.textContent = fill(
-    splitMajor ? copy.home.noteAnnual : copy.home.noteAnnualPlain,
-    { major: magLabel(MAJOR_MAGNITUDE), year: currentYear });
+function writeAnnualNote(currentYear: number, splitMajor: boolean, rolling: boolean) {
+  const template = rolling
+    ? (splitMajor ? copy.home.noteAnnualRollingMajor : copy.home.noteAnnualRolling)
+    : (splitMajor ? copy.home.noteAnnual : copy.home.noteAnnualPlain);
+  el.annualNote.textContent = fill(template,
+    { major: magLabel(MAJOR_MAGNITUDE), year: yearLabel(currentYear) });
 }
 
 function errorBox(message: string): HTMLElement {
@@ -763,7 +815,7 @@ async function boot() {
   buildControls();
   // Seeded once, not per render, so "Clear all" leaves the chart showing just
   // the reference backdrop instead of snapping the current year back on.
-  claimSlot(dayIndex(Date.now()).year);
+  claimSlot(dayIndex(Date.now(), calendarShift()).year);
 
   if (!meta.declustered) {
     const control = el.catalog.closest("fieldset");

@@ -77,6 +77,8 @@ export interface ChartOptions {
   theme: Theme;
   width: number;
   yLabel: string;
+  /** Suppress half-step tick labels; counts have no halves. */
+  wholeNumbers?: boolean;
 }
 
 interface EndPoint { day: number; value: number; year: number; color: string; }
@@ -121,6 +123,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   });
 
   const marks: Plot.Markish[] = [
+    // Outer band first, inner on top: the middle half sits inside the middle 90%.
     Plot.areaY(band, { x: "day", y1: "lo", y2: "hi", fill: theme.band, stroke: null }),
     Plot.areaY(band, { x: "day", y1: "loMid", y2: "hiMid", fill: theme.bandInner, stroke: null }),
     Plot.line(history, {
@@ -211,6 +214,10 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       // top-anchored label, which sits on top of the tick numbers.
       labelAnchor: "center",
       labelOffset: 52,
+      tickFormat: opts.wholeNumbers
+        ? (d: number) => (Number.isInteger(d) ? d.toLocaleString() : "")
+        : undefined,
+
       grid: true,
       nice: true,
       zero: true,
@@ -227,6 +234,7 @@ export interface AnnualOptions {
   theme: Theme;
   width: number;
   yLabel: string;
+  wholeNumbers?: boolean;
 }
 
 /**
@@ -312,6 +320,9 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
       label: opts.yLabel,
       labelAnchor: "center",
       labelOffset: 52,
+      tickFormat: opts.wholeNumbers
+        ? (d: number) => (Number.isInteger(d) ? d.toLocaleString() : "")
+        : undefined,
       grid: true,
       nice: true,
       zero: true,

@@ -46,6 +46,20 @@ export const copy = {
     answerAverage: "<strong>No.</strong> {year} is running about average.",
     answerNothingYet: "<strong>No.</strong>",
 
+    /** The same answers for the rolling window, which is complete rather than
+        part-way through, so "running" and "so far" would both be wrong. */
+    rollingBusiest: "<strong>Yes.</strong> The last 365 days beat almost every year since {from}.",
+    rollingQuietest: "<strong>No — less.</strong> The last 365 days were quieter than almost every year since {from}.",
+    rollingBusy: "<strong>No.</strong> The last 365 days were busy, but not unusually so.",
+    rollingQuiet: "<strong>No.</strong> The last 365 days were on the quiet side.",
+    rollingAverage: "<strong>No.</strong> The last 365 days were about average.",
+    detailCountRolling:
+      "{count} {threshold} {kind} worldwide in the last 365 days, against a median of {median} " +
+      "for the same stretch in earlier years — the {percentile} percentile of {from}–{to}.",
+    detailMomentRolling:
+      "{count} released worldwide in the last 365 days — as much as a single M{equivalent} " +
+      "earthquake — against a median of {median}. The {percentile} percentile of {from}–{to}.",
+
     /** The sentence under the answer. */
     detailCount:
       "{count} {threshold} {kind} worldwide so far, against a median of {median} for this " +
@@ -72,8 +86,9 @@ export const copy = {
 
     /* The small print under the cumulative chart. */
     noteBand:
-      "Each faint line is a past year. The shaded band covers the middle 90% of {years} of " +
-      "them, so a line inside the band is an ordinary year.",
+      "Each faint line is one of the {years} past years. The darker band holds the middle half " +
+      "of them and the lighter band the middle 90%, so a line inside the shading is an " +
+      "ordinary year.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
@@ -83,7 +98,17 @@ export const copy = {
     noteLiveUnclassified:
       "{n} event{s} from the last day {is} too recent to have been sorted, and counted as separate.",
 
-    /* The small print under the annual chart. */
+    /* The small print under the annual chart. Two versions: the M7+ share line
+       is meaningless when M7+ is the selected threshold, since it would then be
+       the whole bar. */
+    /* In the rolling view every bar is a complete twelve months, including the
+       current one, so there is nothing to project. */
+    noteAnnualRolling:
+      "Each bar is a full twelve months ending on this date, so the most recent one is " +
+      "complete and directly comparable to the rest.",
+    noteAnnualRollingMajor:
+      "The lighter part of each bar is the {major} share. Each bar is a full twelve months " +
+      "ending on this date, so the most recent one is complete and directly comparable.",
     noteAnnualPlain:
       "{year} is still going: the solid bar shows the year so far, and the dashed outline is " +
       "where it will land if it continues at the usual pace.",
@@ -103,7 +128,8 @@ export const copy = {
     /* Legend and controls. */
     legendOtherYears: "Other years, {from}–{to}",
     legendMedian: "Reference median",
-    legendBand: "Middle 90% of {from}–{to}",
+    legendBand: "Middle 90% of past years",
+    legendBandInner: "Middle half of past years",
     yearsNone: "None",
     yearsSome: "{n} years",
     yearsCount: "{n} of {max}",
@@ -219,8 +245,8 @@ export const copy = {
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:
-      "Start here. A fault cannot know it is Tuesday, so this panel shows what nothing looks " +
-      "like. Every other panel is judged against it.",
+      "Start here. A fault cannot know it is Tuesday, so this panel shows what no effect looks " +
+      "like.",
     weekdaySubtitle: "Day of the week · {since}",
 
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
@@ -238,12 +264,12 @@ export const copy = {
     moonVerdict: "No.",
     moonExplain:
       "If the moon set off earthquakes you would see two humps here — one at new moon and one " +
-      "at full, when the sun and moon line up and pull together hardest. There are no humps. " +
-      "Every bar sits inside the grey." +
+      "at full, when the sun and moon line up and the tidal forces are strongest. There are no humps; " +
+      "every bar sits inside the grey." +
       "\n\nThat does not prove the moon does nothing at all. Careful studies find a small " +
-      "effect on a small number of faults, mostly where ocean tides press on the seafloor. " +
-      "This chart is not sensitive enough to see something that small — and neither is anything " +
-      "else you could use to plan your day.",
+      "effect on a small number of very sensitive faults, mostly in regions with high subsurface fluid pressures. " +
+      "This chart shows that there are no statistical effects at the global scale, for large " +
+      "earthquakes.",
     moonSubtitle: "Day of the lunar cycle · {since}",
     moonLink: "But can the moon predict earthquakes? We looked at 79 of the biggest",
     moonNewMoon: "new moon",
@@ -253,7 +279,7 @@ export const copy = {
     climateExplain:
       "When ice melts or groundwater drains away, the weight pressing on the crust changes, " +
       "and in a few places that has been tied to small earthquakes. But it is slow and local, " +
-      "and it never shows up in the world total.",
+      "and it does not show up in the global total.",
     climateDriver: "warming",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
@@ -268,7 +294,7 @@ export const copy = {
     scatterYAxis: "{threshold} earthquakes",
 
     oklahomaQuestion: "Can people cause earthquakes?",
-    oklahomaVerdict: "Yes — and this is what a real effect looks like.",
+    oklahomaVerdict: "Yes, in some specific locations.",
     oklahomaExplain:
       "Oklahoma used to get about {rate} earthquakes of magnitude 3 or more a year. In {peakYear} " +
       "it got {peak}. The cause was wastewater from oil and gas drilling, pumped back down into " +
@@ -289,8 +315,7 @@ export const copy = {
     method:
       "Aftershocks are left out of every panel here, on purpose. An earthquake predicts other " +
       "earthquakes better than anything else we know of: leave the aftershocks in and one big " +
-      "rupture and its hundreds of followers would swamp every chart on the page. Stripping " +
-      "them out is what makes it possible to look for anything smaller." +
+      "rupture and its hundreds of followers would swamp every chart on the page." +
       "\n\nThe first three panels use {count} earthquakes of magnitude {binMagnitude} and up " +
       "since {from}. The last two compare whole years, so they use magnitude {yearMagnitude} " +
       "and up, where the counts can be trusted from one decade to the next.",
