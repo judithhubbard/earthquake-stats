@@ -251,7 +251,9 @@ export const copy = {
 
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
     monthExplain:
-      "Months are counted per day, because February is short." +
+      "Months are counted per day, because February is short. Grouping into twelve can make a " +
+      "wobble look like a pattern, so we checked day by day as well — 365 separate bars — and " +
+      "got the same answer." +
       "\n\nWeather follows the seasons, " +
       "and the seasons show nothing. Why is that? Earthquakes typically start ten kilometres or more underground. A big " +
       "storm presses on the ground about as hard as the moon does, and the moon, in the next " +

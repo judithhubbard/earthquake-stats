@@ -147,7 +147,6 @@ function binChart(bins: Bin[], width: number,
       // would say that only the upward half counts as a difference.
       labelArrow: null,
       tickFormat: (d: number) => `${d > 0 ? "+" : ""}${d.toFixed(0)}%`,
-      grid: true,
     },
     color: { type: "identity" },
     marks: [
@@ -155,8 +154,10 @@ function binChart(bins: Bin[], width: number,
         x: "label",
         y1: (d: Bin) => (-100 * d.sigma2) / d.expected,
         y2: (d: Bin) => (100 * d.sigma2) / d.expected,
-        fill: theme.band, insetLeft: -0.5, insetRight: -0.5,
+        fill: theme.bandNeutral, insetLeft: -0.5, insetRight: -0.5,
       }),
+      // After the band, so the scale stays readable across it.
+      Plot.gridY({ stroke: theme.grid, strokeOpacity: 1 }),
       Plot.rectY(bins, {
         x: "label", y: "deviation",
         // Two poles of a diverging pair: at a glance a short bar up and a short
@@ -306,7 +307,7 @@ async function boot() {
   el.guide.innerHTML = copy.correlations.guide;
 
   const legend: LegendKey[] = [
-    { color: theme.band, label: copy.correlations.legendBand, band: true },
+    { color: theme.bandNeutral, label: copy.correlations.legendBand, band: true },
     { color: theme.up, label: copy.correlations.legendAbove },
     { color: theme.down, label: copy.correlations.legendBelow },
   ];

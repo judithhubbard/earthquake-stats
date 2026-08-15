@@ -13,6 +13,7 @@ export interface Theme {
   surface: string;
   band: string;
   bandInner: string;
+  bandNeutral: string;
   history: string;
   median: string;
   grid: string;
@@ -33,6 +34,7 @@ export function readTheme(el: HTMLElement): Theme {
     surface: get("--surface-1"),
     band: get("--band-outer"),
     bandInner: get("--band-inner"),
+    bandNeutral: get("--band-neutral"),
     history: get("--history"),
     median: get("--median"),
     grid: get("--grid"),

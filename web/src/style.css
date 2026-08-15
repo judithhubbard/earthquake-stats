@@ -16,6 +16,7 @@
      four steps apart and read as a single smudge. */
   --band-outer: #fbf1d5;
   --band-inner: #f4e0a6;
+  --band-neutral: #e6e5df;
   --history: #898781;
   --median: #898781;
 
@@ -46,6 +47,7 @@
     --border: rgba(255, 255, 255, 0.10);
     --band-outer: #33301f;
     --band-inner: #4a4327;
+    --band-neutral: #2b2b28;
     --history: #898781;
     --median: #898781;
     --series-1: #3987e5;
@@ -70,6 +72,7 @@
   --border: rgba(255, 255, 255, 0.10);
   --band-outer: #33301f;
   --band-inner: #4a4327;
+  --band-neutral: #2b2b28;
   --history: #898781;
   --median: #898781;
   --series-1: #3987e5;
