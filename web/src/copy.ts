@@ -259,16 +259,33 @@ export const copy = {
     weekdaySubtitle: "Day of the week · {since}",
 
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
+    /* Values are filled from the data. The "right next to" line only holds while
+       the two largest deviations are adjacent months, so there is a fallback. */
+    monthIntro:
+      "We classified each {threshold} earthquake by the month it occurred in. {inside} Here we " +
+      "show the rate of earthquakes per day within the month, since months have different days.",
+    monthAllInside:
+      "All months fall within ±2 standard deviations — i.e., where we expect 95.45% of the data " +
+      "to fall if it is random.",
+    monthSomeOutside:
+      "{n} of the 12 months fall outside ±2 standard deviations — the range where we expect " +
+      "95.45% of the data to fall if it is random.",
+    monthPairAdjacent:
+      "The largest deviation is {bin1}, which has {pct1}% {dir1} earthquakes than average. That " +
+      "might sound suspicious, but it sits right next to the second-largest deviation ({bin2}), " +
+      "with {pct2}% {dir2} earthquakes than average! There is nothing to see here.",
+    monthPairApart:
+      "The largest deviation is {bin1}, which has {pct1}% {dir1} earthquakes than average, and " +
+      "the second-largest ({bin2}) runs {pct2}% {dir2}. There is nothing to see here.",
     monthExplain:
-      "Months are counted per day, because February is short. Grouping into twelve can make a " +
-      "wobble look like a pattern, so we checked day by day as well — 365 separate bars — and " +
-      "got the same answer." +
-      "\n\nWeather follows the seasons, " +
-      "and the seasons show nothing. Why is that? Earthquakes typically start ten kilometers or more underground. A big " +
-      "storm presses on the ground about as hard as the moon does, and the moon, in the next " +
-      "panel, does nothing." +
-      "\n\nThere are a few locations where there are slight differences between earthquake rates between " +
-      "summer and winter, but they are rare and associated with large swings, like the South Asian monsoon.",
+      "Here, month is a proxy for weather. If weather had a noticeable impact on earthquake " +
+      "rates, we would see something here, because we see different weather during different " +
+      "months. But we don't. It's easy to see why: earthquakes typically start ten kilometers " +
+      "or more underground, where the small stresses caused by weather patterns have essentially " +
+      "no impact." +
+      "\n\nThere are a few locations where there are slight differences between earthquake rates " +
+      "between summer and winter, but they are rare and associated with large swings, like the " +
+      "South Asian monsoon.",
     monthSubtitle: "Month of the year · {since}",
 
     moonQuestion: "Does the moon set off earthquakes?",

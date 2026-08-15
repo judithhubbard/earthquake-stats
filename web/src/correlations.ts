@@ -353,10 +353,32 @@ async function boot() {
     (w) => binChart(weekday, w), undefined,
     fill(copy.correlations.weekdaySubtitle, { since }), legend));
 
+  const month = monthBins(times);
+  const monthStray = outsideBand(month);
+  const ranked = [...month].sort((a, b) => Math.abs(b.deviation) - Math.abs(a.deviation));
+  const gap = Math.abs(month.indexOf(ranked[0]) - month.indexOf(ranked[1]));
+  const word = (d: number) => (d >= 0 ? "more" : "fewer");
   built.push(panel(copy.correlations.monthQuestion,
-    binVerdict(monthBins(times)).verdict,
-    `${binVerdict(monthBins(times)).note} ${copy.correlations.monthExplain}`,
-    (w) => binChart(monthBins(times), w), undefined,
+    binVerdict(month).verdict,
+    [
+      fill(copy.correlations.monthIntro, {
+        threshold: `M${BIN_MAGNITUDE}+`,
+        inside: monthStray.count === 0
+          ? copy.correlations.monthAllInside
+          : fill(copy.correlations.monthSomeOutside, { n: monthStray.count }),
+      }),
+      // December and January are adjacent too, hence the wrap.
+      fill(gap === 1 || gap === 11
+        ? copy.correlations.monthPairAdjacent
+        : copy.correlations.monthPairApart, {
+        bin1: ranked[0].full, pct1: Math.abs(ranked[0].deviation).toFixed(1),
+        dir1: word(ranked[0].deviation),
+        bin2: ranked[1].full, pct2: Math.abs(ranked[1].deviation).toFixed(1),
+        dir2: word(ranked[1].deviation),
+      }),
+      copy.correlations.monthExplain,
+    ].join("\n\n"),
+    (w) => binChart(month, w), undefined,
     fill(copy.correlations.monthSubtitle, { since }), legend));
 
   // We do not claim the small spring/neap excess this data seems to show. The
