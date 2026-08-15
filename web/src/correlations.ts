@@ -35,7 +35,8 @@ let redraw: (() => void)[] = [];
 
 /* ---------------- panel scaffolding ---------------- */
 
-interface LegendKey { color: string; label: string; band?: boolean; }
+/** A swatch has to look like the mark it stands for, or it misdescribes it. */
+interface LegendKey { color: string; label: string; band?: boolean; dashed?: boolean; }
 
 /**
  * The verdict must be answerable from the chart directly beneath it. Anything
@@ -79,8 +80,16 @@ function panel(question: string, verdict: string, note: string,
     for (const key of legend) {
       const entry = document.createElement("span");
       const swatch = document.createElement("i");
-      swatch.style.background = key.color;
-      if (key.band) swatch.className = "swatch-band";
+      if (key.band) {
+        swatch.className = "swatch-band";
+        swatch.style.background = key.color;
+      } else if (key.dashed) {
+        swatch.className = "swatch-dashed";
+        swatch.style.backgroundImage =
+          `repeating-linear-gradient(to right, ${key.color} 0 4px, transparent 4px 7px)`;
+      } else {
+        swatch.style.background = key.color;
+      }
       entry.append(swatch, document.createTextNode(key.label));
       box.append(entry);
     }
@@ -407,7 +416,8 @@ async function boot() {
       }),
       undefined, copy.correlations.oklahomaSubtitle,
       [{ color: theme.up, label: copy.correlations.oklahomaLegendBars },
-       { color: theme.muted, label: fill(copy.correlations.oklahomaLegendRate, { rate: rate.toFixed(0) }) }]));
+       { color: theme.muted, dashed: true,
+         label: fill(copy.correlations.oklahomaLegendRate, { rate: rate.toFixed(0) }) }]));
   }
 
   el.panels.replaceChildren(...built);
