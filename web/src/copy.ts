@@ -87,8 +87,8 @@ export const copy = {
     /* The small print under the cumulative chart. */
     noteBand:
       "Each faint line is one of the {years} previous years. The darker band spans the middle " +
-      "50% of those years and the lighter band the middle 90%. A line inside the shading is " +
-      "within the normal range.",
+      "50% of those years and the lighter band the middle 90%. A line inside the shading falls " +
+      "within the range of previous years.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
@@ -240,8 +240,9 @@ export const copy = {
       "±2σ, where random variation alone would produce {expected}.",
     outsideFewer: "fewer than one",
     outsideAbout: "about {n}",
-    /** Appended once the tally is stated, to say what it means. */
-    withinNormal: "This is within the normal range.",
+    /** Appended once the tally is stated, to say what it means. The band is
+        built on the null hypothesis, so it is right to name the null. */
+    withinNormal: "This is within the range expected if there is no effect.",
     outsideGrey:
       "Across all groups the spread is larger than random variation usually produces " +
       "(χ² = {chi} on {df} degrees of freedom, against a 5% threshold of {critical}). That " +
