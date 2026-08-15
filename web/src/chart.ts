@@ -264,17 +264,17 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     Plot.rectY(counts, {
       x: "year", y1: "major", y2: "count",
       fill, fillOpacity: (d: AnnualCount) => (colorFor.has(d.year) ? 0.45 : 0.3),
-      inset: 0.5,
+      insetLeft: 0.5, insetRight: 0.5,
     }),
     Plot.rectY(withMajor, {
       x: "year", y: "major",
       fill, fillOpacity: (d: AnnualCount) => (colorFor.has(d.year) ? 1 : 0.75),
-      inset: 0.5,
+      insetLeft: 0.5, insetRight: 0.5,
     }),
     Plot.rectY(partial, {
       x: "year", y1: "count", y2: "projected",
       fill: "none", stroke: fill, strokeWidth: 1, strokeDasharray: "2,2",
-      inset: 0.5,
+      insetLeft: 0.5, insetRight: 0.5,
     }),
   ];
 

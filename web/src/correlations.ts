@@ -155,14 +155,14 @@ function binChart(bins: Bin[], width: number,
         x: "label",
         y1: (d: Bin) => (-100 * d.sigma2) / d.expected,
         y2: (d: Bin) => (100 * d.sigma2) / d.expected,
-        fill: theme.band, inset: -0.5,
+        fill: theme.band, insetLeft: -0.5, insetRight: -0.5,
       }),
       Plot.rectY(bins, {
         x: "label", y: "deviation",
         // Two poles of a diverging pair: at a glance a short bar up and a short
         // bar down are otherwise the same shape.
         fill: (d: Bin) => (d.deviation >= 0 ? theme.up : theme.down),
-        fillOpacity: 0.9, inset: 7,
+        fillOpacity: 0.9, insetLeft: 7, insetRight: 7,
       }),
       Plot.ruleY([0], { stroke: theme.axis, strokeWidth: 1.2 }),
       // A labelled rule, not a floating word: the whole question on the moon
@@ -387,7 +387,10 @@ async function boot() {
              grid: true, zero: true },
         color: { type: "identity" },
         marks: [
-          Plot.rectY(rows, { x: "year", y: "count", fill: theme.up, fillOpacity: 0.85, inset: 0.5 }),
+          Plot.rectY(rows, {
+            x: "year", y: "count", fill: theme.up, fillOpacity: 0.85,
+            insetLeft: 0.5, insetRight: 0.5,
+          }),
           // The background rate is the comparison that makes the bars mean
           // something; without it the reader has no idea what is normal here.
           Plot.ruleY([rate], { stroke: theme.muted, strokeWidth: 1.5, strokeDasharray: "4,3" }),
