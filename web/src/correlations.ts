@@ -434,7 +434,7 @@ async function boot() {
   for (const fn of redraw) fn();
 
   el.method.textContent =
-    "Aftershocks are left out of every panel here, and that is not a detail. An earthquake " +
+    "Aftershocks are left out of every panel here, on purpose. An earthquake " +
     "predicts other earthquakes better than anything else we know of: leave the aftershocks " +
     "in and one big rupture and its hundreds of followers would swamp every chart on the " +
     "page. Stripping them out is what makes it possible to look for anything smaller." +
