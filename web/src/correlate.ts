@@ -145,6 +145,23 @@ export function lunarBins(times: Float64Array | number[]): Bin[] {
   return toBins(counts, labels, new Array(LUNAR_DAYS).fill(1), full);
 }
 
+/**
+ * How many bars leave the band, and how many would anyway.
+ *
+ * The band is two standard deviations, which holds 95.45% of draws, so 4.55%
+ * of bars sit outside it with nothing going on at all. On thirty bars that is
+ * one or two — worth saying, or a reader counts two strays and concludes
+ * something is happening.
+ */
+export const OUTSIDE_SHARE = 0.0455;
+
+export function outsideBand(bins: Bin[]): { count: number; expected: number } {
+  return {
+    count: bins.filter((b) => Math.abs(b.count - b.expected) > b.sigma2).length,
+    expected: OUTSIDE_SHARE * bins.length,
+  };
+}
+
 /** Chi-square across bins, and the 5% critical value for that many bins. */
 export function chiSquare(bins: Bin[]): { statistic: number; critical: number; df: number } {
   const statistic = bins.reduce(

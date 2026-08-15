@@ -4,7 +4,7 @@ import { readTheme, type Theme } from "./chart";
 import { MIN_MAGNITUDE, dayIndex } from "./stats";
 import { copy, fill } from "./copy";
 import {
-  FULL_MOON_DAY, chiSquare, lunarBins, monthBins, pearson, weekdayBins,
+  FULL_MOON_DAY, chiSquare, lunarBins, monthBins, outsideBand, pearson, weekdayBins,
   type Bin, type Correlation,
 } from "./correlate";
 
@@ -230,15 +230,28 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
 /* ---------------- verdicts ---------------- */
 
 function binVerdict(bins: Bin[]): { verdict: string; note: string } {
+  const C = copy.correlations;
   const test = chiSquare(bins);
   const worst = bins.reduce((a, b) =>
     Math.abs(b.deviation) > Math.abs(a.deviation) ? b : a);
-  const biggest = fill(copy.correlations.biggestGap,
-    { bin: worst.full, percent: Math.abs(worst.deviation).toFixed(1) });
+  const stray = outsideBand(bins);
+
+  const shared = { bin: worst.full, percent: Math.abs(worst.deviation).toFixed(1),
+                   bins: bins.length };
+  const note = stray.count === 0
+    ? fill(C.biggestAllInside, shared)
+    : fill(C.biggestSomeOutside, {
+        ...shared,
+        n: stray.count,
+        verb: stray.count === 1 ? "sits" : "sit",
+        expected: stray.expected < 0.5
+          ? C.outsideFewer
+          : fill(C.outsideAbout, { n: stray.expected.toFixed(1) }),
+      });
 
   return test.statistic <= test.critical
-    ? { verdict: copy.correlations.verdictNo, note: `${biggest} ${copy.correlations.insideGrey}` }
-    : { verdict: copy.correlations.verdictNotReally, note: `${biggest} ${copy.correlations.outsideGrey}` };
+    ? { verdict: C.verdictNo, note }
+    : { verdict: C.verdictNotReally, note: `${note} ${C.outsideGrey}` };
 }
 
 function scatterVerdict(c: Correlation | null, driver: string): { verdict: string; note: string } {
@@ -327,7 +340,7 @@ async function boot() {
 
   built.push(panel(copy.correlations.weekdayQuestion,
     binVerdict(weekdayBins(times)).verdict,
-    `${binVerdict(weekdayBins(times)).note} ${copy.correlations.weekdayExplain}`,
+    `${binVerdict(weekdayBins(times)).note} ${copy.correlations.weekdayExplain}`.trim(),
     (w) => binChart(weekdayBins(times), w), undefined,
     fill(copy.correlations.weekdaySubtitle, { since }), legend));
 

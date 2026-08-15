@@ -219,7 +219,9 @@ export const copy = {
       "<strong>How to read these.</strong> Flip a coin ten times and you rarely get exactly " +
       "five heads. Earthquakes are the same. Even when nothing is going on, some months turn " +
       "out busier than others. The grey band shows how much of that variation to expect. A bar inside " +
-      "the grey means that earthquakes are behaving randomly. A bar that sticks out might be worth a look.",
+      "the grey means that earthquakes are behaving randomly. A bar that sticks out might be " +
+      "worth a look — but the band is drawn to hold about 19 bars in 20, so on a chart with " +
+      "many bars, one or two poking out is normal too. Each panel says how many to expect.",
 
     legendBand: "Range expected from chance alone",
     legendAbove: "More earthquakes than average",
@@ -229,11 +231,20 @@ export const copy = {
     /* Verdict lines shared by the bar panels. */
     verdictNo: "No.",
     verdictNotReally: "Not really.",
-    biggestGap: "{bin} is furthest from average, by {percent}%.",
-    insideGrey: "That is inside the grey, so it is just luck.",
+    /* The furthest bar, and how many stray bars to expect anyway. Said in one
+       breath, because saying "inside the grey" and then "one bar is outside"
+       about the same bar reads as a contradiction. */
+    biggestAllInside:
+      "{bin} is furthest from average, by {percent}%, and every one of the {bins} bars sits " +
+      "inside the grey.",
+    biggestSomeOutside:
+      "{bin} is furthest from average, by {percent}%. {n} of the {bins} bars {verb} outside the " +
+      "grey, and chance alone would put {expected} there.",
+    outsideFewer: "less than one",
+    outsideAbout: "about {n}",
     outsideGrey:
-      "The bars show a little more variation than a random process would usually give. Worth a second look, but it " +
-      "proves nothing by itself.",
+      "Taken together the bars are a little more spread out than luck usually gives. Worth a " +
+      "second look, but it proves nothing by itself.",
 
     /* Verdict lines shared by the scatter panels. */
     verdictMaybe: "Maybe, but only just.",
@@ -244,9 +255,7 @@ export const copy = {
     scatterHint: "With this few years, treat it as a hint, not an answer.",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
-    weekdayExplain:
-      "Start here. A fault cannot know it is Tuesday, so this panel shows what no effect looks " +
-      "like.",
+    weekdayExplain: "",
     weekdaySubtitle: "Day of the week · {since}",
 
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
