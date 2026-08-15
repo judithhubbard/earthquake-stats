@@ -290,18 +290,26 @@ export const copy = {
 
     moonQuestion: "Does the moon set off earthquakes?",
     moonVerdict: "No.",
+    /* {allBut} is filled from the data, so the count cannot go stale, and the
+       link is built from one URL held in correlations.ts. */
     moonExplain:
-      "This chart tests the question as it is usually asked: does the count depend on the phase " +
-      "of the moon? If it did, the simplest expectation is two peaks, at new and full moon, when " +
-      "the sun and moon pull together. There are none." +
-      "\n\nThat is not the same as testing tidal stress. The stress a tide places on a fault " +
-      "depends on the fault's orientation and depth, on ocean loading as well as the solid-earth " +
-      "tide, and on whether earthquakes respond to peak stress or to how fast stress is " +
-      "changing. Those calculations are done fault by fault, and averaging over every " +
-      "orientation on Earth, as this chart does, would dilute a real effect. Careful studies do " +
-      "find a small effect on a small number of very sensitive faults, mostly in regions with " +
-      "high subsurface fluid pressures." +
-      "\n\nWe tested the published claims of tidal precursors directly, and they did not hold up.",
+      "Many people have suggested that lunar tides might cause earthquakes — this is a topic " +
+      "that has shown up not just in popular culture, but research papers. Here, we show each " +
+      "earthquake classified by the lunar day when it occurred. This chart tests the question as " +
+      "it is usually asked: does the count depend on the phase of the moon? If it did, the " +
+      "simplest expectation is two peaks, at new and full moon, when the sun and moon pull " +
+      "together. That pattern does not show up. Instead, {allBut} the data points fall within " +
+      "±2 standard deviations — i.e., where we expect 95.45% of the data to fall if it is random." +
+      "\n\nAs with many things, it is possible to make this question much more complicated — " +
+      "looking at different types of stresses, different types of faults, different regions on " +
+      "Earth. All of those studies for global earthquakes show ambiguous results at best, and " +
+      "non-results at worst. A few careful studies do find a small effect on a small number of " +
+      "very sensitive faults, mostly in regions with high subsurface fluid pressures." +
+      "\n\nSome people have suggested that tides can be used to predict earthquakes. We tested " +
+      "the published claims of tidal precursors directly, and they " +
+      "<a href=\"{article}\" target=\"_blank\" rel=\"noopener noreferrer\">did not hold up</a>.",
+    moonAllInside: "all of",
+    moonAllBut: "all but {n} of",
     moonSubtitle: "Day of the lunar cycle · {since}",
     moonLink: "But can the moon predict earthquakes? We looked at 79 of the biggest",
     moonNewMoon: "new moon",

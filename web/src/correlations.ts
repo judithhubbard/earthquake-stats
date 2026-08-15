@@ -58,7 +58,9 @@ function panel(question: string, verdict: string, note: string,
 
   const caption = document.createElement("p");
   caption.className = "correlate-explain";
-  caption.textContent = note;
+  // innerHTML, not textContent: some explanations carry an inline link. The copy
+  // is ours rather than user input, so there is nothing to sanitise.
+  caption.innerHTML = note;
 
   section.append(heading, answer, caption);
 
@@ -387,9 +389,19 @@ async function boot() {
   // contaminated of them clears significance; and the directional test was
   // picked after an eight-bin version came out messy. At daily resolution the
   // predicted two humps are simply absent, which is the honest answer.
+  const moon = lunarBins(times);
+  const moonStray = outsideBand(moon);
+  const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   built.push(panel(copy.correlations.moonQuestion, copy.correlations.moonVerdict,
-    `${binVerdict(lunarBins(times)).note} ${copy.correlations.moonExplain}`,
-    (w) => binChart(lunarBins(times), w, {
+    fill(copy.correlations.moonExplain, {
+      article: TIDES_ARTICLE,
+      allBut: moonStray.count === 0
+        ? copy.correlations.moonAllInside
+        : fill(copy.correlations.moonAllBut, {
+            n: moonStray.count < words.length ? words[moonStray.count] : moonStray.count,
+          }),
+    }),
+    (w) => binChart(moon, w, {
       ticks: ["1", "5", "10", "15", "20", "25", "30"],
       markers: [{ at: "1", label: copy.correlations.moonNewMoon },
                 { at: String(FULL_MOON_DAY), label: copy.correlations.moonFullMoon }],

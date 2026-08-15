@@ -743,3 +743,10 @@ footer p { margin: 0 0 0.4rem; }
 }
 
 .feels-close strong { color: var(--text-primary); }
+
+/* Inline links inside a panel explanation. */
+.correlate-explain a {
+  color: var(--series-1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
