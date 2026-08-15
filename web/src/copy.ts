@@ -325,9 +325,9 @@ export const copy = {
     oklahomaLegendRate: "Normal rate before 2009 — about {rate} a year",
 
     method:
-      "Aftershocks are left out of every panel here, on purpose. An earthquake predicts other " +
-      "earthquakes better than anything else we know of: leave the aftershocks in and one big " +
-      "rupture and its hundreds of followers would swamp every chart on the page." +
+      "Aftershocks are left out of every panel here, on purpose. Aftershock sequences are " +
+      "strongly clustered in time and space; including them would violate the independence the " +
+      "error bands assume." +
       "\n\nThe first three panels use {count} earthquakes of magnitude {binMagnitude} and up " +
       "since {from}. The last two compare whole years, so they use magnitude {yearMagnitude} " +
       "and up, where the counts can be trusted from one decade to the next.",
