@@ -1,0 +1,163 @@
+{
+  "generated": "2026-08-15T16:16:03.279944+00:00",
+  "source": "USGS ComCat via FDSN event service",
+  "minMagnitude": 4.5,
+  "eventType": "earthquake",
+  "encoding": {
+    "timeUnit": "minutes since 1970-01-01T00:00:00Z",
+    "latLonScale": 100,
+    "depthOffsetKm": 100.0,
+    "depthScale": 10.0,
+    "magScale": 10,
+    "magMask": 127,
+    "dependentFlag": 128
+  },
+  "declustered": true,
+  "homogenised": true,
+  "tiers": [
+    {
+      "threshold": 5.0,
+      "name": "m5",
+      "count": 91514,
+      "mainshocks": 44553,
+      "homogenised": 25775,
+      "hasDetail": false,
+      "bytes": 1006654,
+      "firstTime": 6226830,
+      "lastTime": 1786796079321
+    },
+    {
+      "threshold": 6.0,
+      "name": "m6",
+      "count": 7993,
+      "mainshocks": 5275,
+      "homogenised": 7950,
+      "hasDetail": true,
+      "bytes": 87923,
+      "firstTime": 320441150,
+      "lastTime": 1786791291796
+    }
+  ],
+  "recent": [
+    {
+      "id": "us6000tkyk",
+      "time": 1786791291796,
+      "lat": 3.0856,
+      "lon": 99.015,
+      "depth": 172.526,
+      "mag": 6.9,
+      "magtype": "mww",
+      "place": "15 km NNW of Pematangsiantar, Indonesia"
+    },
+    {
+      "id": "us6000tkuc",
+      "time": 1786746517550,
+      "lat": -8.3186,
+      "lon": 121.5717,
+      "depth": 10.0,
+      "mag": 6.1,
+      "magtype": "mb",
+      "place": "58 km N of Ende, Indonesia"
+    },
+    {
+      "id": "us6000tkt2",
+      "time": 1786744701564,
+      "lat": -8.3101,
+      "lon": 121.3517,
+      "depth": 10.0,
+      "mag": 7.7,
+      "magtype": "mww",
+      "place": "68 km NNW of Ende, Indonesia"
+    },
+    {
+      "id": "us6000tk74",
+      "time": 1786535232117,
+      "lat": -60.2445,
+      "lon": -28.9899,
+      "depth": 10.0,
+      "mag": 6.0,
+      "magtype": "mww",
+      "place": "South Sandwich Islands region"
+    },
+    {
+      "id": "us6000tjl2",
+      "time": 1786365268125,
+      "lat": 4.8436,
+      "lon": -76.2422,
+      "depth": 110.285,
+      "mag": 7.4,
+      "magtype": "mww",
+      "place": "5 km S of San Jos\u00e9 del Palmar, Colombia"
+    },
+    {
+      "id": "us6000ti8i",
+      "time": 1785915807317,
+      "lat": -33.8063,
+      "lon": 179.4727,
+      "depth": 226.084,
+      "mag": 6.3,
+      "magtype": "mww",
+      "place": "south of the Kermadec Islands"
+    },
+    {
+      "id": "us6000ti6x",
+      "time": 1785903246625,
+      "lat": 5.1812,
+      "lon": 125.276,
+      "depth": 10.0,
+      "mag": 6.3,
+      "magtype": "mww",
+      "place": "32 km SW of Sarangani, Philippines"
+    },
+    {
+      "id": "us6000tgb9",
+      "time": 1785223635512,
+      "lat": 32.6817,
+      "lon": 130.7217,
+      "depth": 10.0,
+      "mag": 6.8,
+      "magtype": "mww",
+      "place": "The 2026 Kumamoto Region, Japan Earthquake"
+    },
+    {
+      "id": "us7000t37a",
+      "time": 1784929071697,
+      "lat": -13.9559,
+      "lon": 167.0409,
+      "depth": 15.0,
+      "mag": 6.0,
+      "magtype": "mww",
+      "place": "55 km W of Sola, Vanuatu"
+    },
+    {
+      "id": "us7000t1cc",
+      "time": 1784301606587,
+      "lat": 14.2039,
+      "lon": -93.1385,
+      "depth": 10.0,
+      "mag": 6.4,
+      "magtype": "mww",
+      "place": "96 km SW of Puerto Madero, Mexico"
+    },
+    {
+      "id": "us7000t1bu",
+      "time": 1784299720227,
+      "lat": 14.6361,
+      "lon": -92.8969,
+      "depth": 22.0,
+      "mag": 7.3,
+      "magtype": "mww",
+      "place": "52 km W of Puerto Madero, Mexico"
+    },
+    {
+      "id": "us7000t0d0",
+      "time": 1784044179287,
+      "lat": 5.3206,
+      "lon": 125.181,
+      "depth": 47.171,
+      "mag": 6.2,
+      "magtype": "mww",
+      "place": "32 km WSW of Sarangani, Philippines"
+    }
+  ]
+}

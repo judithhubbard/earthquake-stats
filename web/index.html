@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Are there more earthquakes than usual this year?</title>
+    <meta name="description" content="Live USGS counts of M6+ earthquakes worldwide this year, set against every year since 1976." />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="eyebrow">Live from the USGS catalog</p>
+        <h1>Are there more earthquakes than usual this&nbsp;year?</h1>
+        <p class="answer" id="answer">Loading the catalog…</p>
+        <p class="answer-detail" id="answer-detail"></p>
+      </header>
+
+      <section class="panel">
+        <div class="controls" id="controls">
+          <fieldset>
+            <legend>
+              Measure
+              <span class="hint">
+                <button type="button" class="hint-button" id="measure-hint"
+                        aria-describedby="measure-tip">what's this?</button>
+                <span class="hint-tip" role="tooltip" id="measure-tip">
+                  <strong>Count</strong> treats every earthquake as one, so an M6 and an
+                  M8 weigh the same.
+                  <br /><br />
+                  <strong>Moment</strong> measures how much the ground moved. Each step up
+                  the magnitude scale is about 32× more, so one M8 outweighs a thousand
+                  M6s — and a single great earthquake can dominate a whole year.
+                </span>
+              </span>
+            </legend>
+            <div class="segmented" id="measure-control"></div>
+          </fieldset>
+          <fieldset id="catalog-field">
+            <legend>
+              Catalogue
+              <span class="hint">
+                <button type="button" class="hint-button" id="decluster-hint"
+                        aria-describedby="decluster-tip">what's this?</button>
+                <span class="hint-tip" role="tooltip" id="decluster-tip">
+                  A big earthquake is followed by hundreds of smaller ones nearby. Counting
+                  them all makes any year with a big earthquake look like a busy year —
+                  but that surge is one earthquake, not hundreds of unrelated ones.
+                  <br /><br />
+                  <strong>Mainshocks only</strong> counts each sequence once.
+                </span>
+              </span>
+            </legend>
+            <div class="segmented" id="catalog-control"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Years</legend>
+            <div class="picker" id="year-picker">
+              <button type="button" class="picker-button" id="year-toggle"
+                      aria-expanded="false" aria-controls="year-panel">
+                <span id="year-summary">—</span>
+              </button>
+              <div class="picker-panel" id="year-panel" role="group"
+                   aria-label="Years to highlight" hidden>
+                <div class="picker-head">
+                  <span id="year-count"></span>
+                  <button type="button" class="picker-clear" id="year-clear">Clear all</button>
+                </div>
+                <div class="picker-list" id="year-list"></div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <figure class="chart">
+          <figcaption id="chart-title"></figcaption>
+          <div id="chart"></div>
+          <p class="chart-note" id="chart-note"></p>
+        </figure>
+
+        <figure class="chart">
+          <figcaption id="annual-title"></figcaption>
+          <div id="annual-chart"></div>
+          <p class="chart-note" id="annual-note"></p>
+        </figure>
+
+        <div class="map-row">
+          <figure class="chart map-figure">
+            <figcaption id="map-title"></figcaption>
+            <div id="map"></div>
+            <p class="legend" id="map-legend"></p>
+          </figure>
+
+          <aside class="largest" aria-label="Earthquakes in the selected year">
+            <div class="largest-head">
+              <label class="largest-year">
+                <span class="sr-only">Year to list</span>
+                <select id="largest-year"></select>
+              </label>
+              <div class="segmented segmented-sm" id="sort-control"></div>
+            </div>
+            <ol id="largest-list"></ol>
+            <p class="largest-note" id="largest-note"></p>
+          </aside>
+        </div>
+      </section>
+
+
+      <section class="feels">
+        <h2>Then why does it feel like there are more?</h2>
+
+        <p class="feels-lede">
+          Because the number of earthquakes is not what you hear about. The news shows
+          you the ones that caused serious damage, and that is not the same thing at
+          all. Two earthquakes of the same magnitude can do completely different things.
+        </p>
+
+        <dl class="feels-list">
+          <dt>Where it happens</dt>
+          <dd>
+            Most earthquakes are under the ocean or under empty ground, and nobody
+            notices. The same earthquake under a city is a catastrophe.
+          </dd>
+
+          <dt>How deep it is</dt>
+          <dd>
+            A magnitude 6 fifteen kilometres down can wreck a town. The same
+            magnitude 6 at two hundred kilometres down is barely felt.
+          </dd>
+
+          <dt>What the ground is made of</dt>
+          <dd>
+            Soft valley sediment shakes like jelly and amplifies the movement. Hard
+            rock carries shaking much further, so far more people feel it.
+          </dd>
+
+          <dt>What people live in</dt>
+          <dd>
+            The same shaking that a well-built city shrugs off will flatten unreinforced
+            brick and concrete. This, more than the magnitude, decides how many people die.
+          </dd>
+
+          <dt>What time it is</dt>
+          <dd>
+            An earthquake at three in the morning catches people indoors and asleep. One
+            at three in the afternoon catches them on trains, shopping, at school.
+          </dd>
+        </dl>
+
+        <p class="feels-close">
+          And then there is you. There are twice as many people alive as in 1976, so
+          the same earthquake is felt by twice as many of them. Nearly everyone now
+          carries a camera, and footage of a collapsing building on the other side of
+          the world reaches you within minutes. There are no more earthquakes than there
+          used to be. You are just seeing far more of them.
+        </p>
+
+        <p>
+          <a class="explore" href="https://earthquakeinsights.substack.com/"
+             target="_blank" rel="noopener noreferrer">
+            We write about this every week <span class="arrow">→</span>
+          </a>
+        </p>
+      </section>
+
+      <p>
+        <a class="explore" href="correlations.html">
+          Do earthquakes follow the moon or the weather? <span class="arrow">→</span>
+        </a>
+      </p>
+
+      <footer>
+        <p>
+          Data: USGS ComCat via the FDSN event service, refreshed continuously.
+          Counts are tectonic earthquakes only; quarry blasts and explosions are excluded.
+        </p>
+        <p id="generated"></p>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

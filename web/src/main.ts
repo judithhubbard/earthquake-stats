@@ -1,0 +1,790 @@
+import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
+import { renderAnnualChart, renderChart, readTheme, type Highlight } from "./chart";
+import {
+  DAYS, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear, dayIndex,
+  empiricalBand, equivalentMagnitude, verdict, type Measure, type YearCurves,
+} from "./stats";
+import { loadLand, renderMap, type MapEvent } from "./map";
+
+/**
+ * First year of the reference window, and the earliest year shown anywhere.
+ *
+ * 1976 is the start of the Global CMT catalogue. Note that M6+ ComCat counts
+ * are NOT stationary across the whole of this window: fitted over 1976-1995
+ * they rise 37.5%/decade (t = 6.5) and then flatten (-4.3%/decade, t = -1.4
+ * over 1996-2025), which is the global network and routine Mw determination
+ * maturing rather than seismicity. The site shows no trend line for that
+ * reason. Moving this to 1996 gives a stationary window; it is one constant.
+ */
+const REFERENCE_START = 1976;
+
+const CATALOG_MODES = [
+  { id: "all", label: "All earthquakes" },
+  { id: "mainshocks", label: "Mainshocks only" },
+] as const;
+const MEASURES = [
+  { id: "count", label: "Count" },
+  { id: "moment", label: "Moment" },
+] as const;
+const SORT_MODES = [
+  { id: "largest", label: "Largest" },
+  { id: "recent", label: "Recent" },
+] as const;
+
+/** The panel scrolls, so this only needs to be past any plausible year's count. */
+const EVENT_LIST_LIMIT = 250;
+
+/** Colour slots available to highlighted years; index 0 is the current year. */
+const MAX_HIGHLIGHTS = 5;
+
+const LIVE_FEED = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+const LIVE_INTERVAL_MS = 60_000;
+
+interface State {
+  measure: Measure;
+  sortMode: (typeof SORT_MODES)[number]["id"];
+  /** Year shown in the event list; independent of the highlighted years. */
+  listYear: number | null;
+  catalogMode: (typeof CATALOG_MODES)[number]["id"];
+  /** Year -> colour slot. Slots are held until a year is deselected, so
+      removing one highlight never repaints the others. */
+  highlights: Map<number, number>;
+}
+
+const state: State = {
+  measure: "count",
+  sortMode: "largest",
+  listYear: null,
+  catalogMode: "all",
+  highlights: new Map(),
+};
+
+/**
+ * Moment ignores declustering: aftershocks release real energy, so removing
+ * them would undercount a physical quantity. For counts it is the whole point.
+ */
+const effectiveMainshocksOnly = () =>
+  state.measure === "count" && state.catalogMode === "mainshocks";
+
+let meta: Meta;
+let store: CatalogStore;
+interface LiveEvent {
+  id: string;
+  time: number;
+  lat: number;
+  lon: number;
+  mag: number;
+  place: string;
+}
+let liveEvents: LiveEvent[] = [];
+
+const el = {
+  answer: document.getElementById("answer")!,
+  answerDetail: document.getElementById("answer-detail")!,
+  measure: document.getElementById("measure-control")!,
+  catalogField: document.getElementById("catalog-field") as HTMLFieldSetElement,
+  sort: document.getElementById("sort-control")!,
+  catalog: document.getElementById("catalog-control")!,
+  yearPicker: document.getElementById("year-picker")!,
+  yearToggle: document.getElementById("year-toggle") as HTMLButtonElement,
+  yearPanel: document.getElementById("year-panel")!,
+  yearSummary: document.getElementById("year-summary")!,
+  yearCount: document.getElementById("year-count")!,
+  yearClear: document.getElementById("year-clear") as HTMLButtonElement,
+  yearList: document.getElementById("year-list")!,
+  chart: document.getElementById("chart")!,
+  chartTitle: document.getElementById("chart-title")!,
+  chartNote: document.getElementById("chart-note")!,
+  annualChart: document.getElementById("annual-chart")!,
+  annualTitle: document.getElementById("annual-title")!,
+  annualNote: document.getElementById("annual-note")!,
+  map: document.getElementById("map")!,
+  mapTitle: document.getElementById("map-title")!,
+  mapLegend: document.getElementById("map-legend")!,
+  largestYear: document.getElementById("largest-year") as HTMLSelectElement,
+  largestList: document.getElementById("largest-list")!,
+  largestNote: document.getElementById("largest-note")!,
+  generated: document.getElementById("generated")!,
+};
+
+const magLabel = (m: number) => `M${m.toFixed(1).replace(/\.0$/, "")}+`;
+
+/** Counts round to whole events; moment keeps three significant figures. */
+function fmt(n: number): string {
+  if (state.measure === "count") return Math.round(n).toLocaleString();
+  if (n === 0) return "0";
+  const digits = n >= 100 ? 0 : n >= 10 ? 1 : 2;
+  return n.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
+/** What one number of this measure is called, e.g. "90" vs "12.4 ×10²⁰ N·m". */
+function withUnit(n: number): string {
+  return state.measure === "moment" ? `${fmt(n)} ×10²⁰ N·m` : fmt(n);
+}
+
+
+function ordinal(n: number): string {
+  const v = Math.round(n);
+  const suffix = v % 100 >= 11 && v % 100 <= 13 ? "th"
+    : ["th", "st", "nd", "rd"][v % 10] ?? "th";
+  return `${v}${suffix}`;
+}
+
+/* ---------------- highlight slots ---------------- */
+
+function claimSlot(year: number) {
+  if (state.highlights.has(year) || state.highlights.size >= MAX_HIGHLIGHTS) return;
+  const taken = new Set(state.highlights.values());
+  let slot = 0;
+  while (taken.has(slot)) slot++;
+  state.highlights.set(year, slot);
+}
+
+function toggleYear(year: number) {
+  if (state.highlights.has(year)) state.highlights.delete(year);
+  else claimSlot(year);
+}
+
+/* ---------------- controls ---------------- */
+
+function buildSegmented(host: HTMLElement, options: { id: string; label: string }[],
+                        selected: () => string, onPick: (id: string) => void) {
+  host.replaceChildren();
+  for (const option of options) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "segmented-option";
+    button.dataset.id = option.id;
+    button.textContent = option.label;
+    button.setAttribute("aria-pressed", String(option.id === selected()));
+    button.addEventListener("click", () => {
+      onPick(option.id);
+      for (const sibling of host.querySelectorAll("button")) {
+        sibling.setAttribute("aria-pressed", String(sibling === button));
+      }
+      void update();
+    });
+    host.append(button);
+  }
+}
+
+function setPickerOpen(open: boolean) {
+  el.yearPanel.hidden = !open;
+  el.yearToggle.setAttribute("aria-expanded", String(open));
+}
+
+/**
+ * Rebuilds the year list in place. Called on every render, so the colour dots
+ * stay in step with the slots the chart is actually using.
+ */
+function buildYearPicker(years: number[], theme: ReturnType<typeof readTheme>) {
+  const selected = [...state.highlights.keys()].sort((a, b) => b - a);
+  const atCap = state.highlights.size >= MAX_HIGHLIGHTS;
+
+  el.yearSummary.textContent = selected.length === 0
+    ? "None"
+    : selected.length <= 3 ? selected.join(", ") : `${selected.length} years`;
+  el.yearCount.textContent = `${selected.length} of ${MAX_HIGHLIGHTS}`;
+  el.yearClear.disabled = selected.length === 0;
+
+  // Keep a selected year's row even if it has no events, so it can be unchecked
+  // rather than stranded as a checked-but-invisible year.
+  const listed = [...new Set([...years, ...state.highlights.keys()])].sort((a, b) => b - a);
+
+  el.yearList.replaceChildren();
+  for (const year of listed) {
+    const slot = state.highlights.get(year);
+    const on = slot !== undefined;
+    // At the cap, unchecked years are disabled rather than silently evicting an
+    // existing selection -- a checkbox that quietly unchecks another one reads
+    // as a bug.
+    const disabled = !on && atCap;
+
+    const row = document.createElement("label");
+    row.className = `picker-row${disabled ? " is-disabled" : ""}`;
+
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = on;
+    box.disabled = disabled;
+    box.addEventListener("change", () => {
+      toggleYear(year);
+      void update();
+    });
+
+    row.append(box, document.createTextNode(String(year)));
+    if (on) {
+      const dot = document.createElement("i");
+      dot.className = "dot";
+      dot.style.background = theme.series[slot % theme.series.length];
+      row.append(dot);
+    }
+    el.yearList.append(row);
+  }
+}
+
+function wireYearPicker() {
+  el.yearToggle.addEventListener("click", () => {
+    setPickerOpen(el.yearPanel.hidden);
+  });
+  el.yearClear.addEventListener("click", () => {
+    state.highlights.clear();
+    void update();
+  });
+  document.addEventListener("click", (event) => {
+    if (!el.yearPanel.hidden && !el.yearPicker.contains(event.target as Node)) {
+      setPickerOpen(false);
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !el.yearPanel.hidden) {
+      setPickerOpen(false);
+      el.yearToggle.focus();
+    }
+  });
+}
+
+/**
+ * Greys out the controls moment mode ignores -- and, importantly, repoints
+ * their highlight at what is actually being used.
+ *
+ * Disabling alone is not enough: a greyed control still showing "M6+" reads as
+ * "moment is being summed over M6+", which would be false. In moment mode the
+ * highlight moves to M4.5+ and "All earthquakes", which is the truth, and moves
+ * back to the reader's own choice when they return to counts.
+ */
+function syncControlAvailability() {
+  const off = state.measure === "moment";
+  el.catalogField.classList.toggle("is-off", off);
+  for (const button of el.catalog.querySelectorAll<HTMLButtonElement>("button.segmented-option")) {
+    button.disabled = off;
+    button.setAttribute("aria-pressed",
+      String(button.dataset.id === (off ? "all" : state.catalogMode)));
+  }
+}
+
+function buildControls() {
+  buildSegmented(el.measure, MEASURES.map((m) => ({ id: m.id, label: m.label })),
+    () => state.measure, (id) => {
+      state.measure = id as Measure;
+      syncControlAvailability();
+    });
+  buildSegmented(el.catalog, CATALOG_MODES.map((c) => ({ id: c.id, label: c.label })),
+    () => state.catalogMode, (id) => { state.catalogMode = id as State["catalogMode"]; });
+  buildSegmented(el.sort, SORT_MODES.map((s) => ({ id: s.id, label: s.label })),
+    () => state.sortMode, (id) => { state.sortMode = id as State["sortMode"]; });
+  // Options are rebuilt on every render, so the listener is attached once here
+  // rather than in buildListYears, which would stack duplicates.
+  el.largestYear.addEventListener("change", () => {
+    state.listYear = Number(el.largestYear.value);
+    void update();
+  });
+  wireYearPicker();
+  syncControlAvailability();
+}
+
+/* ---------------- live feed ---------------- */
+
+/**
+ * The realtime feeds are CORS-enabled and CDN-cached at 60s, so the browser can
+ * poll them directly -- no proxy, and our traffic never touches the FDSN query
+ * service. Anything older than the static build is already in the binary, so
+ * filtering on time is enough to avoid double-counting.
+ */
+async function pollLive(afterMs: number) {
+  try {
+    const res = await fetch(LIVE_FEED, { cache: "no-store" });
+    if (!res.ok) return;
+    const json = await res.json();
+    liveEvents = (json.features ?? [])
+      .filter((f: any) => f?.properties?.type === "earthquake"
+        && typeof f.properties.mag === "number"
+        && f.properties.time > afterMs)
+      .map((f: any) => ({
+        id: String(f.id ?? ""),
+        time: f.properties.time,
+        lon: f.geometry.coordinates[0],
+        lat: f.geometry.coordinates[1],
+        mag: f.properties.mag,
+        place: String(f.properties.place ?? ""),
+      }));
+  } catch {
+    // A failed poll is not worth surfacing: the static baseline is still correct.
+  }
+}
+
+/**
+ * Live events are counted in both catalog modes. They are too recent to have
+ * been declustered, and treating them as dependent would make the current
+ * year's count fall the moment the user switches to mainshocks -- so they are
+ * presumed independent, matching how build.py treats unclassified events.
+ */
+function applyLive(curves: YearCurves, tier: Tier, minMag: number): number {
+  const cutoff = tier.info.lastTime ?? 0;
+  let added = 0;
+  for (const event of liveEvents) {
+    if (event.mag < minMag || event.time <= cutoff) continue;
+    const { year, day } = dayIndex(event.time);
+    const curve = curves.curves.get(year);
+    if (!curve) continue;
+    for (let d = day; d < DAYS; d++) curve[d] += 1;
+    added++;
+  }
+  return added;
+}
+
+/* ---------------- map ---------------- */
+
+let land: Awaited<ReturnType<typeof loadLand>> | null = null;
+
+/** First index whose time is >= `t`, over the time-sorted tier. */
+function lowerBound(tier: Tier, t: number): number {
+  let lo = 0;
+  let hi = tier.n;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (tier.time[mid] < t) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/**
+ * Events for every highlighted year, coloured to match their chart lines.
+ *
+ * Each year's slice is found by binary search rather than scanning the tier,
+ * which matters at M4.5 where a full pass is 294k rows on every re-render.
+ */
+function highlightedEvents(tier: Tier, minMag: number,
+                           highlights: Highlight[]): MapEvent[] {
+  const out: MapEvent[] = [];
+  const mainshocksOnly = effectiveMainshocksOnly();
+
+  for (const { year, color } of highlights) {
+    const start = lowerBound(tier, Date.UTC(year, 0, 1));
+    const end = lowerBound(tier, Date.UTC(year + 1, 0, 1));
+    for (let i = start; i < end; i++) {
+      if (tier.mag[i] < minMag) continue;
+      if (mainshocksOnly && tier.dependent[i]) continue;
+      out.push({ lat: tier.lat[i], lon: tier.lon[i], mag: tier.mag[i], year, color });
+    }
+
+    const cutoff = tier.info.lastTime ?? 0;
+    for (const event of liveEvents) {
+      const { year: liveYear } = dayIndex(event.time);
+      if (liveYear !== year || event.mag < minMag || event.time <= cutoff) continue;
+      out.push({ lat: event.lat, lon: event.lon, mag: event.mag, year, color });
+    }
+  }
+  // Largest last so great earthquakes are not buried under the small ones.
+  return out.sort((a, b) => a.mag - b.mag);
+}
+
+/** Which colour is which year, so the map can carry no caption at all. */
+function buildMapLegend(highlights: Highlight[]) {
+  el.mapLegend.replaceChildren();
+  if (highlights.length === 0) {
+    el.mapLegend.textContent = "Select a year to plot its earthquakes.";
+    return;
+  }
+  for (const { year, color } of highlights) {
+    const entry = document.createElement("span");
+    const dot = document.createElement("i");
+    dot.className = "dot-swatch";
+    dot.style.background = color;
+    entry.append(dot, document.createTextNode(String(year)));
+    el.mapLegend.append(entry);
+  }
+}
+
+/* ---------------- largest events ---------------- */
+
+const USGS_EVENT_PAGE = "https://earthquake.usgs.gov/earthquakes/eventpage/";
+
+/** ComCat event id -> Earthquake Insights post. Hand-maintained; see posts.json. */
+let posts: Record<string, string> = {};
+
+async function loadPosts() {
+  try {
+    const res = await fetch(`${DATA_BASE}/posts.json`);
+    if (res.ok) posts = (await res.json()).posts ?? {};
+  } catch {
+    // The links are a bonus; their absence should never break the panel.
+  }
+}
+
+/** Fills the list's year dropdown, keeping the reader's choice if still valid. */
+function buildListYears(years: number[], currentYear: number) {
+  const available = years.length ? [...years].sort((a, b) => b - a) : [currentYear];
+  if (state.listYear === null || !available.includes(state.listYear)) {
+    state.listYear = available.includes(currentYear) ? currentYear : available[0];
+  }
+  if (el.largestYear.options.length === available.length &&
+      el.largestYear.value === String(state.listYear)) {
+    return;
+  }
+  el.largestYear.replaceChildren();
+  for (const year of available) {
+    const option = document.createElement("option");
+    option.value = String(year);
+    option.textContent = String(year);
+    option.selected = year === state.listYear;
+    el.largestYear.append(option);
+  }
+}
+
+async function updateLargest(listYear: number) {
+  const info = store.detailTierFor(MIN_MAGNITUDE);
+  if (!info) {
+    el.largestList.replaceChildren();
+    el.largestNote.textContent = "No event details available at this magnitude.";
+    return;
+  }
+
+  let tier: Tier;
+  let detail: Awaited<ReturnType<typeof store.loadDetail>>;
+  try {
+    [tier, detail] = await Promise.all([store.load(info.threshold), store.loadDetail(info)]);
+  } catch {
+    el.largestNote.textContent = "Could not load event details.";
+    return;
+  }
+
+  const yearStart = Date.UTC(listYear, 0, 1);
+  const yearEnd = Date.UTC(listYear + 1, 0, 1);
+  const cutoff = tier.info.lastTime ?? 0;
+  const rows: { id: string; mag: number; time: number; place: string }[] = [];
+
+  for (let i = tier.n - 1; i >= 0; i--) {
+    if (tier.time[i] < yearStart) break;
+    if (tier.time[i] >= yearEnd) continue;
+    if (effectiveMainshocksOnly() && tier.dependent[i]) continue;
+    rows.push({
+      id: detail.ids[i], mag: tier.mag[i], time: tier.time[i],
+      place: detail.places[i] || "Location unavailable",
+    });
+  }
+
+  // The live feed carries ids and place names of its own, so events too recent
+  // for the static build reach the list rather than showing up only in counts.
+  for (const event of liveEvents) {
+    if (event.time <= cutoff || event.time < yearStart || event.time >= yearEnd) continue;
+    if (event.mag < info.threshold) continue;
+    rows.push({
+      id: event.id, mag: event.mag, time: event.time,
+      place: event.place || "Location unavailable",
+    });
+  }
+
+  rows.sort(state.sortMode === "recent"
+    ? (a, b) => b.time - a.time || b.mag - a.mag
+    : (a, b) => b.mag - a.mag || b.time - a.time);
+
+  const shown = rows.slice(0, EVENT_LIST_LIMIT);
+  el.largestList.replaceChildren();
+  for (const row of shown) {
+    const item = document.createElement("li");
+
+    const link = document.createElement("a");
+    link.href = `${USGS_EVENT_PAGE}${row.id}`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.className = "largest-main";
+    link.innerHTML =
+      `<span class="largest-mag">M${row.mag.toFixed(1)}</span><span class="largest-place"></span>`;
+    link.querySelector(".largest-place")!.textContent = row.place;
+    item.append(link);
+
+    const when = document.createElement("span");
+    when.className = "largest-date";
+    when.textContent = new Date(row.time).toLocaleDateString(undefined, {
+      day: "numeric", month: "short", timeZone: "UTC",
+    });
+    item.append(when);
+
+    const post = posts[row.id];
+    if (post) {
+      const analysis = document.createElement("a");
+      analysis.href = post;
+      analysis.target = "_blank";
+      analysis.rel = "noopener noreferrer";
+      analysis.className = "largest-post";
+      analysis.textContent = "Read our analysis →";
+      item.append(analysis);
+    }
+    el.largestList.append(item);
+  }
+
+  const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
+  if (shown.length === 0) {
+    el.largestNote.textContent =
+      `No M${info.threshold}+ ${kind} recorded in ${listYear}.`;
+    return;
+  }
+
+  const parts = [`${rows.length} M${info.threshold}+ ${kind}`];
+  if (rows.length > shown.length) parts.push(`— showing the first ${shown.length}`);
+  parts.push("· each links to its USGS event page.");
+  el.largestNote.textContent = parts.join(" ");
+}
+
+/* ---------------- render ---------------- */
+
+let lastRender: (() => void) | null = null;
+
+async function update() {
+  const minMag = MIN_MAGNITUDE;
+
+  let tier: Tier;
+  try {
+    tier = await store.load(minMag);
+  } catch (err) {
+    el.chart.replaceChildren(errorBox(`Could not load the catalog: ${(err as Error).message}`));
+    return;
+  }
+
+  const { year: currentYear, day: today } = dayIndex(Date.now());
+
+  const mainshocksOnly = effectiveMainshocksOnly();
+  const curves = cumulativeByYear(tier, minMag, REFERENCE_START, mainshocksOnly, state.measure);
+  const majorCurves = cumulativeByYear(
+    tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure);
+  const liveAdded = applyLive(curves, tier, minMag);
+
+  const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
+  const band = empiricalBand(curves, refYears);
+  const result = verdict(curves, refYears, currentYear, today);
+
+  const counts = annualCounts(curves, majorCurves, currentYear, today, refYears);
+  const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
+  const subject = state.measure === "moment"
+    ? `moment release from ${magLabel(minMag)} earthquakes`
+    : `${magLabel(minMag)} ${kind}`;
+
+  writeHeadline(result, currentYear);
+  writeNote(refYears.length, liveAdded);
+  writeAnnualNote(currentYear);
+
+  buildListYears(curves.years, currentYear);
+  void updateLargest(state.listYear ?? currentYear);
+
+  el.chartTitle.textContent =
+    `Cumulative ${subject} worldwide — against ${REFERENCE_START}–${currentYear - 1}`;
+  el.annualTitle.textContent = state.measure === "moment"
+    ? "Moment released per year, worldwide"
+    : `${magLabel(minMag)} ${kind} per year, worldwide`;
+
+  lastRender = () => {
+    const theme = readTheme(document.body);
+    buildYearPicker(curves.years, theme);
+
+    if (band.length === 0 || refYears.length === 0) {
+      el.chart.replaceChildren(errorBox(
+        "Not enough history yet to draw a reference range.",
+      ));
+      return;
+    }
+
+    const highlights: Highlight[] = [...state.highlights.entries()]
+      .filter(([year]) => curves.curves.has(year))
+      .sort((a, b) => a[1] - b[1])
+      .map(([year, slot]) => ({
+        year,
+        color: theme.series[slot % theme.series.length],
+        through: year === currentYear ? today : DAYS - 1,
+      }));
+
+    const width = Math.max(320, el.chart.clientWidth || 800);
+    const figure = renderChart({
+      curves, band, refYears, highlights, today, theme, width,
+      yLabel: state.measure === "moment"
+        ? "Moment this year (×10²⁰ N·m)"
+        : `${magLabel(minMag)} events this year`,
+    });
+    el.chart.replaceChildren(figure);
+    figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
+
+    el.annualChart.replaceChildren(renderAnnualChart({
+      counts, highlights, refYears, theme, width,
+      yLabel: state.measure === "moment"
+        ? "Moment per year (×10²⁰ N·m)"
+        : `${magLabel(minMag)} events per year`,
+    }));
+
+    const mapEvents = highlightedEvents(tier, minMag, highlights);
+    buildMapLegend(highlights);
+    el.mapTitle.textContent = `${magLabel(minMag)} earthquakes, selected years`;
+
+    if (land) {
+      el.map.replaceChildren(renderMap({ land, events: mapEvents, theme, width }));
+    }
+  };
+  lastRender();
+}
+
+function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[],
+                     from: number, to: number): HTMLElement {
+  const wrap = document.createElement("p");
+  wrap.className = "legend";
+  const entries: [string, string, boolean][] = [
+    ...highlights.map((h) => [h.color, String(h.year), false] as [string, string, boolean]),
+    [theme.history, `Other years, ${from}–${to}`, false],
+    [theme.median, "Reference median", false],
+    [theme.band, `Middle 90% of ${from}–${to}`, true],
+  ];
+  for (const [color, label, isBand] of entries) {
+    const span = document.createElement("span");
+    const swatch = document.createElement("i");
+    swatch.style.background = color;
+    if (isBand) swatch.className = "swatch-band";
+    span.append(swatch, document.createTextNode(label));
+    wrap.append(span);
+  }
+  return wrap;
+}
+
+/**
+ * Answers only what the chart below it shows: where this year sits against the
+ * years before it. Nothing here depends on a long-run trend -- a trend cannot
+ * change between visits, and cannot be checked by eye against the chart, so it
+ * belongs beside the annual chart instead.
+ */
+function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) {
+  const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
+  const moment = state.measure === "moment";
+
+  if (!result || result.count === 0) {
+    el.answer.innerHTML = "<strong>No.</strong>";
+    el.answerDetail.textContent = moment
+      ? `No moment released worldwide yet in ${currentYear}.`
+      : `No ${magLabel(MIN_MAGNITUDE)} ${kind} recorded worldwide yet in ${currentYear}.`;
+    return;
+  }
+
+  const pct = result.percentile * 100;
+
+  if (pct > 95) {
+    el.answer.innerHTML =
+      `<strong>Yes.</strong> ${currentYear} is ahead of almost every year since ${REFERENCE_START}.`;
+  } else if (pct < 5) {
+    el.answer.innerHTML =
+      `<strong>No — less.</strong> ${currentYear} is quieter than almost every year since ${REFERENCE_START}.`;
+  } else if (pct >= 75) {
+    el.answer.innerHTML = `<strong>No.</strong> ${currentYear} is busy, but not unusually so.`;
+  } else if (pct <= 25) {
+    el.answer.innerHTML = `<strong>No.</strong> ${currentYear} is running on the quiet side.`;
+  } else {
+    el.answer.innerHTML = `<strong>No.</strong> ${currentYear} is running about average.`;
+  }
+
+  el.answerDetail.textContent = moment
+    ? `${withUnit(result.count)} released worldwide so far — as much as a single ` +
+      `M${equivalentMagnitude(result.count).toFixed(1)} earthquake — against a median of ` +
+      `${withUnit(result.medianToDate)} for this date. The ${ordinal(pct)} percentile of ` +
+      `${REFERENCE_START}–${currentYear - 1}.`
+    : `${fmt(result.count)} ${magLabel(MIN_MAGNITUDE)} ${kind} worldwide so far, against a ` +
+      `median of ${fmt(result.medianToDate)} for this date — the ${ordinal(pct)} percentile of ` +
+      `${REFERENCE_START}–${currentYear - 1}.`;
+}
+
+function writeNote(refCount: number, liveAdded: number) {
+  const notes: string[] = [
+    `Each faint line is a past year. The shaded band covers the middle 90% of ${refCount} of them, ` +
+    "so a year inside the band is an ordinary year.",
+  ];
+
+  if (state.measure === "moment") {
+    notes.push(
+      "Moment measures how much the ground moved, not how often. One great earthquake can " +
+      "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
+    );
+  }
+
+  if (effectiveMainshocksOnly()) {
+    notes.push(
+      "Aftershocks have been removed, so each earthquake sequence counts once. Deciding which " +
+      "events belong to a sequence is a judgement call, and different choices give different counts.",
+    );
+    if (liveAdded > 0) {
+      notes.push(
+        `${liveAdded} event${liveAdded === 1 ? "" : "s"} from the last day ` +
+        `${liveAdded === 1 ? "is" : "are"} too recent to have been sorted, and counted as separate.`,
+      );
+    }
+  }
+
+  el.chartNote.textContent = notes.join(" ");
+}
+
+/**
+ * Notes for the annual chart.
+ *
+ * No trend line and no slope. Fitted across a window reaching back to the
+ * 1970s, the number is dominated by how the catalogue was built rather than by
+ * seismicity, and it would read as a finding.
+ */
+function writeAnnualNote(currentYear: number) {
+  el.annualNote.textContent =
+    `The darker part of each bar is the ${magLabel(MAJOR_MAGNITUDE)} share. ` +
+    `${currentYear} is still going: the solid bar is the year so far, and the dashed outline is ` +
+    "where it lands at the usual pace.";
+}
+
+function errorBox(message: string): HTMLElement {
+  const box = document.createElement("div");
+  box.className = "error";
+  box.textContent = message;
+  return box;
+}
+
+/* ---------------- boot ---------------- */
+
+let resizeTimer: number | undefined;
+window.addEventListener("resize", () => {
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(() => lastRender?.(), 150);
+});
+window.matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", () => lastRender?.());
+
+async function boot() {
+  try {
+    meta = await loadMeta();
+  } catch (err) {
+    el.answer.textContent = "Could not load the catalogue.";
+    el.answerDetail.textContent =
+      `${(err as Error).message}. Run the pipeline first: python3 pipeline/fetch.py --backfill && ` +
+      "python3 pipeline/decluster.py && python3 pipeline/build.py";
+    return;
+  }
+
+  store = new CatalogStore(meta);
+  buildControls();
+  // Seeded once, not per render, so "Clear all" leaves the chart showing just
+  // the reference backdrop instead of snapping the current year back on.
+  claimSlot(dayIndex(Date.now()).year);
+
+  if (!meta.declustered) {
+    const control = el.catalog.closest("fieldset");
+    if (control) control.hidden = true;
+  }
+
+  el.generated.textContent =
+    `Catalogue snapshot built ${new Date(meta.generated).toUTCString()}; ` +
+    "live events appended from the USGS one-day feed.";
+
+  const newest = Math.max(...meta.tiers.map((t) => t.lastTime ?? 0));
+  await Promise.all([pollLive(newest), loadPosts()]);
+  await update();
+
+  // Coastlines arrive after the first paint; the charts do not wait on them.
+  loadLand().then((geo) => { land = geo; lastRender?.(); })
+    .catch(() => { el.mapLegend.textContent = "Could not load the basemap."; });
+
+  window.setInterval(async () => {
+    await pollLive(newest);
+    await update();
+  }, LIVE_INTERVAL_MS);
+}
+
+void boot();

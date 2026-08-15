@@ -1,0 +1,88 @@
+# Refreshes the static catalog and redeploys.
+#
+# Not wired up until a host is chosen -- the deploy step below is commented out.
+# GitHub's cron can drift 5-20 minutes under load, which is fine here: the page
+# also polls the USGS one-day feed directly, so recent events appear regardless
+# of when this last ran.
+
+name: Refresh catalog
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # The mirror is the only expensive state. A cache miss costs one full
+      # backfill (~10 min, ~60 sequential FDSN requests), which is why the
+      # restore-keys fall back to any earlier snapshot rather than none.
+      - name: Restore catalog mirror
+        uses: actions/cache/restore@v4
+        with:
+          path: data/catalog.sqlite
+          key: comcat-${{ github.run_id }}
+          restore-keys: comcat-
+
+      - name: Update from ComCat
+        run: |
+          if [ -f data/catalog.sqlite ]; then
+            python3 pipeline/fetch.py
+          else
+            echo "No cached mirror; running a full backfill."
+            python3 pipeline/fetch.py --backfill
+          fi
+
+      # Only the last two years: moment tensors arrive within days to weeks of an
+      # event, so recent years keep changing while older ones are settled. A full
+      # re-harvest is ~145 MB of QuakeML and belongs in the backfill, not a cron.
+      - name: Refresh moment magnitudes
+        run: python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
+
+      - name: Decluster
+        run: python3 pipeline/decluster.py
+
+      - name: Build client catalog
+        run: python3 pipeline/build.py
+
+      # Temperature, sunspots and the Oklahoma record for the correlations page.
+      # All three change monthly at most; a failure drops one panel, not the build.
+      - name: Refresh context datasets
+        run: python3 pipeline/context.py
+
+      - name: Save catalog mirror
+        uses: actions/cache/save@v4
+        with:
+          path: data/catalog.sqlite
+          key: comcat-${{ github.run_id }}
+
+      - name: Build site
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      # - name: Deploy to Cloudflare Pages
+      #   uses: cloudflare/wrangler-action@v3
+      #   with:
+      #     apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      #     accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      #     command: pages deploy web/dist --project-name=earthquake-stats

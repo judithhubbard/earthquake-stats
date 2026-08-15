@@ -1,0 +1,19 @@
+# The SQLite mirror is rebuildable from ComCat; keeping it out of git avoids
+# committing a ~60 MB binary that changes every run.
+#
+# Anchored with a leading slash on purpose. Bare "data/" matches ANY directory
+# called data at any depth, which silently swallowed web/public/data and would
+# have deployed a site with no catalog in it.
+/data/
+
+node_modules/
+web/dist/
+# The emitted catalog IS tracked, all ~1.4 MB of it. It is generated, which
+# normally argues for ignoring it -- but committing it means a deploy only has
+# to build the front end, instead of re-running a 35-minute backfill. The cost
+# is a diff on every refresh.
+web/public/data/*.gz
+
+.DS_Store
+*.pyc
+__pycache__/

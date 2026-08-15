@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Do earthquakes follow the moon, the weather, or the sun?</title>
+    <meta name="description" content="The moon, the seasons, the day of the week, sunspots, the climate — each tested against the USGS earthquake catalogue." />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="eyebrow"><a href="./" class="back-link">← Are there more earthquakes than usual?</a></p>
+        <h1>Do earthquakes follow the moon, the weather, or the&nbsp;sun?</h1>
+        <p class="answer" id="answer">Loading…</p>
+        <p class="answer-detail" id="answer-detail"></p>
+      </header>
+
+      <p class="guide" id="guide"></p>
+
+      <section class="panel" id="panels"></section>
+
+      <footer>
+        <p id="method"></p>
+        <p id="sources"></p>
+      </footer>
+    </main>
+    <script type="module" src="/src/correlations.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,729 @@
+:root {
+  color-scheme: light;
+  --surface-1: #fcfcfb;
+  --plane: #f9f9f7;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+
+  /* Chart roles. History is deliberately achromatic: it is the backdrop, not a
+     series. Accents belong only to the years the reader has highlighted. */
+  --band-outer: #e9e8e2;
+  --band-inner: #dbdad2;
+  --history: #898781;
+  --median: #898781;
+
+  /* Highlight slots, assigned in fixed order and held by a year until it is
+     deselected, so removing one highlight never repaints the others. */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #4a3aa7;
+  --series-5: #e87ba4;
+
+  /* Diverging pair for above/below average. Red and blue read as opposites and
+     stay 21 ΔE apart even under protanopia. */
+  --up: #e34948;
+  --down: #2a78d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --plane: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --band-outer: #262624;
+    --band-inner: #33322f;
+    --history: #898781;
+    --median: #898781;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #9085e9;
+    --series-5: #d55181;
+    --up: #e66767;
+    --down: #3987e5;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19;
+  --plane: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --band-outer: #262624;
+  --band-inner: #33322f;
+  --history: #898781;
+  --median: #898781;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #9085e9;
+  --series-5: #d55181;
+  --up: #e66767;
+  --down: #3987e5;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+/* ---------- hero ---------- */
+
+.hero { margin-bottom: 2.5rem; }
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hero h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.answer {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.answer strong { color: var(--series-1); }
+
+.answer-detail {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* ---------- panel ---------- */
+
+.panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-bottom: 1.25rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.controls fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.controls legend {
+  padding: 0 0 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--plane);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.segmented button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.segmented button:hover { background: var(--band-outer); }
+
+.segmented button[aria-pressed="true"] {
+  background: var(--series-1);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- inline hint ---------- */
+
+.hint { position: relative; display: inline-block; }
+
+.hint-button {
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--series-1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: help;
+  padding: 0;
+}
+
+.hint-tip {
+  display: none;
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 22rem;
+  max-width: 78vw;
+  padding: 0.7rem 0.8rem;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-secondary);
+}
+
+.hint-tip strong { color: var(--text-primary); }
+
+.hint:hover .hint-tip,
+.hint:focus-within .hint-tip { display: block; }
+
+/* Controls that the current measure ignores stay visible but inert, so their
+   state never claims to be affecting the chart. */
+.controls fieldset.is-off { opacity: 0.4; }
+.controls fieldset.is-off .segmented { background: transparent; }
+.segmented button:disabled { cursor: not-allowed; }
+.segmented button:disabled:hover { background: transparent; }
+
+/* ---------- map + largest events ---------- */
+
+/* A compact variant of the segmented control, for use inside a panel header. */
+.segmented-sm { padding: 1px; border-radius: 6px; }
+
+.segmented-sm button {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  min-height: 22px;
+  border-radius: 5px;
+}
+
+.map-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15rem;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 46rem) {
+  .map-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+.map-figure { margin-top: 1.25rem; }
+
+#map { min-height: 200px; overflow-x: auto; }
+
+.largest {
+  margin-top: 1.25rem;
+  padding: 0.85rem 0.9rem;
+  background: var(--plane);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.largest-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The year reads as the panel's heading, but is a real select. */
+.largest-year select {
+  appearance: none;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.1rem 1.15rem 0.1rem 0.3rem;
+  margin-left: -0.3rem;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+                    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 8px) 58%, calc(100% - 4px) 58%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.largest-year select:hover,
+.largest-year select:focus-visible {
+  border-color: var(--border);
+  background-color: var(--surface-1);
+}
+
+.largest ol {
+  margin: 0;
+  padding: 0 0.4rem 0 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  /* Scrolls so a busy year stays a panel rather than a page of its own. */
+  max-height: 22rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.largest li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.largest-main {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  min-width: 0;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.largest-main:hover .largest-place { text-decoration: underline; }
+
+.largest-mag {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--series-1);
+  flex: none;
+}
+
+.largest-place { color: var(--text-secondary); }
+
+.largest-date {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.largest-post {
+  grid-column: 1 / -1;
+  font-size: 0.72rem;
+  color: var(--series-1);
+  text-decoration: none;
+}
+
+.largest-post:hover { text-decoration: underline; }
+
+.largest-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ---------- year picker ---------- */
+
+.picker { position: relative; }
+
+.picker-button {
+  appearance: none;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  padding: 0.4rem 2rem 0.4rem 0.65rem;
+  min-height: 34px;
+  min-width: 11rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--plane);
+  color: var(--text-primary);
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+                    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.picker-button[aria-expanded="true"] { border-color: var(--text-muted); }
+
+.picker-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 13rem;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.picker-clear {
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.picker-clear:disabled { opacity: 0.4; cursor: default; text-decoration: none; }
+
+.picker-list {
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+
+.picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.picker-row:hover { background: var(--band-outer); }
+
+.picker-row input { margin: 0; cursor: pointer; accent-color: var(--series-1); }
+
+.picker-row.is-disabled { opacity: 0.38; cursor: default; }
+.picker-row.is-disabled:hover { background: none; }
+
+.picker-row .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-left: auto;
+  flex: none;
+}
+
+.controls select {
+  appearance: none;
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 0.4rem 2rem 0.4rem 0.65rem;
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--plane);
+  color: var(--text-primary);
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+                    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* ---------- chart ---------- */
+
+.chart { margin: 1.25rem 0 0; }
+
+.chart figcaption {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+#chart { min-height: 340px; overflow-x: auto; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+.legend i {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.legend .swatch-band { height: 12px; border-radius: 3px; }
+
+.legend .dot-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.chart-note {
+  margin: 0.9rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 68ch;
+}
+
+/* ---------- footer ---------- */
+
+footer {
+  margin-top: 2.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 68ch;
+}
+
+footer p { margin: 0 0 0.4rem; }
+
+.error {
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--band-outer);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ---------- correlations page ---------- */
+
+.back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.back-link:hover { color: var(--text-secondary); text-decoration: underline; }
+
+/* The button off the front page. Deliberately quiet: it is a door to a second
+   question, not a competitor to the first one. */
+.explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.explore:hover { border-color: var(--text-muted); }
+.explore .arrow { color: var(--text-muted); font-weight: 400; }
+
+.correlate-panel { margin: 0 0 2.25rem; }
+.correlate-panel:last-child { margin-bottom: 0.5rem; }
+
+.correlate-question {
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.correlate-verdict {
+  margin: 0.15rem 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--series-1);
+}
+
+.correlate-chart { min-height: 210px; overflow-x: auto; }
+
+.correlate-more {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--series-1);
+  text-decoration: none;
+}
+
+.correlate-more:hover { text-decoration: underline; }
+
+/* Explanations carry the argument, so they are body text, not footnotes. */
+.correlate-explain {
+  margin: 0 0 1rem;
+  max-width: 62ch;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  white-space: pre-line;
+}
+
+.correlate-subtitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.guide {
+  margin: 0 0 2rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--text-muted);
+  border-radius: 8px;
+  background: var(--surface-1);
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  max-width: 68ch;
+}
+
+.guide strong { color: var(--text-primary); }
+
+/* ---------- "why does it feel like more" ---------- */
+
+/* A deliberate change of register after the charts: this half of the answer is
+   prose, because none of it is a number. */
+.feels {
+  margin: 2.5rem 0 0;
+  padding: 1.75rem 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.feels h2 {
+  margin: 0 0 0.9rem;
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.feels-lede {
+  margin: 0 0 1.4rem;
+  max-width: 60ch;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.feels-list {
+  margin: 0 0 1.4rem;
+  max-width: 62ch;
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: 0.55rem 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  .feels-list { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; }
+  .feels-list dd { margin-bottom: 0.8rem; }
+}
+
+.feels-list dt {
+  font-weight: 650;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.feels-list dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.feels-close {
+  margin: 0 0 0.5rem;
+  max-width: 60ch;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.feels-close strong { color: var(--text-primary); }
