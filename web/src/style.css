@@ -23,9 +23,9 @@
      leaves ocean and land almost the same colour when the fills are side by
      side over a whole globe. Land is the pale one and the ocean carries the
      tone, so the epicentre dots stay the darkest thing on the map. */
-  --map-ocean: #e5e3d9;
+  --map-ocean: #c8c4b2;
   --map-land: #fbfbf9;
-  --map-coast: #a9a79b;
+  --map-coast: #847f6f;
   --history: #898781;
   --median: #898781;
 

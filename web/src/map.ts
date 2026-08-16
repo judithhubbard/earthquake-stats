@@ -69,7 +69,7 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
              { fill: theme.mapOcean, stroke: theme.mapCoast, strokeWidth: 0.6 }),
     // Drawn under the land so it reads as ocean rule rather than a grid over
     // the continents, which competes with the dots.
-    Plot.graticule({ stroke: theme.mapCoast, strokeWidth: 0.4, strokeOpacity: 0.35 }),
+    Plot.graticule({ stroke: theme.mapCoast, strokeWidth: 0.4, strokeOpacity: 0.45 }),
     Plot.geo(land as never, { fill: theme.mapLand, stroke: theme.mapCoast, strokeWidth: 0.5 }),
   ];
 
