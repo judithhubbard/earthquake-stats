@@ -747,7 +747,7 @@ async function update() {
       const axisKey = moment
         ? (rolling ? copy.home.stripAxisMomentRolling : copy.home.stripAxisMoment)
         : (rolling ? copy.home.stripAxisCountRolling : copy.home.stripAxisCount);
-      el.answerDetail.replaceChildren(renderDistribution({
+      const strip = renderDistribution({
         peers,
         value: result.count,
         share: fill(copy.home.stripShare, { above }),
@@ -755,13 +755,18 @@ async function update() {
         currentLabel: fill(copy.home.stripCurrent, {
           year: yearLabel(currentYear), count: fmt(result.count),
         }),
-        xLabel: fill(axisKey, {
-          threshold: magLabel(minMag), kind, from: REFERENCE_START,
-          to: currentYear - 1,
-          date: new Date().toLocaleDateString(undefined, { day: "numeric", month: "long" }),
-        }),
         theme, width: stripWidth,
-      }));
+      });
+      // The caption is HTML rather than an axis label so it can wrap. As a
+      // one-line label inside the plot it ran off the end of a 340px figure.
+      const caption = document.createElement("p");
+      caption.className = "answer-caption";
+      caption.textContent = fill(axisKey, {
+        threshold: magLabel(minMag), kind, from: REFERENCE_START,
+        to: currentYear - 1,
+        date: new Date().toLocaleDateString(undefined, { day: "numeric", month: "long" }),
+      });
+      el.answerDetail.replaceChildren(strip, caption);
     }
     const figure = renderChart({
       curves, band, refYears, highlights, today, theme, width, dayToDate,

@@ -95,7 +95,6 @@ export interface DistributionOptions {
   share: string;
   shareLabel: string;
   currentLabel: string;
-  xLabel: string;
   theme: Theme;
   width: number;
 }
@@ -121,7 +120,9 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   const values = peers.map((d) => d.value);
   const lo = Math.min(value, ...values);
   const hi = Math.max(value, ...values);
-  const step = niceStep((hi - lo) / 13) || 1;
+  // 26 rather than 13: niceStep snaps to 1, 2 or 5 times a power of ten, so
+  // asking for twice as many bins lands on exactly half the bar width.
+  const step = niceStep((hi - lo) / 26) || 1;
   const start = Math.floor(lo / step) * step;
   const count = Math.max(1, Math.ceil((hi - start) / step) + 1);
 
@@ -132,6 +133,10 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     bins[Math.min(bins.length - 1, Math.floor((v - start) / step))].n += 1;
   }
   const tallest = Math.max(1, ...bins.map((b) => b.n));
+  // Where the rule falls across the frame, 0 to 1, so labels near an edge can be
+  // anchored inward instead of centred on a position with no room either side.
+  const domainHi = bins[bins.length - 1].x1;
+  const place = domainHi > start ? (value - start) / (domainHi - start) : 0.5;
 
   // The bin holding this year's value straddles the line, so it is cut in two
   // at the line and each half takes its own side's colour. Without this the
@@ -150,12 +155,12 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   return Plot.plot({
     width,
     height: 150,
-    marginTop: 30, marginBottom: 34, marginLeft: 8, marginRight: 8,
+    // Side margins hold a tick label; the first and last ticks sit on the frame
+    // edge, so 8px cut them in half. The caption lives outside the figure, in
+    // HTML that can wrap -- inside the plot it was one line and ran off the end.
+    marginTop: 30, marginBottom: 42, marginLeft: 24, marginRight: 24,
     style: { background: "transparent", color: theme.text, fontSize: "11px" },
-    x: {
-      label: opts.xLabel, labelAnchor: "center", labelArrow: null,
-      ticks: 5, tickSize: 0, tickPadding: 7,
-    },
+    x: { label: null, ticks: 4, tickSize: 0, tickPadding: 7 },
     y: { axis: null, domain: [0, tallest * 1.35] },
     color: { type: "identity" },
     marks: [
@@ -167,8 +172,12 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
       }),
       Plot.ruleY([0], { stroke: theme.axis }),
       Plot.ruleX([value], { stroke: theme.series[0], strokeWidth: 2.5 }),
+      // Under the axis rather than above the bars: the share sits in the top
+      // right, and when this year runs high the two labels want the same corner.
+      // Anchored away from whichever edge it is near, so it cannot run off.
       Plot.text([{ x: value }], {
-        x: "x", text: () => opts.currentLabel, frameAnchor: "top", dy: -20,
+        x: "x", text: () => opts.currentLabel, frameAnchor: "bottom", dy: 32,
+        textAnchor: place < 0.15 ? "start" : place > 0.85 ? "end" : "middle",
         fill: theme.series[0], fontWeight: 650, fontSize: 12.5,
       }),
       Plot.text([{}], {
