@@ -54,19 +54,19 @@ export const copy = {
     rollingQuiet: "<strong>No.</strong> The last 365 days were on the quiet side.",
     rollingAverage: "<strong>No.</strong> The last 365 days were about average.",
     detailCountRolling:
-      "{count} {threshold} {kind} worldwide in the last 365 days, against a median of {median} " +
-      "for the same stretch in earlier years — the {percentile} percentile of {from}–{to}.",
+      "{count} {threshold} {kind} in the last 365 days — usual is {median} — {above}% of years " +
+      "since {from} had more {kind}",
     detailMomentRolling:
-      "{count} released worldwide in the last 365 days — as much as a single M{equivalent} " +
-      "earthquake — against a median of {median}. The {percentile} percentile of {from}–{to}.",
+      "{count} released in the last 365 days — as much as a single M{equivalent} earthquake — " +
+      "usual is {median} — {above}% of years since {from} released more",
 
     /** The sentence under the answer. */
     detailCount:
-      "{count} {threshold} {kind} worldwide so far, against a median of {median} for this " +
-      "date — the {percentile} percentile of {from}–{to}.",
+      "{count} {threshold} {kind} so far — usual is {median} — {above}% of years since {from} " +
+      "had more {kind}",
     detailMoment:
-      "{count} released worldwide so far — as much as a single M{equivalent} earthquake — " +
-      "against a median of {median} for this date. The {percentile} percentile of {from}–{to}.",
+      "{count} released so far — as much as a single M{equivalent} earthquake — usual is " +
+      "{median} — {above}% of years since {from} released more",
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",
 

@@ -241,6 +241,15 @@ export interface Verdict {
   count: number;
   /** Fraction of reference years running below this year at the same date. */
   percentile: number;
+  /**
+   * Share of reference years that were strictly ahead of this one on this date.
+   *
+   * Not 1 - percentile: that counts a tied year as half ahead and half behind,
+   * which is the right convention for ranking but the wrong answer to "how many
+   * years had more". Ties are common here -- integer counts, small tiers -- so
+   * the two can differ by several points.
+   */
+  aboveShare: number;
   medianToDate: number;
   /** Projected full-year total if the rest of the year matches the reference pace. */
   projected: number;
@@ -267,9 +276,11 @@ export function verdict(curves: YearCurves, refYears: number[],
   // Ties count as half, so a year sitting exactly on a peer is not pushed to an
   // extreme; with integer counts and small tiers, exact ties are common.
   let below = 0;
+  let above = 0;
   for (const value of toDate) {
     if (value < count) below += 1;
-    else if (value === count) below += 0.5;
+    else if (value > count) above += 1;
+    else below += 0.5;
   }
 
   const medianToDate = q(toDate, 0.5);
@@ -281,6 +292,7 @@ export function verdict(curves: YearCurves, refYears: number[],
     day,
     count,
     percentile: below / toDate.length,
+    aboveShare: above / toDate.length,
     medianToDate,
     projected: medianTotal * ratio,
     refYears,

@@ -153,14 +153,6 @@ function withUnit(n: number): string {
   return state.measure === "moment" ? `${fmt(n)} ×10²⁰ N·m` : fmt(n);
 }
 
-
-function ordinal(n: number): string {
-  const v = Math.round(n);
-  const suffix = v % 100 >= 11 && v % 100 <= 13 ? "th"
-    : ["th", "st", "nd", "rd"][v % 10] ?? "th";
-  return `${v}${suffix}`;
-}
-
 /* ---------------- highlight slots ---------------- */
 
 function claimSlot(year: number) {
@@ -835,7 +827,10 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
     : (roll ? copy.home.rollingAverage : copy.home.answerAverage);
   el.answer.innerHTML = fill(answer, { year: yearLabel(currentYear), from: REFERENCE_START });
 
-  const shared = { from: REFERENCE_START, to: currentYear - 1, percentile: ordinal(pct) };
+  const shared = {
+    from: REFERENCE_START, to: currentYear - 1,
+    above: Math.round(result.aboveShare * 100),
+  };
   el.answerDetail.textContent = moment
     ? fill(roll ? copy.home.detailMomentRolling : copy.home.detailMoment, {
         ...shared, count: withUnit(result.count),
