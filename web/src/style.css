@@ -105,11 +105,24 @@ main {
 
 .answer strong { color: var(--series-1); }
 
-/* Was a sentence, is now the distribution strip. Full width rather than the
-   52ch a line of prose wanted, and no colour of its own -- the marks carry it. */
-.answer-detail {
-  margin: 0.4rem 0 0;
-  min-height: 132px;
+/* The answer, and beside it the histogram it is read off. Two columns while
+   there is room for both; below that the figure drops under the sentence
+   rather than being squeezed to a width where the bars stop meaning anything. */
+.answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.answer-detail { min-height: 150px; }
+
+@media (max-width: 820px) {
+  .answer-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .answer-detail { max-width: 420px; }
 }
 
 .hero-intro {

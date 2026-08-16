@@ -91,66 +91,94 @@ function formatDay(day: number, dayToDate: (day: number) => Date): string {
 export interface DistributionOptions {
   peers: { year: number; value: number }[];
   value: number;
-  median: number;
-  /** The current year's accent, so the marker matches its line on the chart. */
-  color: string;
+  /** Big number and its caption, e.g. "34%" and "of years had more". */
+  share: string;
+  shareLabel: string;
   currentLabel: string;
-  medianLabel: string;
-  aboveLabel: string | null;
   xLabel: string;
   theme: Theme;
   width: number;
 }
 
+/** 1, 2 or 5 times a power of ten -- the bin widths that read as round numbers. */
+function niceStep(raw: number): number {
+  const power = 10 ** Math.floor(Math.log10(Math.max(raw, 1e-9)));
+  const scaled = raw / power;
+  return power * (scaled <= 1 ? 1 : scaled <= 2 ? 2 : scaled <= 5 ? 5 : 10);
+}
+
 /**
- * Where this year sits among every previous year, counted to the same date.
+ * This year against the distribution of every previous year, as a histogram.
  *
- * One dot per reference year, dodged into a pile. This replaced a sentence that
- * gave the count, the median and the share of years running ahead; the reader
- * can still read all three off the picture, but it also shows the thing the
- * sentence could not -- whether the year sits on the edge of the pack or is
- * buried in the middle of it, and how wide the pack is to begin with.
+ * Bars are the reference years binned by their count on this date. Those past
+ * this year's count carry the same red the annual bars use for above average,
+ * so the share quoted beside them is something the reader can see rather than
+ * take on trust. No y-axis: the question is where the line falls in the pile,
+ * not how many years are in any one bar.
  */
 export function renderDistribution(opts: DistributionOptions): SVGSVGElement | HTMLElement {
-  const { peers, value, median, color, theme, width } = opts;
-  const ahead = peers.filter((d) => d.value > value);
-  const max = Math.max(value, ...peers.map((d) => d.value));
+  const { peers, value, theme, width } = opts;
+  const values = peers.map((d) => d.value);
+  const lo = Math.min(value, ...values);
+  const hi = Math.max(value, ...values);
+  const step = niceStep((hi - lo) / 13) || 1;
+  const start = Math.floor(lo / step) * step;
+  const count = Math.max(1, Math.ceil((hi - start) / step) + 1);
+
+  const bins = Array.from({ length: count }, (_, i) => ({
+    x0: start + i * step, x1: start + (i + 1) * step, n: 0,
+  }));
+  for (const v of values) {
+    bins[Math.min(bins.length - 1, Math.floor((v - start) / step))].n += 1;
+  }
+  const tallest = Math.max(1, ...bins.map((b) => b.n));
+
+  // The bin holding this year's value straddles the line, so it is cut in two
+  // at the line and each half takes its own side's colour. Without this the
+  // whole bar has to pick a side, and the shaded region stops matching the
+  // share quoted next to it. The rule is drawn over the seam.
+  const rects: { x0: number; x1: number; n: number; above: boolean }[] = [];
+  for (const bin of bins) {
+    if (value > bin.x0 && value < bin.x1) {
+      rects.push({ x0: bin.x0, x1: value, n: bin.n, above: false });
+      rects.push({ x0: value, x1: bin.x1, n: bin.n, above: true });
+    } else {
+      rects.push({ ...bin, above: bin.x0 >= value });
+    }
+  }
 
   return Plot.plot({
     width,
-    height: 132,
-    marginTop: 26, marginBottom: 40, marginLeft: 16, marginRight: 16,
-    style: { background: "transparent", color: theme.text, fontSize: "12px" },
-    x: { label: opts.xLabel, labelAnchor: "center", nice: true, labelArrow: null },
-    y: { axis: null },
-    r: { type: "identity" },
+    height: 150,
+    marginTop: 30, marginBottom: 34, marginLeft: 8, marginRight: 8,
+    style: { background: "transparent", color: theme.text, fontSize: "11px" },
+    x: {
+      label: opts.xLabel, labelAnchor: "center", labelArrow: null,
+      ticks: 5, tickSize: 0, tickPadding: 7,
+    },
+    y: { axis: null, domain: [0, tallest * 1.35] },
     color: { type: "identity" },
     marks: [
-      Plot.ruleX([median], { stroke: theme.median, strokeWidth: 1.5, strokeDasharray: "4,3" }),
-      // Years ahead of this one wear the same red the annual bars use for above
-      // average, so the share is countable rather than asserted.
-      Plot.dot(peers, Plot.dodgeY({ anchor: "bottom", padding: 1.6 }, {
-        x: "value", r: 4.5,
-        fill: (d: { value: number }) => (d.value > value ? theme.up : theme.history),
-        fillOpacity: 0.85, stroke: theme.surface, strokeWidth: 0.8,
-      })),
-      Plot.ruleX([value], { stroke: color, strokeWidth: 2.5 }),
+      Plot.rectY(rects, {
+        x1: "x0", x2: "x1", y: "n",
+        fill: (d: { above: boolean }) => (d.above ? theme.up : theme.rangeInner),
+        fillOpacity: (d: { above: boolean }) => (d.above ? 0.55 : 1),
+        insetLeft: 0.75, insetRight: 0.75,
+      }),
+      Plot.ruleY([0], { stroke: theme.axis }),
+      Plot.ruleX([value], { stroke: theme.series[0], strokeWidth: 2.5 }),
       Plot.text([{ x: value }], {
-        x: "x", text: () => opts.currentLabel, frameAnchor: "top", dy: -14,
-        fill: color, fontWeight: 650, fontSize: 13,
+        x: "x", text: () => opts.currentLabel, frameAnchor: "top", dy: -20,
+        fill: theme.series[0], fontWeight: 650, fontSize: 12.5,
       }),
-      Plot.text([{ x: median }], {
-        x: "x", text: () => opts.medianLabel, frameAnchor: "bottom", dy: 15,
-        fill: theme.muted, fontSize: 11.5,
+      Plot.text([{}], {
+        text: () => opts.share, frameAnchor: "top-right", dy: 4, dx: -2,
+        fill: theme.up, fontWeight: 700, fontSize: 25,
       }),
-      // Centred over the red dots rather than pinned to a corner: when the year
-      // is near the top of the range there is no corner left to pin it to.
-      ...(opts.aboveLabel && ahead.length > 0
-        ? [Plot.text([{ x: (value + max) / 2 }], {
-            x: "x", text: () => opts.aboveLabel!, frameAnchor: "top", dy: -14,
-            fill: theme.up, fontSize: 11.5,
-          })]
-        : []),
+      Plot.text([{}], {
+        text: () => opts.shareLabel, frameAnchor: "top-right", dy: 26, dx: -2,
+        fill: theme.muted, fontSize: 10.5,
+      }),
     ],
   });
 }

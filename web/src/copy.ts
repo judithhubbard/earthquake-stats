@@ -69,13 +69,13 @@ export const copy = {
       "{median} — {above}% of years since {from} released more",
     /* Labels on the distribution strip under the answer. The sentence those
        replaced is still in detailCount below, read aloud to screen readers. */
-    stripAxisCount: "{threshold} {kind} by {date} · one dot per year since {from}",
-    stripAxisCountRolling: "{threshold} {kind} in a year · one dot per year since {from}",
-    stripAxisMoment: "Moment (×10²⁰ N·m) by {date} · one dot per year since {from}",
-    stripAxisMomentRolling: "Moment (×10²⁰ N·m) in a year · one dot per year since {from}",
+    stripAxisCount: "{threshold} {kind} by {date}, each year {from}–{to}",
+    stripAxisCountRolling: "{threshold} {kind} in a year, each year {from}–{to}",
+    stripAxisMoment: "Moment by {date}, each year {from}–{to}",
+    stripAxisMomentRolling: "Moment in a year, each year {from}–{to}",
     stripCurrent: "{year}: {count}",
-    stripMedian: "usual {median}",
-    stripAbove: "{above}% of years had more",
+    stripShare: "{above}%",
+    stripShareLabel: "of years had more",
 
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",

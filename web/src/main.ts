@@ -743,25 +743,24 @@ async function update() {
         .filter((d) => Number.isFinite(d.value));
       const above = Math.round(result.aboveShare * 100);
       const moment = state.measure === "moment";
+      const stripWidth = Math.max(240, el.answerDetail.clientWidth || 340);
       const axisKey = moment
         ? (rolling ? copy.home.stripAxisMomentRolling : copy.home.stripAxisMoment)
         : (rolling ? copy.home.stripAxisCountRolling : copy.home.stripAxisCount);
       el.answerDetail.replaceChildren(renderDistribution({
         peers,
         value: result.count,
-        median: result.medianToDate,
-        // Slot 0 is the current year's accent, the colour its line already wears.
-        color: theme.series[0],
+        share: fill(copy.home.stripShare, { above }),
+        shareLabel: copy.home.stripShareLabel,
         currentLabel: fill(copy.home.stripCurrent, {
           year: yearLabel(currentYear), count: fmt(result.count),
         }),
-        medianLabel: fill(copy.home.stripMedian, { median: fmt(result.medianToDate) }),
-        aboveLabel: fill(copy.home.stripAbove, { above }),
         xLabel: fill(axisKey, {
           threshold: magLabel(minMag), kind, from: REFERENCE_START,
+          to: currentYear - 1,
           date: new Date().toLocaleDateString(undefined, { day: "numeric", month: "long" }),
         }),
-        theme, width,
+        theme, width: stripWidth,
       }));
     }
     const figure = renderChart({
