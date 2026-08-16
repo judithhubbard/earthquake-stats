@@ -158,8 +158,17 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   // It snaps to 1, 2 or 5 times a power of ten, so asking for 26 instead of 13
   // only sometimes moves a rung: counts went 10 to 5, but moment's 586-wide
   // range landed on 50 both times and the figure did not change at all.
-  const step = (niceStep((hi - lo) / 13) || 2) / 2;
-  const start = Math.floor(lo / step) * step;
+  const raw = (niceStep((hi - lo) / 13) || 2) / 2;
+
+  // Counts are integers, and a bin narrower than 1 has gaps it can never fill:
+  // at M7+ the range is 2 to 13, which halved to bins of 0.5 and drew every
+  // other one empty. Whole steps, and edges on the halves so each bin is
+  // centred on the count it holds rather than straddling two of them.
+  const integral = Number.isInteger(value) && values.every(Number.isInteger);
+  const step = integral ? Math.max(1, Math.round(raw)) : raw;
+  const start = integral
+    ? Math.floor(lo / step) * step - 0.5
+    : Math.floor(lo / step) * step;
   const count = Math.max(1, Math.ceil((hi - start) / step) + 1);
 
   const bins = Array.from({ length: count }, (_, i) => ({
@@ -179,17 +188,24 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   // horizontal distance, and past halfway the red side is too thin to label.
   const flip = place > 0.5;
 
-  // The bin holding this year's value straddles the line, so it is cut in two
-  // at the line and each half takes its own side's colour. Without this the
-  // whole bar has to pick a side, and the shaded region stops matching the
-  // share quoted next to it. The rule is drawn over the seam.
+  // Which side of the line each bar belongs to.
+  //
+  // On integer bins the answer is exact: each one holds a single count, so a bar
+  // is "more" when its count is above this year's, and the bin sitting on the
+  // value holds the years that tied -- they did not have more, so it stays on
+  // the sage side and the red area is exactly the years the share counts.
+  //
+  // On a continuous scale no such bin exists, so the one holding the value is
+  // cut at the line and each half takes its own side's colour. Cutting the
+  // integer case too would leave a half-bin slice narrower than the gap between
+  // bars, which renders as nothing at all.
   const rects: { x0: number; x1: number; n: number; above: boolean }[] = [];
   for (const bin of bins) {
-    if (value > bin.x0 && value < bin.x1) {
+    if (!integral && value > bin.x0 && value < bin.x1) {
       rects.push({ x0: bin.x0, x1: value, n: bin.n, above: false });
       rects.push({ x0: value, x1: bin.x1, n: bin.n, above: true });
     } else {
-      rects.push({ ...bin, above: bin.x0 >= value });
+      rects.push({ ...bin, above: (bin.x0 + bin.x1) / 2 > value });
     }
   }
 
