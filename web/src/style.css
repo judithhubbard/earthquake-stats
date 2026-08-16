@@ -114,6 +114,8 @@ main {
   height: 44px;
   border-radius: 50%;
   border: 1px solid var(--border);
+  /* The source is 144x143, not quite square; cover crops rather than squashing. */
+  object-fit: cover;
 }
 
 .brand:hover { color: var(--text-primary); }
