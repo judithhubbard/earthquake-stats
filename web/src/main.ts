@@ -607,10 +607,11 @@ async function update() {
   const liveAdded = applyLive(curves, tier, minMag, shift);
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
-  const band = empiricalBand(curves, refYears);
-  const result = verdict(curves, refYears, currentYear, today);
+  const band = empiricalBand(curves, refYears, state.measure);
+  const result = verdict(curves, refYears, currentYear, today, state.measure);
 
-  const counts = annualCounts(curves, majorCurves, currentYear, today, refYears);
+  const counts = annualCounts(curves, majorCurves, currentYear, today, refYears,
+                             state.measure);
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const subject = state.measure === "moment"
     ? fill(copy.home.cumulativeSubjectMoment, { threshold: magLabel(minMag) })

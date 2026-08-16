@@ -133,15 +133,17 @@ export interface AnnualCount {
  */
 export function annualCounts(curves: YearCurves, majorCurves: YearCurves,
                              currentYear: number, today: number,
-                             refYears: number[]): AnnualCount[] {
+                             refYears: number[],
+                             measure: Measure = "count"): AnnualCount[] {
+  const q = quantileFor(measure);
   const peers = refYears
     .map((y) => curves.curves.get(y))
     .filter((c): c is Float64Array => c !== undefined);
 
   const toDate = peers.map((c) => c[today]).sort((a, b) => a - b);
   const totals = peers.map((c) => c[DAYS - 1]).sort((a, b) => a - b);
-  const medianToDate = quantile(toDate, 0.5);
-  const medianTotal = quantile(totals, 0.5);
+  const medianToDate = q(toDate, 0.5);
+  const medianTotal = q(totals, 0.5);
 
   return curves.years.map((year) => {
     const curve = curves.curves.get(year)!;
@@ -171,6 +173,28 @@ export function quantile(sorted: number[], p: number): number {
   return sorted[lo] + (h - lo) * (sorted[hi] - sorted[lo]);
 }
 
+/**
+ * Empirical inverse CDF -- quantile type 1.
+ *
+ * Every value it returns is one that is actually in the array, never a point
+ * invented between two of them. That is what counts need: with 49 reference
+ * years, type 7 puts the 95th percentile at position 45.6 and reports the M7+
+ * band edge as 4.60 earthquakes, which is not a number of earthquakes any year
+ * had. The caption promises a band spanning previous years, so the edges should
+ * be years. Moment is continuous and keeps type 7, where interpolating between
+ * two observations is a meaningful thing to do.
+ */
+export function quantileDiscrete(sorted: number[], p: number): number {
+  const n = sorted.length;
+  if (n === 0) return NaN;
+  return sorted[Math.min(n - 1, Math.max(0, Math.ceil(n * p) - 1))];
+}
+
+/** Type 7 for moment, type 1 for counts. See `quantileDiscrete`. */
+function quantileFor(measure: Measure): (sorted: number[], p: number) => number {
+  return measure === "moment" ? quantile : quantileDiscrete;
+}
+
 export interface BandPoint {
   day: number;
   lo: number;
@@ -186,7 +210,9 @@ export interface BandPoint {
  * Pointwise, not simultaneous: it answers "is today's count unusual for this
  * date" and is not a confidence region for the whole trajectory.
  */
-export function empiricalBand(curves: YearCurves, refYears: number[]): BandPoint[] {
+export function empiricalBand(curves: YearCurves, refYears: number[],
+                              measure: Measure = "count"): BandPoint[] {
+  const q = quantileFor(measure);
   const series = refYears
     .map((y) => curves.curves.get(y))
     .filter((c): c is Float64Array => c !== undefined);
@@ -199,11 +225,11 @@ export function empiricalBand(curves: YearCurves, refYears: number[]): BandPoint
     scratch.sort((a, b) => a - b);
     out.push({
       day: d,
-      lo: quantile(scratch, 0.05),
-      loMid: quantile(scratch, 0.25),
-      median: quantile(scratch, 0.5),
-      hiMid: quantile(scratch, 0.75),
-      hi: quantile(scratch, 0.95),
+      lo: q(scratch, 0.05),
+      loMid: q(scratch, 0.25),
+      median: q(scratch, 0.5),
+      hiMid: q(scratch, 0.75),
+      hi: q(scratch, 0.95),
     });
   }
   return out;
@@ -223,7 +249,9 @@ export interface Verdict {
 }
 
 export function verdict(curves: YearCurves, refYears: number[],
-                        currentYear: number, day: number): Verdict | null {
+                        currentYear: number, day: number,
+                        measure: Measure = "count"): Verdict | null {
+  const q = quantileFor(measure);
   const current = curves.curves.get(currentYear);
   if (!current) return null;
 
@@ -244,8 +272,8 @@ export function verdict(curves: YearCurves, refYears: number[],
     else if (value === count) below += 0.5;
   }
 
-  const medianToDate = quantile(toDate, 0.5);
-  const medianTotal = quantile([...totals].sort((a, b) => a - b), 0.5);
+  const medianToDate = q(toDate, 0.5);
+  const medianTotal = q([...totals].sort((a, b) => a - b), 0.5);
   const ratio = medianToDate > 0 ? count / medianToDate : 1;
 
   return {
@@ -256,6 +284,6 @@ export function verdict(curves: YearCurves, refYears: number[],
     medianToDate,
     projected: medianTotal * ratio,
     refYears,
-    inside90: count >= quantile(toDate, 0.05) && count <= quantile(toDate, 0.95),
+    inside90: count >= q(toDate, 0.05) && count <= q(toDate, 0.95),
   };
 }
