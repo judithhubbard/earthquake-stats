@@ -202,7 +202,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   marks.push(
     Plot.tip(history, Plot.pointer({
       x: "day", y: "value", maxRadius: 14,
-      fill: theme.surface, stroke: theme.axis, textPadding: 7, fontSize: 11,
+      fill: theme.surface, stroke: theme.axis, textPadding: 16, fontSize: 22,
       anchor: "bottom",
       title: (d: { year: number; value: number; day: number }) =>
         `${d.year}\n${d.value.toLocaleString()} by ${formatDay(d.day, dayToDate)}`,
@@ -216,7 +216,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       })),
       Plot.tip(hover, Plot.pointerX({
         x: "day", y: "value",
-        fill: theme.surface, stroke: theme.axis, textPadding: 10,
+        fill: theme.surface, stroke: theme.axis, textPadding: 16, fontSize: 22,
         title: (d: Record<string, number>) => {
           const rows = [formatDay(d.day, dayToDate)];
           for (const h of highlights) {
@@ -332,7 +332,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     Plot.ruleY([0], { stroke: theme.axis, strokeWidth: 1 }),
     Plot.tip(counts, Plot.pointerX({
       x: "year", y: "count",
-      fill: theme.surface, stroke: theme.axis, textPadding: 10,
+      fill: theme.surface, stroke: theme.axis, textPadding: 16, fontSize: 22,
       title: (d: AnnualCount) => {
         const fmt = (v: number) => (Number.isInteger(v) ? v.toLocaleString()
           : v.toLocaleString(undefined, { maximumFractionDigits: 1 }));
