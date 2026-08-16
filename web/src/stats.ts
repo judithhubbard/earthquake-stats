@@ -250,6 +250,8 @@ export interface Verdict {
    * the two can differ by several points.
    */
   aboveShare: number;
+  /** And the share strictly behind it. Ties belong to neither. */
+  belowShare: number;
   medianToDate: number;
   /** Projected full-year total if the rest of the year matches the reference pace. */
   projected: number;
@@ -277,8 +279,9 @@ export function verdict(curves: YearCurves, refYears: number[],
   // extreme; with integer counts and small tiers, exact ties are common.
   let below = 0;
   let above = 0;
+  let under = 0;
   for (const value of toDate) {
-    if (value < count) below += 1;
+    if (value < count) { below += 1; under += 1; }
     else if (value > count) above += 1;
     else below += 0.5;
   }
@@ -293,6 +296,7 @@ export function verdict(curves: YearCurves, refYears: number[],
     count,
     percentile: below / toDate.length,
     aboveShare: above / toDate.length,
+    belowShare: under / toDate.length,
     medianToDate,
     projected: medianTotal * ratio,
     refYears,

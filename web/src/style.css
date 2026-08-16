@@ -25,6 +25,9 @@
      means neither -- it is the range the reader is being measured against. */
   --range-outer: #e9f1ed;
   --range-inner: #bfd9cd;
+  /* Readable ink in the range's own hue, for labelling the sage side. The fill
+     itself is far too light to set type in. 5.2:1 on the page background. */
+  --range-ink: #3f7358;
 
   /* The map needs its own three, not the surface/band pair the charts use.
      Those sit two steps apart, which is right for stacked areas on a page but

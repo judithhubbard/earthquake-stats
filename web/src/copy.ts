@@ -71,11 +71,18 @@ export const copy = {
        replaced is still in detailCount below, read aloud to screen readers. */
     stripAxisCount: "{threshold} {kind} by {date}, each year {from}–{to}",
     stripAxisCountRolling: "{threshold} {kind} in a year, each year {from}–{to}",
-    stripAxisMoment: "Moment by {date}, each year {from}–{to}",
-    stripAxisMomentRolling: "Moment in a year, each year {from}–{to}",
+    /* The moment axis is drawn as the magnitude of the single earthquake that
+       would release the year's moment. Raw moment spans a factor of a hundred
+       and is unreadable; this is the same number the answer sentence quotes. */
+    stripAxisMoment:
+      "Moment released by {date}, as the magnitude of one earthquake · each year {from}–{to}",
+    stripAxisMomentRolling:
+      "Moment released in a year, as the magnitude of one earthquake · each year {from}–{to}",
     stripCurrent: "{year}: {count}",
-    stripShare: "{above}%",
-    stripShareLabel: "of years had more",
+    stripCurrentMoment: "{year}: M{count}",
+    stripShare: "{share}%",
+    stripShareMore: "of years had more",
+    stripShareLess: "of years had less",
 
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",

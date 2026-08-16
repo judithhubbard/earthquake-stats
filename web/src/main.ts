@@ -747,14 +747,33 @@ async function update() {
       const axisKey = moment
         ? (rolling ? copy.home.stripAxisMomentRolling : copy.home.stripAxisMoment)
         : (rolling ? copy.home.stripAxisCountRolling : copy.home.stripAxisCount);
+      // Moment is plotted as the magnitude of the single earthquake that would
+      // release it. Raw moment runs from 6 to 592 x10^20 N.m -- 2011 alone is 26
+      // times the median -- so the bars pile into one bin and the axis carries a
+      // unit nobody reads. The log turn makes it a 1.3-magnitude spread, and it
+      // is the number the answer sentence already quotes.
+      const asMagnitude = (v: number) => equivalentMagnitude(v);
+      const peerValues = moment
+        ? peers.map((d) => ({ ...d, value: asMagnitude(d.value) }))
+        : peers;
       const strip = renderDistribution({
-        peers,
-        value: result.count,
-        share: fill(copy.home.stripShare, { above }),
-        shareLabel: copy.home.stripShareLabel,
-        currentLabel: fill(copy.home.stripCurrent, {
-          year: yearLabel(currentYear), count: fmt(result.count),
-        }),
+        peers: peerValues,
+        value: moment ? asMagnitude(result.count) : result.count,
+        share: {
+          more: fill(copy.home.stripShare, { share: above }),
+          moreLabel: copy.home.stripShareMore,
+          less: fill(copy.home.stripShare,
+                     { share: Math.round(result.belowShare * 100) }),
+          lessLabel: copy.home.stripShareLess,
+        },
+        currentLabel: moment
+          ? fill(copy.home.stripCurrentMoment, {
+              year: yearLabel(currentYear), count: asMagnitude(result.count).toFixed(1),
+            })
+          : fill(copy.home.stripCurrent, {
+              year: yearLabel(currentYear), count: fmt(result.count),
+            }),
+        tickFormat: moment ? (n: number) => `M${n.toFixed(1)}` : undefined,
         theme, width: stripWidth,
       });
       // The caption is HTML rather than an axis label so it can wrap. As a

@@ -28,6 +28,7 @@ export interface Theme {
   /** The cumulative chart's middle-90% and middle-50% fills. */
   rangeOuter: string;
   rangeInner: string;
+  rangeInk: string;
   /** Map fills, kept apart from the chart surfaces on purpose. */
   mapOcean: string;
   mapLand: string;
@@ -52,6 +53,7 @@ export function readTheme(el: HTMLElement): Theme {
     down: get("--down"),
     rangeOuter: get("--range-outer"),
     rangeInner: get("--range-inner"),
+    rangeInk: get("--range-ink"),
     mapOcean: get("--map-ocean"),
     mapLand: get("--map-land"),
     mapCoast: get("--map-coast"),
@@ -91,10 +93,15 @@ function formatDay(day: number, dayToDate: (day: number) => Date): string {
 export interface DistributionOptions {
   peers: { year: number; value: number }[];
   value: number;
-  /** Big number and its caption, e.g. "34%" and "of years had more". */
-  share: string;
-  shareLabel: string;
+  /**
+   * Both sides of the split, as big-number-plus-caption. Which one gets drawn
+   * depends on where the rule lands: the block sits opposite it, so that when
+   * this year runs high the label is not stacked on top of its own marker.
+   */
+  share: { more: string; moreLabel: string; less: string; lessLabel: string };
   currentLabel: string;
+  /** Ticks are magnitudes on the moment view, plain numbers on the count view. */
+  tickFormat?: (n: number) => string;
   theme: Theme;
   width: number;
 }
@@ -139,6 +146,11 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   // anchored inward instead of centred on a position with no room either side.
   const domainHi = bins[bins.length - 1].x1;
   const place = domainHi > start ? (value - start) / (domainHi - start) : 0.5;
+  // The share block goes on the side the rule is not on. Flipping at the
+  // midpoint rather than later is what keeps it clear of the year label: both
+  // sit in the same band above the bars, so the only thing separating them is
+  // horizontal distance, and past halfway the red side is too thin to label.
+  const flip = place > 0.5;
 
   // The bin holding this year's value straddles the line, so it is cut in two
   // at the line and each half takes its own side's colour. Without this the
@@ -162,7 +174,10 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     // HTML that can wrap -- inside the plot it was one line and ran off the end.
     marginTop: 30, marginBottom: 42, marginLeft: 24, marginRight: 24,
     style: { background: "transparent", color: theme.text, fontSize: "11px" },
-    x: { label: null, ticks: 4, tickSize: 0, tickPadding: 7 },
+    x: {
+      label: null, ticks: 4, tickSize: 0, tickPadding: 7,
+      ...(opts.tickFormat ? { tickFormat: opts.tickFormat } : {}),
+    },
     y: { axis: null, domain: [0, tallest * 1.35] },
     color: { type: "identity" },
     marks: [
@@ -174,20 +189,24 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
       }),
       Plot.ruleY([0], { stroke: theme.axis }),
       Plot.ruleX([value], { stroke: theme.series[0], strokeWidth: 2.5 }),
-      // Under the axis rather than above the bars: the share sits in the top
-      // right, and when this year runs high the two labels want the same corner.
-      // Anchored away from whichever edge it is near, so it cannot run off.
-      Plot.text([{ x: value }], {
-        x: "x", text: () => opts.currentLabel, frameAnchor: "bottom", dy: 32,
-        textAnchor: place < 0.15 ? "start" : place > 0.85 ? "end" : "middle",
+      // Above the bars, at the rule. Inside the frame rather than in the top
+      // margin, which is where the share block lives -- that vertical gap is
+      // what keeps the two from ever colliding, whatever the rule's position.
+      Plot.text([{ x: value, y: tallest * 1.16 }], {
+        x: "x", y: "y", text: () => opts.currentLabel,
+        textAnchor: place < 0.14 ? "start" : place > 0.86 ? "end" : "middle",
         fill: theme.series[0], fontWeight: 650, fontSize: 12.5,
       }),
       Plot.text([{}], {
-        text: () => opts.share, frameAnchor: "top-right", dy: 4, dx: -2,
-        fill: theme.up, fontWeight: 700, fontSize: 25,
+        text: () => (flip ? opts.share.less : opts.share.more),
+        frameAnchor: flip ? "top-left" : "top-right",
+        dy: 4, dx: flip ? 2 : -2,
+        fill: flip ? theme.rangeInk : theme.up, fontWeight: 700, fontSize: 25,
       }),
       Plot.text([{}], {
-        text: () => opts.shareLabel, frameAnchor: "top-right", dy: 26, dx: -2,
+        text: () => (flip ? opts.share.lessLabel : opts.share.moreLabel),
+        frameAnchor: flip ? "top-left" : "top-right",
+        dy: 26, dx: flip ? 2 : -2,
         fill: theme.muted, fontSize: 10.5,
       }),
     ],
