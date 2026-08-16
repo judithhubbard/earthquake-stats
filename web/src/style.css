@@ -255,7 +255,7 @@ main {
 
 .map-figure { margin-top: 1.25rem; }
 
-#map { min-height: 200px; overflow-x: auto; }
+#map { min-height: 200px; }
 
 .largest {
   margin-top: 1.25rem;
@@ -496,7 +496,17 @@ main {
   margin-bottom: 0.75rem;
 }
 
-#chart { min-height: 340px; overflow-x: auto; }
+/* No overflow rule here on purpose. `overflow-x: auto` computes overflow-y to
+   `auto` as well, which clipped the hover tip at the top of the plot whenever
+   the pointed line ran high. Widths are fitted to the container, so the scroll
+   is only ever needed on a viewport narrower than the chart's floor. */
+#chart { min-height: 340px; }
+
+/* Below the chart's 320px floor the plot really can be wider than the screen,
+   so the scroll comes back -- and the tip has nowhere to go on a phone anyway. */
+@media (max-width: 380px) {
+  #chart, #map, .correlate-chart { overflow-x: auto; }
+}
 
 .legend {
   display: flex;
@@ -610,7 +620,7 @@ footer p { margin: 0 0 0.4rem; }
   color: var(--series-1);
 }
 
-.correlate-chart { min-height: 210px; overflow-x: auto; }
+.correlate-chart { min-height: 210px; }
 
 .correlate-more {
   display: inline-block;

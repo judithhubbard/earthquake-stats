@@ -71,7 +71,7 @@ export const copy = {
     detailNoneMoment: "No moment released worldwide yet in {year}.",
 
     /* Chart headings. */
-    cumulativeTitle: "Cumulative {subject} worldwide — against {from}–{to}",
+    cumulativeTitle: "Cumulative {subject} worldwide",
     cumulativeSubjectCount: "{threshold} {kind}",
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
     annualTitleCount: "{threshold} {kind} per year, worldwide",
@@ -93,8 +93,7 @@ export const copy = {
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
     noteMainshocks:
-      "Aftershocks have been removed, so each earthquake sequence counts once. Deciding which " +
-      "events belong to a sequence is a judgement call, and different choices give different counts.",
+      "Aftershocks have been removed, so each earthquake sequence counts once.",
     noteLiveUnclassified:
       "{n} event{s} from the last day {is} too recent to have been sorted, and counted as separate.",
 
@@ -120,14 +119,14 @@ export const copy = {
     mapEmpty: "Select a year to plot its earthquakes.",
     largestEmpty: "No {threshold} {kind} recorded in {years}.",
     largestNoYears: "Select a year above to list its earthquakes.",
-    largestNote: "{n} {threshold} {kind} · each links to its USGS event page.",
-    largestTruncated: "{n} {threshold} {kind} — showing the first {shown} · each links to its USGS event page.",
+    largestNote: "{n} {threshold} {kind}.",
+    largestTruncated: "{n} {threshold} {kind} — showing the first {shown}.",
     largestNoDetail: "No event details available at this magnitude.",
     largestFailed: "Could not load event details.",
     readAnalysis: "Read our analysis →",
 
     /* Legend and controls. */
-    legendOtherYears: "Other years, {from}–{to}",
+    legendOtherYears: "Other years, since {from}",
     legendMedian: "Reference median",
     legendBand: "Middle 90% of past years",
     legendBandInner: "Middle half of past years",
