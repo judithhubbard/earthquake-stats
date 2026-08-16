@@ -75,9 +75,9 @@ export const copy = {
        would release the year's moment. Raw moment spans a factor of a hundred
        and is unreadable; this is the same number the answer sentence quotes. */
     stripAxisMoment:
-      "Moment released by {date}, as the magnitude of one earthquake · each year {from}–{to}",
+      "Moment released by {date}, as the equivalent of a single earthquake · {from}–{to}",
     stripAxisMomentRolling:
-      "Moment released in a year, as the magnitude of one earthquake · each year {from}–{to}",
+      "Moment released in a year, as the equivalent of a single earthquake · {from}–{to}",
     stripCurrent: "{year}: {count}",
     stripCurrentMoment: "{year}: M{count}",
     stripShare: "{share}%",

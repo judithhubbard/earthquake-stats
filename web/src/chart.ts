@@ -192,10 +192,15 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
       // Above the bars, at the rule. Inside the frame rather than in the top
       // margin, which is where the share block lives -- that vertical gap is
       // what keeps the two from ever colliding, whatever the rule's position.
+      // The rule runs the full height of the frame, so it passes straight
+      // through this label. Plot draws a stroked text mark with paint-order:
+      // stroke, which puts the halo behind the glyphs and knocks the rule out
+      // from under them.
       Plot.text([{ x: value, y: tallest * 1.16 }], {
         x: "x", y: "y", text: () => opts.currentLabel,
         textAnchor: place < 0.14 ? "start" : place > 0.86 ? "end" : "middle",
-        fill: theme.series[0], fontWeight: 650, fontSize: 12.5,
+        fill: theme.series[0], stroke: theme.surface, strokeWidth: 4,
+        fontWeight: 650, fontSize: 12.5,
       }),
       Plot.text([{}], {
         text: () => (flip ? opts.share.less : opts.share.more),
