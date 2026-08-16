@@ -71,7 +71,11 @@ export interface MapOptions {
 
 export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
   const { land, events, theme, width } = opts;
-  const radius = (d: MapEvent) => 1.1 + Math.max(0, d.mag - 4) * 0.9;
+  // Pixels, not scale units: the plot declares r as an identity scale, so what
+  // this returns is what gets drawn. Left to Plot, r is a sqrt scale fitted to
+  // whatever magnitudes happen to be on screen, which renormalises -- scaling
+  // every dot up by a constant would then change nothing at all.
+  const radius = (d: MapEvent) => 1.8 + Math.max(0, d.mag - 4) * 1.4;
 
   const marks: Plot.Markish[] = [
     Plot.geo({ type: "Sphere" } as never,
@@ -96,9 +100,10 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
       x: "lon", y: "lat", maxRadius: 18,
       fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 11,
       title: (d: MapEvent) =>
-        `${d.year} · M${d.mag.toFixed(1)}\n` +
-        `${Math.abs(d.lat).toFixed(1)}°${d.lat >= 0 ? "N" : "S"} ` +
-        `${Math.abs(d.lon).toFixed(1)}°${d.lon >= 0 ? "E" : "W"}`,
+        `M${d.mag.toFixed(1)}\n` +
+        new Date(d.time).toLocaleDateString(undefined, {
+          day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+        }),
     })),
   );
 
@@ -116,6 +121,7 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
     },
     style: { background: "transparent", color: theme.text, fontSize: "11px" },
     color: { type: "identity" },
+    r: { type: "identity" },
     marks,
   });
 }
