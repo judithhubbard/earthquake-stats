@@ -86,8 +86,8 @@ export const copy = {
 
     /* The small print under the cumulative chart. */
     noteBand:
-      "Each faint line is one of the {years} previous years. The darker band spans the middle " +
-      "50% of those years and the lighter band the middle 90%. A line inside the shading falls " +
+      "Each faint line is one of the {years} previous years. The inner band spans the middle " +
+      "50% of those years and the outer band the middle 90%. A line inside the shading falls " +
       "within the range of previous years.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
