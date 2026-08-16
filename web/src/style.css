@@ -18,6 +18,14 @@
   --band-inner: #d7d5c9;
   --band-neutral: #e6e5df;
 
+  /* The cumulative chart's two nested ranges. Separate from --band-* because
+     those also back the hover states and the correlations bars, which stay
+     neutral. One hue, two steps, and deliberately not blue or red: those two
+     already mean above and below average on the annual bars, and this band
+     means neither -- it is the range the reader is being measured against. */
+  --range-outer: #e9f1ed;
+  --range-inner: #bfd9cd;
+
   /* The map needs its own three, not the surface/band pair the charts use.
      Those sit two steps apart, which is right for stacked areas on a page but
      leaves ocean and land almost the same colour when the fills are side by

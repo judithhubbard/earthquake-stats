@@ -25,6 +25,9 @@ export interface Theme {
   down: string;
   /** Fixed-order accent slots for highlighted years. */
   series: string[];
+  /** The cumulative chart's middle-90% and middle-50% fills. */
+  rangeOuter: string;
+  rangeInner: string;
   /** Map fills, kept apart from the chart surfaces on purpose. */
   mapOcean: string;
   mapLand: string;
@@ -47,6 +50,8 @@ export function readTheme(el: HTMLElement): Theme {
     muted: get("--text-muted"),
     up: get("--up"),
     down: get("--down"),
+    rangeOuter: get("--range-outer"),
+    rangeInner: get("--range-inner"),
     mapOcean: get("--map-ocean"),
     mapLand: get("--map-land"),
     mapCoast: get("--map-coast"),
@@ -156,24 +161,26 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
 
   const marks: Plot.Markish[] = [
     // Outer band first, inner on top: the middle half sits inside the middle 90%.
-    Plot.areaY(band, { x: "day", y1: "lo", y2: "hi", fill: theme.band, stroke: null }),
-    Plot.areaY(band, { x: "day", y1: "loMid", y2: "hiMid", fill: theme.bandInner, stroke: null }),
+    Plot.areaY(band, { x: "day", y1: "lo", y2: "hi",
+                      fill: theme.rangeOuter, stroke: null, curve: "step-after" }),
+    Plot.areaY(band, { x: "day", y1: "loMid", y2: "hiMid",
+                      fill: theme.rangeInner, stroke: null, curve: "step-after" }),
     Plot.line(history, {
-      x: "day", y: "value", z: "year",
+      x: "day", y: "value", z: "year", curve: "step-after",
       stroke: theme.history, strokeWidth: 1, strokeOpacity: 0.32,
     }),
     Plot.line(band, {
-      x: "day", y: "median",
+      x: "day", y: "median", curve: "step-after",
       stroke: theme.median, strokeWidth: 1.5, strokeDasharray: "4,3",
     }),
     // A surface-coloured casing keeps each accent legible where it crosses the
     // spaghetti and where two highlighted years cross each other.
     Plot.line(lines, {
-      x: "day", y: "value", z: "year",
+      x: "day", y: "value", z: "year", curve: "step-after",
       stroke: theme.surface, strokeWidth: 5.5, strokeLinecap: "round",
     }),
     Plot.line(lines, {
-      x: "day", y: "value", z: "year",
+      x: "day", y: "value", z: "year", curve: "step-after",
       stroke: (d: { year: number }) => colorFor.get(d.year) ?? theme.history,
       strokeWidth: 2.5, strokeLinecap: "round",
     }),

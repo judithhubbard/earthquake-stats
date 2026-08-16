@@ -701,8 +701,8 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
     ...highlights.map((h) => ({ color: h.color, label: yearLabel(h.year), kind: "accent" as Kind })),
     { color: theme.history, label: fill(copy.home.legendOtherYears, { from, to }), kind: "faint" },
     { color: theme.median, label: copy.home.legendMedian, kind: "dashed" },
-    { color: theme.bandInner, label: copy.home.legendBandInner, kind: "band" },
-    { color: theme.band, label: copy.home.legendBand, kind: "band" },
+    { color: theme.rangeInner, label: copy.home.legendBandInner, kind: "band" },
+    { color: theme.rangeOuter, label: copy.home.legendBand, kind: "band" },
   ];
   for (const { color, label, kind } of entries) {
     const span = document.createElement("span");
