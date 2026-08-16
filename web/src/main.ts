@@ -793,6 +793,8 @@ async function update() {
         ? copy.home.axisCumulativeMoment
         : fill(copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),
       wholeNumbers: state.measure === "count",
+      yMax: Math.max(0, ...band.map((b) => b.hi),
+                     ...highlights.map((h) => curves.curves.get(h.year)?.[h.through] ?? 0)),
     });
     el.chart.replaceChildren(figure);
     figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
@@ -803,6 +805,7 @@ async function update() {
         ? copy.home.axisAnnualMoment
         : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
       wholeNumbers: state.measure === "count",
+      yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
     const mapEvents = highlightedEvents(tier, minMag, highlights, shift);

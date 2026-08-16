@@ -26,6 +26,18 @@ import type { Theme } from "./chart";
 const PROJECTION_TYPE = "equal-earth";
 const CLIP = { latMin: -78, latMax: 88 };
 
+/**
+ * Central meridian, so the Pacific sits in the middle and the Ring of Fire is
+ * one continuous arc instead of being cut in half by the frame edge.
+ *
+ * 170°E puts the seam at 10°W, which is the least damaging place for it: east
+ * of Greenland's eastern tip (11.7°W) and west of continental Europe, so the
+ * only land it crosses is West Africa. The obvious choice of 180° would put the
+ * seam on the prime meridian and split Britain, France and Spain down the
+ * middle.
+ */
+const CENTRE_LON = 170;
+
 type LandFeature = { type: string; [key: string]: unknown };
 let landPromise: Promise<LandFeature> | null = null;
 
@@ -111,11 +123,20 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
     width,
     projection: {
       type: PROJECTION_TYPE as never,
+      rotate: [-CENTRE_LON, 0],
+      // The clip box is given in rotated coordinates, so its corners are the
+      // frame edges rather than the antimeridian: a box still written as
+      // -180..180 of true longitude would be a half-turn out and clip the
+      // Pacific away.
       domain: {
         type: "Polygon",
         coordinates: [[
-          [-180, CLIP.latMin], [180, CLIP.latMin],
-          [180, CLIP.latMax], [-180, CLIP.latMax], [-180, CLIP.latMin],
+          [CENTRE_LON - 180, CLIP.latMin], [CENTRE_LON - 90, CLIP.latMin],
+          [CENTRE_LON, CLIP.latMin], [CENTRE_LON + 90, CLIP.latMin],
+          [CENTRE_LON + 179.99, CLIP.latMin],
+          [CENTRE_LON + 179.99, CLIP.latMax], [CENTRE_LON + 90, CLIP.latMax],
+          [CENTRE_LON, CLIP.latMax], [CENTRE_LON - 90, CLIP.latMax],
+          [CENTRE_LON - 180, CLIP.latMax], [CENTRE_LON - 180, CLIP.latMin],
         ]],
       } as never,
     },

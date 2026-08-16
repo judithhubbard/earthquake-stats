@@ -97,9 +97,9 @@ export const copy = {
 
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
-    axisCumulativeMoment: "Moment this year (×10²⁰ N·m)",
+    axisCumulativeMoment: "Moment this year, as a single earthquake",
     axisAnnualCount: "{threshold} events per year",
-    axisAnnualMoment: "Moment per year (×10²⁰ N·m)",
+    axisAnnualMoment: "Moment per year, as a single earthquake",
 
     /* The small print under the cumulative chart. */
     noteBand:

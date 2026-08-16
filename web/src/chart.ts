@@ -238,6 +238,8 @@ export interface ChartOptions {
   yLabel: string;
   /** Suppress half-step tick labels; counts have no halves. */
   wholeNumbers?: boolean;
+  /** Top of the y range, so the moment ticks can be placed on round magnitudes. */
+  yMax?: number;
   /** Real date for a day index, which the rolling window shifts. */
   dayToDate: (day: number) => Date;
 }
@@ -404,6 +406,8 @@ export interface AnnualOptions {
   width: number;
   yLabel: string;
   wholeNumbers?: boolean;
+  /** Top of the y range, so the moment ticks can be placed on round magnitudes. */
+  yMax?: number;
 }
 
 /**
