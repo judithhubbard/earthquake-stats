@@ -7,7 +7,8 @@
  */
 
 import * as Plot from "@observablehq/plot";
-import { DAYS, type AnnualCount, type BandPoint, type YearCurves } from "./stats";
+import { DAYS, equivalentMagnitude, seismicMoment,
+         type AnnualCount, type BandPoint, type YearCurves } from "./stats";
 
 export interface Theme {
   surface: string;
@@ -88,6 +89,32 @@ function monthTicks(dayToDate: (day: number) => Date): number[] {
 function formatDay(day: number, dayToDate: (day: number) => Date): string {
   const date = dayToDate(day);
   return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}`;
+}
+
+/**
+ * Ticks at round magnitudes, placed at the moment each one stands for.
+ *
+ * The scale stays linear in moment on purpose. These charts exist to show that
+ * one great earthquake outweighs a whole ordinary year -- the note under the
+ * cumulative one says the line can jump in a single afternoon -- and a log axis
+ * is precisely what would flatten that jump away. So the geometry is left alone
+ * and only the labels change.
+ *
+ * A tenth of a magnitude is a factor of 1.41 in moment, so the ticks spread out
+ * up the axis rather than sitting at even intervals. Anything below an eighth of
+ * the top is dropped, or they pile onto the baseline.
+ */
+function magnitudeTicks(max: number): number[] {
+  if (!(max > 0)) return [0];
+  const ticks: number[] = [];
+  for (let m = Math.floor(equivalentMagnitude(max) * 10) / 10; m > 0; m -= 0.1) {
+    const moment = seismicMoment(m);
+    if (moment < max / 8) break;
+    ticks.push(moment);
+  }
+  // Six labels is as many as the axis holds without them touching.
+  const stride = Math.max(1, Math.ceil(ticks.length / 6));
+  return [0, ...ticks.filter((_, i) => i % stride === 0)].sort((a, b) => a - b);
 }
 
 export interface DistributionOptions {
@@ -385,9 +412,11 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       // top-anchored label, which sits on top of the tick numbers.
       labelAnchor: "center",
       labelOffset: 52,
+      // Counts get whole numbers; moment gets the magnitude it is equivalent to.
+      ticks: opts.wholeNumbers ? undefined : magnitudeTicks(opts.yMax ?? 0),
       tickFormat: opts.wholeNumbers
         ? (d: number) => (Number.isInteger(d) ? d.toLocaleString() : "")
-        : undefined,
+        : (d: number) => (d > 0 ? `M${equivalentMagnitude(d).toFixed(1)}` : "0"),
 
       grid: true,
       nice: true,
@@ -493,9 +522,11 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
       label: opts.yLabel,
       labelAnchor: "center",
       labelOffset: 52,
+      // Counts get whole numbers; moment gets the magnitude it is equivalent to.
+      ticks: opts.wholeNumbers ? undefined : magnitudeTicks(opts.yMax ?? 0),
       tickFormat: opts.wholeNumbers
         ? (d: number) => (Number.isInteger(d) ? d.toLocaleString() : "")
-        : undefined,
+        : (d: number) => (d > 0 ? `M${equivalentMagnitude(d).toFixed(1)}` : "0"),
       grid: true,
       nice: true,
       zero: true,
