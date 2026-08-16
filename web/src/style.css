@@ -83,6 +83,46 @@ main {
 
 .hero { margin-bottom: 2.5rem; }
 
+/* Eyebrow left, Earthquake Insights right. The mark is the reason this site
+   exists as a funnel, so it sits above the headline rather than in the footer,
+   and it is a real link on both pages. */
+.masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+  margin-top: -0.15rem;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+/* The globe is drawn on white, so rounding it off drops the corners without
+   needing a transparent source. */
+.brand img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+
+.brand:hover { color: var(--text-primary); }
+.brand:hover img { border-color: var(--map-coast); }
+
+@media (max-width: 520px) {
+  .brand span { display: none; }
+}
+
 .eyebrow {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
