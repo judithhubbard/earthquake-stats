@@ -105,11 +105,19 @@ main {
 
 .answer strong { color: var(--series-1); }
 
+/* Was a sentence, is now the distribution strip. Full width rather than the
+   52ch a line of prose wanted, and no colour of its own -- the marks carry it. */
 .answer-detail {
-  margin: 0;
-  max-width: 52ch;
+  margin: 0.4rem 0 0;
+  min-height: 132px;
+}
+
+.hero-intro {
+  margin: 1.1rem 0 0;
+  max-width: 60ch;
   color: var(--text-secondary);
   font-size: 1rem;
+  line-height: 1.55;
 }
 
 /* ---------- panel ---------- */

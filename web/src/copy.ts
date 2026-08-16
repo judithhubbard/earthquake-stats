@@ -67,6 +67,16 @@ export const copy = {
     detailMoment:
       "{count} released so far — as much as a single M{equivalent} earthquake — usual is " +
       "{median} — {above}% of years since {from} released more",
+    /* Labels on the distribution strip under the answer. The sentence those
+       replaced is still in detailCount below, read aloud to screen readers. */
+    stripAxisCount: "{threshold} {kind} by {date} · one dot per year since {from}",
+    stripAxisCountRolling: "{threshold} {kind} in a year · one dot per year since {from}",
+    stripAxisMoment: "Moment (×10²⁰ N·m) by {date} · one dot per year since {from}",
+    stripAxisMomentRolling: "Moment (×10²⁰ N·m) in a year · one dot per year since {from}",
+    stripCurrent: "{year}: {count}",
+    stripMedian: "usual {median}",
+    stripAbove: "{above}% of years had more",
+
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",
 

@@ -1,5 +1,5 @@
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, readTheme,
+import { renderAnnualChart, renderChart, renderDistribution, readTheme,
          type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
@@ -110,6 +110,7 @@ let liveEvents: LiveEvent[] = [];
 const el = {
   answer: document.getElementById("answer")!,
   answerDetail: document.getElementById("answer-detail")!,
+  answerSummary: document.getElementById("answer-summary")!,
   measure: document.getElementById("measure-control")!,
   mag: document.getElementById("mag-control")!,
   window: document.getElementById("window-control")!,
@@ -735,6 +736,34 @@ async function update() {
     };
 
     const width = Math.max(320, el.chart.clientWidth || 800);
+
+    if (result) {
+      const peers = refYears
+        .map((year) => ({ year, value: curves.curves.get(year)?.[today] ?? NaN }))
+        .filter((d) => Number.isFinite(d.value));
+      const above = Math.round(result.aboveShare * 100);
+      const moment = state.measure === "moment";
+      const axisKey = moment
+        ? (rolling ? copy.home.stripAxisMomentRolling : copy.home.stripAxisMoment)
+        : (rolling ? copy.home.stripAxisCountRolling : copy.home.stripAxisCount);
+      el.answerDetail.replaceChildren(renderDistribution({
+        peers,
+        value: result.count,
+        median: result.medianToDate,
+        // Slot 0 is the current year's accent, the colour its line already wears.
+        color: theme.series[0],
+        currentLabel: fill(copy.home.stripCurrent, {
+          year: yearLabel(currentYear), count: fmt(result.count),
+        }),
+        medianLabel: fill(copy.home.stripMedian, { median: fmt(result.medianToDate) }),
+        aboveLabel: fill(copy.home.stripAbove, { above }),
+        xLabel: fill(axisKey, {
+          threshold: magLabel(minMag), kind, from: REFERENCE_START,
+          date: new Date().toLocaleDateString(undefined, { day: "numeric", month: "long" }),
+        }),
+        theme, width,
+      }));
+    }
     const figure = renderChart({
       curves, band, refYears, highlights, today, theme, width, dayToDate,
       yLabel: state.measure === "moment"
@@ -810,7 +839,8 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
 
   if (!result || result.count === 0) {
     el.answer.innerHTML = copy.home.answerNothingYet;
-    el.answerDetail.textContent = moment
+    el.answerDetail.replaceChildren();
+    el.answerSummary.textContent = moment
       ? fill(copy.home.detailNoneMoment, { year: yearLabel(currentYear) })
       : fill(copy.home.detailNoneCount,
              { threshold: magLabel(state.minMag), kind, year: yearLabel(currentYear) });
@@ -831,7 +861,7 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
     from: REFERENCE_START, to: currentYear - 1,
     above: Math.round(result.aboveShare * 100),
   };
-  el.answerDetail.textContent = moment
+  el.answerSummary.textContent = moment
     ? fill(roll ? copy.home.detailMomentRolling : copy.home.detailMoment, {
         ...shared, count: withUnit(result.count),
         equivalent: equivalentMagnitude(result.count).toFixed(1),

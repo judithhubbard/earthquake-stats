@@ -88,6 +88,73 @@ function formatDay(day: number, dayToDate: (day: number) => Date): string {
   return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
+export interface DistributionOptions {
+  peers: { year: number; value: number }[];
+  value: number;
+  median: number;
+  /** The current year's accent, so the marker matches its line on the chart. */
+  color: string;
+  currentLabel: string;
+  medianLabel: string;
+  aboveLabel: string | null;
+  xLabel: string;
+  theme: Theme;
+  width: number;
+}
+
+/**
+ * Where this year sits among every previous year, counted to the same date.
+ *
+ * One dot per reference year, dodged into a pile. This replaced a sentence that
+ * gave the count, the median and the share of years running ahead; the reader
+ * can still read all three off the picture, but it also shows the thing the
+ * sentence could not -- whether the year sits on the edge of the pack or is
+ * buried in the middle of it, and how wide the pack is to begin with.
+ */
+export function renderDistribution(opts: DistributionOptions): SVGSVGElement | HTMLElement {
+  const { peers, value, median, color, theme, width } = opts;
+  const ahead = peers.filter((d) => d.value > value);
+  const max = Math.max(value, ...peers.map((d) => d.value));
+
+  return Plot.plot({
+    width,
+    height: 132,
+    marginTop: 26, marginBottom: 40, marginLeft: 16, marginRight: 16,
+    style: { background: "transparent", color: theme.text, fontSize: "12px" },
+    x: { label: opts.xLabel, labelAnchor: "center", nice: true, labelArrow: null },
+    y: { axis: null },
+    r: { type: "identity" },
+    color: { type: "identity" },
+    marks: [
+      Plot.ruleX([median], { stroke: theme.median, strokeWidth: 1.5, strokeDasharray: "4,3" }),
+      // Years ahead of this one wear the same red the annual bars use for above
+      // average, so the share is countable rather than asserted.
+      Plot.dot(peers, Plot.dodgeY({ anchor: "bottom", padding: 1.6 }, {
+        x: "value", r: 4.5,
+        fill: (d: { value: number }) => (d.value > value ? theme.up : theme.history),
+        fillOpacity: 0.85, stroke: theme.surface, strokeWidth: 0.8,
+      })),
+      Plot.ruleX([value], { stroke: color, strokeWidth: 2.5 }),
+      Plot.text([{ x: value }], {
+        x: "x", text: () => opts.currentLabel, frameAnchor: "top", dy: -14,
+        fill: color, fontWeight: 650, fontSize: 13,
+      }),
+      Plot.text([{ x: median }], {
+        x: "x", text: () => opts.medianLabel, frameAnchor: "bottom", dy: 15,
+        fill: theme.muted, fontSize: 11.5,
+      }),
+      // Centred over the red dots rather than pinned to a corner: when the year
+      // is near the top of the range there is no corner left to pin it to.
+      ...(opts.aboveLabel && ahead.length > 0
+        ? [Plot.text([{ x: (value + max) / 2 }], {
+            x: "x", text: () => opts.aboveLabel!, frameAnchor: "top", dy: -14,
+            fill: theme.up, fontSize: 11.5,
+          })]
+        : []),
+    ],
+  });
+}
+
 export interface Highlight {
   year: number;
   /** What to print at the end of the line: "2026", or "2025–26" when rolling. */
