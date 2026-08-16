@@ -807,9 +807,6 @@ window.addEventListener("resize", () => {
   window.clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(() => lastRender?.(), 150);
 });
-window.matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", () => lastRender?.());
-
 async function boot() {
   try {
     meta = await loadMeta();

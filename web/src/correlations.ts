@@ -519,9 +519,4 @@ window.addEventListener("resize", () => {
   window.clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(() => { for (const fn of redraw) fn(); }, 150);
 });
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-  theme = readTheme(document.body);
-  for (const fn of redraw) fn();
-});
-
 void boot();

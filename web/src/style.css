@@ -34,55 +34,11 @@
   --down: #2a78d6;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --surface-1: #1a1a19;
-    --plane: #0d0d0d;
-    --text-primary: #ffffff;
-    --text-secondary: #c3c2b7;
-    --text-muted: #898781;
-    --grid: #2c2c2a;
-    --axis: #383835;
-    --border: rgba(255, 255, 255, 0.10);
-    --band-outer: #232322;
-    --band-inner: #3d3c36;
-    --band-neutral: #2b2b28;
-    --history: #898781;
-    --median: #898781;
-    --series-1: #3987e5;
-    --series-2: #d95926;
-    --series-3: #199e70;
-    --series-4: #9085e9;
-    --series-5: #d55181;
-    --up: #e66767;
-    --down: #3987e5;
-  }
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --surface-1: #1a1a19;
-  --plane: #0d0d0d;
-  --text-primary: #ffffff;
-  --text-secondary: #c3c2b7;
-  --text-muted: #898781;
-  --grid: #2c2c2a;
-  --axis: #383835;
-  --border: rgba(255, 255, 255, 0.10);
-  --band-outer: #232322;
-  --band-inner: #3d3c36;
-  --band-neutral: #2b2b28;
-  --history: #898781;
-  --median: #898781;
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #9085e9;
-  --series-5: #d55181;
-  --up: #e66767;
-  --down: #3987e5;
-}
+/* One palette, on purpose. A dark-mode system does not make most of the web
+   dark, so a reader arriving from anywhere else expects a white page here
+   too -- and a single palette means the reds, blues and band shades that the
+   charts and their captions describe are the same for every reader. The dark
+   palette this file used to carry is in the history if it is ever wanted. */
 
 * { box-sizing: border-box; }
 
