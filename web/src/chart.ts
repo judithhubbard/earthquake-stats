@@ -25,6 +25,10 @@ export interface Theme {
   down: string;
   /** Fixed-order accent slots for highlighted years. */
   series: string[];
+  /** Map fills, kept apart from the chart surfaces on purpose. */
+  mapOcean: string;
+  mapLand: string;
+  mapCoast: string;
 }
 
 export function readTheme(el: HTMLElement): Theme {
@@ -43,6 +47,9 @@ export function readTheme(el: HTMLElement): Theme {
     muted: get("--text-muted"),
     up: get("--up"),
     down: get("--down"),
+    mapOcean: get("--map-ocean"),
+    mapLand: get("--map-land"),
+    mapCoast: get("--map-coast"),
     series: [1, 2, 3, 4, 5].map((i) => get(`--series-${i}`)).filter(Boolean),
   };
 }

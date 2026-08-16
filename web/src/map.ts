@@ -65,9 +65,12 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
   const radius = (d: MapEvent) => 1.1 + Math.max(0, d.mag - 4) * 0.9;
 
   const marks: Plot.Markish[] = [
-    Plot.geo({ type: "Sphere" } as never, { fill: theme.surface, stroke: theme.axis, strokeWidth: 0.6 }),
-    Plot.graticule({ stroke: theme.grid, strokeWidth: 0.5, strokeOpacity: 0.7 }),
-    Plot.geo(land as never, { fill: theme.band, stroke: theme.axis, strokeWidth: 0.4 }),
+    Plot.geo({ type: "Sphere" } as never,
+             { fill: theme.mapOcean, stroke: theme.mapCoast, strokeWidth: 0.6 }),
+    // Drawn under the land so it reads as ocean rule rather than a grid over
+    // the continents, which competes with the dots.
+    Plot.graticule({ stroke: theme.mapCoast, strokeWidth: 0.4, strokeOpacity: 0.35 }),
+    Plot.geo(land as never, { fill: theme.mapLand, stroke: theme.mapCoast, strokeWidth: 0.5 }),
   ];
 
   marks.push(
