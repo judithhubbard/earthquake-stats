@@ -120,9 +120,11 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   const values = peers.map((d) => d.value);
   const lo = Math.min(value, ...values);
   const hi = Math.max(value, ...values);
-  // 26 rather than 13: niceStep snaps to 1, 2 or 5 times a power of ten, so
-  // asking for twice as many bins lands on exactly half the bar width.
-  const step = niceStep((hi - lo) / 26) || 1;
+  // Halve the round step, rather than asking niceStep for twice as many bins.
+  // It snaps to 1, 2 or 5 times a power of ten, so asking for 26 instead of 13
+  // only sometimes moves a rung: counts went 10 to 5, but moment's 586-wide
+  // range landed on 50 both times and the figure did not change at all.
+  const step = (niceStep((hi - lo) / 13) || 2) / 2;
   const start = Math.floor(lo / step) * step;
   const count = Math.max(1, Math.ceil((hi - start) / step) + 1);
 
