@@ -51,6 +51,15 @@ export interface MapEvent {
   mag: number;
   year: number;
   color: string;
+  /**
+   * Join key for the event list beside the map.
+   *
+   * The two are built by different routes -- the map straight from the packed
+   * arrays, the list from the detail file -- so they need something both carry.
+   * Origin time to the millisecond is unique across the catalogue and is the
+   * one field neither path can lose.
+   */
+  time: number;
 }
 
 export interface MapOptions {
@@ -74,8 +83,12 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
   ];
 
   marks.push(
+    // sort: null because the dot mark otherwise reorders by descending radius
+    // of its own accord, and the list beside the map is joined to these circles
+    // by their position in this array. `events` arrives already in that order,
+    // so the drawing order is unchanged -- it is now ours rather than Plot's.
     Plot.dot(events, {
-      x: "lon", y: "lat", r: radius,
+      x: "lon", y: "lat", r: radius, sort: null,
       fill: "color", fillOpacity: 0.8,
       stroke: theme.surface, strokeWidth: 0.4,
     }),

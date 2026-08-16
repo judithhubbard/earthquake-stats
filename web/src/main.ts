@@ -1,5 +1,6 @@
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, readTheme, type Highlight } from "./chart";
+import { renderAnnualChart, renderChart, readTheme,
+         type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
   dayIndex, empiricalBand, equivalentMagnitude, verdict, type Measure, type YearCurves,
@@ -50,8 +51,6 @@ interface State {
   window: (typeof WINDOWS)[number]["id"];
   measure: Measure;
   sortMode: (typeof SORT_MODES)[number]["id"];
-  /** Year shown in the event list; independent of the highlighted years. */
-  listYear: number | null;
   catalogMode: (typeof CATALOG_MODES)[number]["id"];
   /** Year -> colour slot. Slots are held until a year is deselected, so
       removing one highlight never repaints the others. */
@@ -63,7 +62,6 @@ const state: State = {
   window: "calendar",
   measure: "count",
   sortMode: "largest",
-  listYear: null,
   catalogMode: "all",
   highlights: new Map(),
 };
@@ -134,7 +132,7 @@ const el = {
   map: document.getElementById("map")!,
   mapTitle: document.getElementById("map-title")!,
   mapLegend: document.getElementById("map-legend")!,
-  largestYear: document.getElementById("largest-year") as HTMLSelectElement,
+  largestHeading: document.getElementById("largest-heading")!,
   largestList: document.getElementById("largest-list")!,
   largestNote: document.getElementById("largest-note")!,
   generated: document.getElementById("generated")!,
@@ -307,7 +305,6 @@ function buildControls() {
       // "2025" means the calendar year in one mode and August-to-August in the
       // other. Carrying a selection across would quietly point it elsewhere.
       state.highlights.clear();
-      state.listYear = null;
       claimSlot(dayIndex(Date.now(), calendarShift()).year);
     });
   buildSegmented(el.measure, MEASURES.map((m) => ({ id: m.id, label: m.label })),
@@ -319,12 +316,6 @@ function buildControls() {
     () => state.catalogMode, (id) => { state.catalogMode = id as State["catalogMode"]; });
   buildSegmented(el.sort, SORT_MODES.map((s) => ({ id: s.id, label: s.label })),
     () => state.sortMode, (id) => { state.sortMode = id as State["sortMode"]; });
-  // Options are rebuilt on every render, so the listener is attached once here
-  // rather than in buildListYears, which would stack duplicates.
-  el.largestYear.addEventListener("change", () => {
-    state.listYear = Number(el.largestYear.value);
-    void update();
-  });
   wireYearPicker();
   syncControlAvailability();
 }
@@ -412,18 +403,23 @@ function highlightedEvents(tier: Tier, minMag: number, highlights: Highlight[],
     for (let i = start; i < end; i++) {
       if (tier.mag[i] < minMag) continue;
       if (mainshocksOnly && tier.dependent[i]) continue;
-      out.push({ lat: tier.lat[i], lon: tier.lon[i], mag: tier.mag[i], year, color });
+      out.push({ lat: tier.lat[i], lon: tier.lon[i], mag: tier.mag[i], year, color,
+                 time: tier.time[i] });
     }
 
     const cutoff = tier.info.lastTime ?? 0;
     for (const event of liveEvents) {
       const { year: liveYear } = dayIndex(event.time, shift);
       if (liveYear !== year || event.mag < minMag || event.time <= cutoff) continue;
-      out.push({ lat: event.lat, lon: event.lon, mag: event.mag, year, color });
+      out.push({ lat: event.lat, lon: event.lon, mag: event.mag, year, color,
+                 time: event.time });
     }
   }
-  // Largest last so great earthquakes are not buried under the small ones.
-  return out.sort((a, b) => a.mag - b.mag);
+  // Largest first, so the small dots land on top and stay visible inside a big
+  // one. Plot would impose this order itself, but the map/list hover join needs
+  // the drawing order to be one we know, so the mark takes sort: null and this
+  // is where it is decided.
+  return out.sort((a, b) => b.mag - a.mag);
 }
 
 /** Which colour is which year, so the map can carry no caption at all. */
@@ -459,32 +455,36 @@ async function loadPosts() {
   }
 }
 
-/** Fills the list's year dropdown, keeping the reader's choice if still valid. */
-function buildListYears(years: number[], currentYear: number) {
-  const available = years.length ? [...years].sort((a, b) => b - a) : [currentYear];
-  if (state.listYear === null || !available.includes(state.listYear)) {
-    state.listYear = available.includes(currentYear) ? currentYear : available[0];
-  }
-  if (el.largestYear.options.length === available.length &&
-      el.largestYear.value === String(state.listYear)) {
-    return;
-  }
-  el.largestYear.replaceChildren();
-  for (const year of available) {
-    const option = document.createElement("option");
-    option.value = String(year);
-    option.textContent = yearLabel(year);
-    option.selected = year === state.listYear;
-    el.largestYear.append(option);
-  }
+interface EventRow {
+  id: string;
+  mag: number;
+  time: number;
+  place: string;
+  year: number;
+  color: string;
 }
 
-async function updateLargest(listYear: number, shift: number) {
+/**
+ * The list beside the map, over exactly the years highlighted at the top.
+ *
+ * It used to carry a year dropdown of its own, which meant the panel could sit
+ * on 2011 while the map and both charts showed 2026. Everything on this row now
+ * answers to the same controls.
+ */
+async function updateLargest(highlights: Highlight[], shift: number): Promise<EventRow[]> {
+  el.largestHeading.textContent = highlights.map((h) => h.label).join(", ");
+
+  if (highlights.length === 0) {
+    el.largestList.replaceChildren();
+    el.largestNote.textContent = copy.home.largestNoYears;
+    return [];
+  }
+
   const info = store.detailTierFor(state.minMag);
   if (!info) {
     el.largestList.replaceChildren();
     el.largestNote.textContent = copy.home.largestNoDetail;
-    return;
+    return [];
   }
 
   let tier: Tier;
@@ -493,33 +493,39 @@ async function updateLargest(listYear: number, shift: number) {
     [tier, detail] = await Promise.all([store.load(info.threshold), store.loadDetail(info)]);
   } catch {
     el.largestNote.textContent = copy.home.largestFailed;
-    return;
+    return [];
   }
 
-  const yearStart = Date.UTC(listYear, 0, 1) + shift;
-  const yearEnd = Date.UTC(listYear + 1, 0, 1) + shift;
   const cutoff = tier.info.lastTime ?? 0;
-  const rows: { id: string; mag: number; time: number; place: string }[] = [];
+  const mainshocksOnly = effectiveMainshocksOnly();
+  const rows: EventRow[] = [];
 
-  for (let i = tier.n - 1; i >= 0; i--) {
-    if (tier.time[i] < yearStart) break;
-    if (tier.time[i] >= yearEnd) continue;
-    if (effectiveMainshocksOnly() && tier.dependent[i]) continue;
-    rows.push({
-      id: detail.ids[i], mag: tier.mag[i], time: tier.time[i],
-      place: detail.places[i] || "Location unavailable",
-    });
-  }
+  for (const { year, color } of highlights) {
+    const yearStart = Date.UTC(year, 0, 1) + shift;
+    const yearEnd = Date.UTC(year + 1, 0, 1) + shift;
 
-  // The live feed carries ids and place names of its own, so events too recent
-  // for the static build reach the list rather than showing up only in counts.
-  for (const event of liveEvents) {
-    if (event.time <= cutoff || event.time < yearStart || event.time >= yearEnd) continue;
-    if (event.mag < info.threshold) continue;
-    rows.push({
-      id: event.id, mag: event.mag, time: event.time,
-      place: event.place || "Location unavailable",
-    });
+    for (let i = tier.n - 1; i >= 0; i--) {
+      if (tier.time[i] < yearStart) break;
+      if (tier.time[i] >= yearEnd) continue;
+      if (mainshocksOnly && tier.dependent[i]) continue;
+      rows.push({
+        id: detail.ids[i], mag: tier.mag[i], time: tier.time[i],
+        place: detail.places[i] || "Location unavailable",
+        year, color,
+      });
+    }
+
+    // The live feed carries ids and place names of its own, so events too recent
+    // for the static build reach the list rather than showing up only in counts.
+    for (const event of liveEvents) {
+      if (event.time <= cutoff || event.time < yearStart || event.time >= yearEnd) continue;
+      if (event.mag < info.threshold) continue;
+      rows.push({
+        id: event.id, mag: event.mag, time: event.time,
+        place: event.place || "Location unavailable",
+        year, color,
+      });
+    }
   }
 
   rows.sort(state.sortMode === "recent"
@@ -530,6 +536,8 @@ async function updateLargest(listYear: number, shift: number) {
   el.largestList.replaceChildren();
   for (const row of shown) {
     const item = document.createElement("li");
+    // The key the map dots are joined on; see MapEvent.time.
+    item.dataset.time = String(row.time);
 
     const link = document.createElement("a");
     link.href = `${USGS_EVENT_PAGE}${row.id}`;
@@ -537,14 +545,21 @@ async function updateLargest(listYear: number, shift: number) {
     link.rel = "noopener noreferrer";
     link.className = "largest-main";
     link.innerHTML =
-      `<span class="largest-mag">M${row.mag.toFixed(1)}</span><span class="largest-place"></span>`;
+      `<span class="largest-mag"></span><span class="largest-place"></span>`;
+    const mag = link.querySelector<HTMLElement>(".largest-mag")!;
+    mag.textContent = `M${row.mag.toFixed(1)}`;
+    // Same accent the year wears on the chart, the map and the legend, so the
+    // reader can tell which highlighted year a row belongs to without a label.
+    mag.style.color = row.color;
     link.querySelector(".largest-place")!.textContent = row.place;
     item.append(link);
 
     const when = document.createElement("span");
     when.className = "largest-date";
     when.textContent = new Date(row.time).toLocaleDateString(undefined, {
-      day: "numeric", month: "short", timeZone: "UTC",
+      day: "numeric", month: "short",
+      year: highlights.length > 1 ? "2-digit" : undefined,
+      timeZone: "UTC",
     });
     item.append(when);
 
@@ -561,16 +576,88 @@ async function updateLargest(listYear: number, shift: number) {
     el.largestList.append(item);
   }
 
-  const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
+  const kind = mainshocksOnly ? "mainshocks" : "earthquakes";
   const threshold = `M${info.threshold}+`;
+  const years = highlights.map((h) => h.label).join(", ");
   if (shown.length === 0) {
-    el.largestNote.textContent = fill(copy.home.largestEmpty,
-      { threshold, kind, year: yearLabel(listYear) });
-    return;
+    el.largestNote.textContent = fill(copy.home.largestEmpty, { threshold, kind, years });
+    return [];
   }
   el.largestNote.textContent = fill(
     rows.length > shown.length ? copy.home.largestTruncated : copy.home.largestNote,
     { n: rows.length, threshold, kind, shown: shown.length });
+  return shown;
+}
+
+/**
+ * Hovering a dot lights its row in the list, and hovering a row lights its dot.
+ *
+ * Joined on origin time -- see MapEvent.time for why that and not the event id.
+ * Plot emits one circle per datum in data order, which is how a circle is
+ * matched back to an event; if that ever stopped being true the join would
+ * silently pair the wrong dot with the wrong row, so a length mismatch gives up
+ * on the linking rather than guessing.
+ */
+function linkMapAndList(events: MapEvent[], theme: Theme) {
+  const svg = el.map.querySelector("svg");
+  if (!svg) return;
+  const dots = [...svg.querySelectorAll<SVGCircleElement>('g[aria-label="dot"] circle')];
+  if (dots.length !== events.length) return;
+
+  const dotByTime = new Map<number, SVGCircleElement>();
+  events.forEach((event, i) => dotByTime.set(event.time, dots[i]));
+
+  const rowByTime = new Map<number, HTMLElement>();
+  for (const li of el.largestList.querySelectorAll<HTMLElement>("li[data-time]")) {
+    rowByTime.set(Number(li.dataset.time), li);
+  }
+
+  // Plot sets stroke and fill-opacity on the mark's group, so overriding them
+  // per-circle lifts one dot and removing the attributes puts it back.
+  const lightDot = (dot: SVGCircleElement | undefined, on: boolean) => {
+    if (!dot) return;
+    if (on) {
+      dot.setAttribute("stroke", theme.text);
+      dot.setAttribute("stroke-width", "1.8");
+      dot.setAttribute("fill-opacity", "1");
+      // Last child paints on top, so a dot under a neighbour still shows.
+      dot.parentNode?.appendChild(dot);
+    } else {
+      dot.removeAttribute("stroke");
+      dot.removeAttribute("stroke-width");
+      dot.removeAttribute("fill-opacity");
+    }
+  };
+
+  for (const [time, row] of rowByTime) {
+    const dot = dotByTime.get(time);
+    row.addEventListener("mouseenter", () => lightDot(dot, true));
+    row.addEventListener("mouseleave", () => lightDot(dot, false));
+  }
+
+  // Delegated rather than one listener per circle: a five-year M6+ selection is
+  // several hundred dots, and they are all replaced on every re-render.
+  let lit: HTMLElement | null = null;
+  const clear = () => {
+    lit?.classList.remove("is-linked");
+    lit = null;
+  };
+  svg.addEventListener("mouseover", (ev) => {
+    const target = ev.target as Element;
+    if (!(target instanceof SVGCircleElement)) return;
+    const index = dots.indexOf(target);
+    if (index < 0) return;
+    const row = rowByTime.get(events[index].time);
+    if (row === lit) return;
+    clear();
+    if (!row) return;
+    row.classList.add("is-linked");
+    // The list scrolls, so a dot in the Pacific can point at a row that is not
+    // on screen. Nearest scrolls only when it has to.
+    row.scrollIntoView({ block: "nearest" });
+    lit = row;
+  });
+  svg.addEventListener("mouseleave", clear);
 }
 
 /* ---------------- render ---------------- */
@@ -620,9 +707,6 @@ async function update() {
   writeHeadline(result, currentYear);
   writeNote(refYears.length, liveAdded);
   writeAnnualNote(currentYear, splitMajor, rolling);
-
-  buildListYears(curves.years, currentYear);
-  void updateLargest(state.listYear ?? currentYear, shift);
 
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
     subject, from: REFERENCE_START, to: currentYear - 1,
@@ -684,6 +768,8 @@ async function update() {
     if (land) {
       el.map.replaceChildren(renderMap({ land, events: mapEvents, theme, width }));
     }
+
+    void updateLargest(highlights, shift).then(() => linkMapAndList(mapEvents, theme));
   };
   lastRender();
 }

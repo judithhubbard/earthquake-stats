@@ -30,10 +30,12 @@
      Those sit two steps apart, which is right for stacked areas on a page but
      leaves ocean and land almost the same colour when the fills are side by
      side over a whole globe. Land is the pale one and the ocean carries the
-     tone, so the epicentre dots stay the darkest thing on the map. */
-  --map-ocean: #c8c4b2;
-  --map-land: #fbfbf9;
-  --map-coast: #847f6f;
+     tone, so the epicentre dots stay the darkest thing on the map. Land is
+     --range-outer, the same green as the chart's outer range, so the two
+     figures read as one page. */
+  --map-ocean: #a7beb2;
+  --map-land: #e9f1ed;
+  --map-coast: #6b7b71;
   --history: #898781;
   --median: #898781;
 
@@ -282,31 +284,15 @@ main {
   white-space: nowrap;
 }
 
-/* The year reads as the panel's heading, but is a real select. */
-.largest-year select {
-  appearance: none;
-  font: inherit;
+/* The years the top controls have selected. A label now, not a choice. */
+.largest-heading {
   font-size: 0.95rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
-  background-color: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 0.1rem 1.15rem 0.1rem 0.3rem;
-  margin-left: -0.3rem;
-  cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
-                    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
-  background-position: calc(100% - 8px) 58%, calc(100% - 4px) 58%;
-  background-size: 4px 4px, 4px 4px;
-  background-repeat: no-repeat;
-}
-
-.largest-year select:hover,
-.largest-year select:focus-visible {
-  border-color: var(--border);
-  background-color: var(--surface-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .largest ol {
@@ -329,6 +315,17 @@ main {
   gap: 0.15rem 0.5rem;
   font-size: 0.8rem;
   line-height: 1.35;
+  /* Padding is always here so lighting a row cannot shift the ones below it. */
+  padding: 0.15rem 0.35rem;
+  margin: -0.15rem -0.35rem;
+  border-radius: 5px;
+}
+
+/* Lit from the other side: hovering a row raises its dot on the map, and
+   hovering a dot raises its row here. */
+.largest li:hover,
+.largest li.is-linked {
+  background: var(--range-outer);
 }
 
 .largest-main {
@@ -342,10 +339,10 @@ main {
 
 .largest-main:hover .largest-place { text-decoration: underline; }
 
+/* Colour is set per row, to the accent its year wears everywhere else. */
 .largest-mag {
   font-weight: 650;
   font-variant-numeric: tabular-nums;
-  color: var(--series-1);
   flex: none;
 }
 

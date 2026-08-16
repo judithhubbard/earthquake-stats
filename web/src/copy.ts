@@ -118,7 +118,8 @@ export const copy = {
 
     /* The map and the year list beside it. */
     mapEmpty: "Select a year to plot its earthquakes.",
-    largestEmpty: "No {threshold} {kind} recorded in {year}.",
+    largestEmpty: "No {threshold} {kind} recorded in {years}.",
+    largestNoYears: "Select a year above to list its earthquakes.",
     largestNote: "{n} {threshold} {kind} · each links to its USGS event page.",
     largestTruncated: "{n} {threshold} {kind} — showing the first {shown} · each links to its USGS event page.",
     largestNoDetail: "No event details available at this magnitude.",
