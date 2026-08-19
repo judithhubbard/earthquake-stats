@@ -16,12 +16,17 @@ name: Build and deploy
 on:
   push:
     branches: [main]
-  # Every six hours. There is no point going faster: the page polls the USGS
-  # one-day feed directly in the browser, so anything from the last 24 hours is
-  # already on screen without a rebuild. This exists for events older than that,
-  # for magnitude revisions, and for re-running the declustering.
+  # Every fifteen minutes. The browser polls the USGS one-day feed itself, so
+  # new events appear between runs -- but they arrive unclassified, and after a
+  # large earthquake the aftershocks are counted as separate mainshocks until a
+  # rebuild has declustered them. That is what this is for, and it is why the
+  # loop is fast.
+  #
+  # Fifteen minutes is affordable because the expensive parts are not on this
+  # path: see the stamps in the refresh step. A full run is a couple of minutes;
+  # the loop is about twenty seconds of pipeline.
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -57,30 +62,77 @@ jobs:
       - name: Restore catalog mirror
         uses: actions/cache/restore@v4
         with:
-          path: data/catalog.sqlite
+          path: |
+            data/catalog.sqlite
+            data/.stamps
           key: comcat-${{ github.run_id }}
           restore-keys: comcat-
 
       # continue-on-error so that a USGS outage cannot block a code change from
       # shipping. If any of this fails the next step puts the committed catalog
       # back, and the site deploys with data that is stale rather than broken.
+      # continue-on-error so that a USGS outage cannot block a code change from
+      # shipping. If any of this fails the next step puts the committed catalog
+      # back, and the site deploys with data that is stale rather than broken.
+      #
+      # Not everything runs every time. Measured on a real run: fetch 2s,
+      # magnitudes 10s, decluster 18s, build 1s, context 116s. Only the first,
+      # third and fourth have to keep up with a new earthquake; the other two
+      # chase things that move over days and months, and running them every
+      # quarter of an hour would be four minutes of work and a lot of traffic
+      # aimed at other people's servers for no change in what is on the page.
       - name: Refresh the catalog from USGS
         id: refresh
         continue-on-error: true
         run: |
           set -e
+          STAMPS=data/.stamps
+          mkdir -p "$STAMPS"
+          NOW=$(date -u +%s)
+          # due <name> <seconds> -- true if never done, or done longer ago than that.
+          due() { [ ! -f "$STAMPS/$1" ] || [ $(( NOW - $(cat "$STAMPS/$1") )) -ge "$2" ]; }
+          mark() { echo "$NOW" > "$STAMPS/$1"; }
+
           if [ -f data/catalog.sqlite ]; then
             python3 pipeline/fetch.py
           else
             echo "::notice::No cached mirror; running a full backfill."
             python3 pipeline/fetch.py --backfill
           fi
-          python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
+
+          # Moment tensors arrive over days to weeks, and ComCat's preferred
+          # magnitude for a new large earthquake is already Mww within minutes --
+          # which fetch.py picks up. This harvest is for the events where Mw is
+          # not the preferred magnitude, which is a historical problem.
+          if due magnitudes 21600; then
+            python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
+            mark magnitudes
+          else
+            echo "Moment magnitudes harvested within the last 6h; skipping."
+          fi
+
           python3 pipeline/decluster.py
           python3 pipeline/build.py
-          # Temperature, sunspots and Oklahoma change monthly at most, and losing
-          # them costs three panels on the correlations page, not the build.
-          python3 pipeline/context.py || echo "::warning::Context datasets unavailable."
+
+          # Global temperature, sunspots and the Oklahoma record. All three are
+          # monthly at best and this is 116s of the run, so it goes daily. A
+          # failure costs three panels on the correlations page, not the build.
+          if due context 86400; then
+            if python3 pipeline/context.py; then mark context;
+            else echo "::warning::Context datasets unavailable."; fi
+          else
+            echo "Context datasets refreshed within the last 24h; skipping."
+          fi
+
+          # The mirror is 62 MB and the cache is a 10 GB bucket with
+          # least-recently-used eviction. Saving it 96 times a day would push
+          # everything else out, and there is no need: fetch.py catches up from
+          # whatever it restores using updatedafter, so an hour-old mirror costs
+          # one slightly larger delta.
+          if due mirror 3600; then
+            echo "save=true" >> "$GITHUB_OUTPUT"
+            mark mirror
+          fi
 
       - name: Fall back to the committed catalog
         if: steps.refresh.outcome == 'failure'
@@ -89,10 +141,12 @@ jobs:
           git checkout -- web/public/data
 
       - name: Save catalog mirror
-        if: steps.refresh.outcome == 'success'
+        if: steps.refresh.outcome == 'success' && steps.refresh.outputs.save == 'true'
         uses: actions/cache/save@v4
         with:
-          path: data/catalog.sqlite
+          path: |
+            data/catalog.sqlite
+            data/.stamps
           key: comcat-${{ github.run_id }}
 
       # A project page is served from /<repo>/, a user page or a custom domain
