@@ -98,7 +98,11 @@ main {
   align-items: center;
   gap: 0.5rem;
   flex: none;
-  margin-top: -0.15rem;
+  /* Raised clear of the headline. The matching positive margin-bottom keeps the
+     masthead the same height, so pulling the mark up widens the gap under it
+     instead of dragging the h1 up with it. */
+  margin-top: -0.85rem;
+  margin-bottom: 0.85rem;
   text-decoration: none;
   color: var(--text-secondary);
   font-size: 0.72rem;
