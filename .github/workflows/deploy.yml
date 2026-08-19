@@ -1,0 +1,135 @@
+# Builds the site and publishes it to GitHub Pages.
+#
+# One workflow, not two. There used to be a separate "deploy on push" and
+# "refresh the data on a timer", and they disagreed: the timer rebuilt the
+# catalog from USGS and deployed it, while a push rebuilt the site from the
+# catalog committed in the repo -- so any code change silently rolled the site's
+# data back to whatever was last committed. Every run now does the same thing in
+# the same order, whatever set it off.
+#
+# The data under web/public/data is still committed. It is not what gets
+# deployed -- the pipeline overwrites it on every run -- but it is what `npm run
+# dev` uses locally, and it is the fallback if USGS cannot be reached.
+
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  # Every six hours. There is no point going faster: the page polls the USGS
+  # one-day feed directly in the browser, so anything from the last 24 hours is
+  # already on screen without a rebuild. This exists for events older than that,
+  # for magnitude revisions, and for re-running the declustering.
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Not cancel-in-progress: a run that is part-way through a backfill has spent
+# ten minutes on sequential USGS requests, and killing it wastes them.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # The 62 MB SQLite mirror is the only expensive state, and it never leaves
+      # CI. A cache miss costs one full backfill, which is why restore-keys fall
+      # back to any earlier snapshot rather than starting from nothing.
+      - name: Restore catalog mirror
+        uses: actions/cache/restore@v4
+        with:
+          path: data/catalog.sqlite
+          key: comcat-${{ github.run_id }}
+          restore-keys: comcat-
+
+      # continue-on-error so that a USGS outage cannot block a code change from
+      # shipping. If any of this fails the next step puts the committed catalog
+      # back, and the site deploys with data that is stale rather than broken.
+      - name: Refresh the catalog from USGS
+        id: refresh
+        continue-on-error: true
+        run: |
+          set -e
+          if [ -f data/catalog.sqlite ]; then
+            python3 pipeline/fetch.py
+          else
+            echo "::notice::No cached mirror; running a full backfill."
+            python3 pipeline/fetch.py --backfill
+          fi
+          python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
+          python3 pipeline/decluster.py
+          python3 pipeline/build.py
+          # Temperature, sunspots and Oklahoma change monthly at most, and losing
+          # them costs three panels on the correlations page, not the build.
+          python3 pipeline/context.py || echo "::warning::Context datasets unavailable."
+
+      - name: Fall back to the committed catalog
+        if: steps.refresh.outcome == 'failure'
+        run: |
+          echo "::warning::Pipeline failed. Deploying the catalog committed in the repo."
+          git checkout -- web/public/data
+
+      - name: Save catalog mirror
+        if: steps.refresh.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: data/catalog.sqlite
+          key: comcat-${{ github.run_id }}
+
+      # A project page is served from /<repo>/, a user page or a custom domain
+      # from /. Vite needs to know which, or every asset and data file 404s.
+      # web/public/CNAME is the file that makes this a custom domain, so it is
+      # also the thing that decides the base.
+      - name: Work out the base path
+        id: base
+        run: |
+          if [[ -f web/public/CNAME ]]; then
+            echo "value=/" >> "$GITHUB_OUTPUT"
+            echo "::notice::Custom domain: $(cat web/public/CNAME)"
+          elif [[ "${{ github.event.repository.name }}" == *.github.io ]]; then
+            echo "value=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=/${{ github.event.repository.name }}/" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build site
+        working-directory: web
+        env:
+          VITE_BASE: ${{ steps.base.outputs.value }}
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
