@@ -385,7 +385,9 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       })),
       Plot.tip(hover, Plot.pointerX({
         x: "day", y: "value",
-        fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+        // 12px is the charts' own axis size. The tip is meant to read as part
+        // of the figure, not as a caption pasted over it.
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
         title: (d: Record<string, number>) => {
           const rows = [formatDay(d.day, dayToDate)];
           for (const h of highlights) {
@@ -505,7 +507,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     Plot.ruleY([0], { stroke: theme.axis, strokeWidth: 1 }),
     Plot.tip(counts, Plot.pointerX({
       x: "year", y: "count",
-      fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+      fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
       title: (d: AnnualCount) => {
         const fmt = (v: number) => (Number.isInteger(v) ? v.toLocaleString()
           : v.toLocaleString(undefined, { maximumFractionDigits: 1 }));

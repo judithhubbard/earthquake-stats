@@ -190,7 +190,7 @@ function binChart(bins: Bin[], width: number,
       ]),
       Plot.tip(bins, Plot.pointerX({
         x: "label", y: "deviation",
-        fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
         title: (d: Bin) =>
           `${d.full}\n${Math.round(d.count).toLocaleString()} earthquakes\n` +
           `${d.deviation >= 0 ? "+" : "−"}${Math.abs(d.deviation).toFixed(1)}% vs average`,
@@ -219,7 +219,7 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
       }),
       Plot.tip(points, Plot.pointer({
         x: "x", y: "y", maxRadius: 22,
-        fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
         title: (d: { year: number; x: number; y: number }) =>
           `${d.year}\n${d.y.toLocaleString()} earthquakes\n${xLabel}: ${d.x}`,
       })),
@@ -493,7 +493,7 @@ async function boot() {
           Plot.ruleY([0], { stroke: theme.axis }),
           Plot.tip(rows, Plot.pointerX({
             x: "year", y: "count",
-            fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+            fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
             title: (d: { year: number; count: number }) =>
               `${d.year}\n${d.count.toLocaleString()} earthquakes\n` +
               `${(d.count / Math.max(1, rate)).toFixed(0)}× the pre-2009 rate`,

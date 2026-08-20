@@ -98,7 +98,7 @@ function stackChart(data: Sequences, width: number): SVGSVGElement | HTMLElement
       }),
       Plot.tip(points, Plot.pointerX({
         x: "day", y: "rate",
-        fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
         title: (d: StackPoint) =>
           `${d.day === 0 ? "the day itself" : d.day > 0 ? `${d.day} days after` : `${-d.day} days before`}` +
           `\n${d.rate.toFixed(d.rate < 1 ? 3 : 2)} earthquakes per day`,
@@ -142,7 +142,7 @@ function decayChart(data: Sequences, width: number): SVGSVGElement | HTMLElement
       }),
       Plot.tip(data.decay, Plot.pointerX({
         x: "days", y: "rate",
-        fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
         title: (d: DecayPoint) =>
           `${d.days < 1 ? `${(d.days * 24).toFixed(1)} hours` : `${d.days.toFixed(1)} days`} after` +
           `\n${d.rate.toFixed(d.rate < 1 ? 3 : 1)} per day`,
@@ -178,7 +178,7 @@ function examplesChart(data: Sequences, width: number): SVGSVGElement | HTMLElem
       Plot.ruleY([0], { stroke: theme.axis }),
       Plot.tip(rows, Plot.pointerX({
         x: "day", y: "count",
-        fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
         title: (d: { day: number; count: number }) =>
           `${d.day === 0 ? "the day itself" : d.day > 0 ? `${d.day} days after` : `${-d.day} days before`}` +
           `\n${d.count} earthquakes`,
