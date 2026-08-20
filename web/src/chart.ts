@@ -496,8 +496,12 @@ export interface AnnualOptions {
   wholeNumbers?: boolean;
   /** Top of the y range, so the moment ticks can be placed on round magnitudes. */
   yMax?: number;
-  /** Draw the mean +/- 2 standard deviations of the reference years as a band. */
-  sigma?: boolean;
+  /**
+   * The +/-2 sigma band to draw across the frame, or null for none. Supplied
+   * rather than computed here so it is the same measurement the cumulative
+   * chart shows at a full year's window length.
+   */
+  sigma?: { lo: number; hi: number } | null;
 }
 
 /**
@@ -543,14 +547,10 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
 
   // Drawn before the rules so it sits behind them, and behind the bars, which
   // are already on the mark list above.
-  if (mean > 0 && opts.sigma) {
-    const ref = counts.filter((c) => refSet.has(c.year)).map((c) => c.count);
-    const sd = ref.length > 1
-      ? Math.sqrt(ref.reduce((a, b) => a + (b - mean) ** 2, 0) / (ref.length - 1))
-      : 0;
+  if (opts.sigma) {
     marks.unshift(
       // No x channels, so the rect spans the frame.
-      Plot.rect([{ lo: Math.max(0, mean - 2 * sd), hi: mean + 2 * sd }], {
+      Plot.rect([opts.sigma], {
         y1: "lo", y2: "hi", fill: theme.rangeInner, fillOpacity: 0.7,
       }),
     );

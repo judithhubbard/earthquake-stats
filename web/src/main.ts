@@ -39,6 +39,13 @@ const RANGES = [
   { id: "percentile", label: "50 / 90%" },
   { id: "sigma", label: "±2σ (95.45%)" },
 ] as const;
+// The annual chart has no percentile band to switch between, so its control is
+// a plain show/hide -- and it is its own state, not a mirror of the cumulative
+// chart's, so the two can be read against each other.
+const ANNUAL_RANGES = [
+  { id: "off", label: "Off" },
+  { id: "sigma", label: "±2σ (95.45%)" },
+] as const;
 const SORT_MODES = [
   { id: "largest", label: "Largest" },
   { id: "recent", label: "Recent" },
@@ -59,6 +66,7 @@ interface State {
   measure: Measure;
   sortMode: (typeof SORT_MODES)[number]["id"];
   range: (typeof RANGES)[number]["id"];
+  annualRange: (typeof ANNUAL_RANGES)[number]["id"];
   catalogMode: (typeof CATALOG_MODES)[number]["id"];
   /** Year -> colour slot. Slots are held until a year is deselected, so
       removing one highlight never repaints the others. */
@@ -71,6 +79,7 @@ const state: State = {
   measure: "count",
   sortMode: "largest",
   range: "percentile",
+  annualRange: "off",
   catalogMode: "all",
   highlights: new Map(),
 };
@@ -144,6 +153,7 @@ const el = {
   mapLegend: document.getElementById("map-legend")!,
   largestHeading: document.getElementById("largest-heading")!,
   range: document.getElementById("range-control")!,
+  annualRange: document.getElementById("annual-range-control")!,
   scaleTitle: document.getElementById("scale-title")!,
   scaleBar: document.getElementById("scale-bar")!,
   scaleRows: document.getElementById("scale-rows")!,
@@ -401,6 +411,8 @@ function buildControls() {
     () => String(state.minMag), (id) => { state.minMag = Number(id); });
   buildSegmented(el.range, RANGES.map((r) => ({ id: r.id, label: r.label })),
     () => state.range, (id) => { state.range = id as State["range"]; });
+  buildSegmented(el.annualRange, ANNUAL_RANGES.map((r) => ({ id: r.id, label: r.label })),
+    () => state.annualRange, (id) => { state.annualRange = id as State["annualRange"]; });
   buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
     () => state.window, (id) => {
       state.window = id as State["window"];
@@ -801,10 +813,17 @@ async function update() {
   // the calendar years -- see rollingWindowBand. The percentile view stays as
   // it is: percentiles are robust to a single huge event, so it has no step to
   // remove and "what previous years did" is a claim about years.
-  const band = state.range === "sigma"
+  const windows = state.range === "sigma" || state.annualRange === "sigma"
     ? rollingWindowBand(tier, minMag, mainshocksOnly, state.measure, REFERENCE_START)
-      .map((r, i) => ({ ...percentiles[i], mean: r.mean, sdLo: r.sdLo, sdHi: r.sdHi }))
+    : null;
+  const band = windows && state.range === "sigma"
+    ? windows.map((r, i) => ({ ...percentiles[i], mean: r.mean, sdLo: r.sdLo, sdHi: r.sdHi }))
     : percentiles;
+  // A full year's worth is the last window length, so both charts show the same
+  // band rather than two different measurements of the same quantity.
+  const annualSigma = windows && state.annualRange === "sigma"
+    ? { lo: windows[windows.length - 1].sdLo, hi: windows[windows.length - 1].sdHi }
+    : null;
   const result = verdict(curves, refYears, currentYear, today, state.measure);
 
   const counts = annualCounts(curves, majorCurves, currentYear, today, refYears,
@@ -925,7 +944,7 @@ async function update() {
         ? copy.home.axisAnnualMoment
         : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
       wholeNumbers: state.measure === "count",
-      sigma: state.range === "sigma",
+      sigma: annualSigma,
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
