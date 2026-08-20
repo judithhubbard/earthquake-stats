@@ -848,6 +848,24 @@ footer p { margin: 0 0 0.4rem; }
   border-radius: 1px;
 }
 
+.scale-marker-label {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.scale-marker-label.is-left {
+  left: auto;
+  right: 6px;
+}
+
 .scale-rows {
   list-style: none;
   margin: 0;

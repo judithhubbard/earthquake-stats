@@ -238,6 +238,15 @@ function buildAnswerScale(pct: number | null, refCount: number,
     const marker = document.createElement("span");
     marker.className = "scale-marker";
     marker.style.left = `${pct}%`;
+
+    const tag = document.createElement("span");
+    tag.className = "scale-marker-label";
+    tag.textContent = year;
+    // Past the right-hand end the label would run off the figure, so it flips
+    // to sit on the other side of its own line.
+    if (pct > 80) tag.classList.add("is-left");
+
+    marker.append(tag);
     el.scaleBar.append(marker);
   }
 
