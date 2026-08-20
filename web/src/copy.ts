@@ -250,7 +250,7 @@ export const copy = {
      =================================================================== */
   correlations: {
     answer: "<strong>No.</strong>",
-    detail: "We checked. The data below updates as the USGS catalog does, and every answer on this page is computed from it rather than written in.",
+    detail: "We checked. The data below updates as the USGS catalog does, and every answer on this page is computed from it rather than hard-coded.",
 
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
@@ -275,20 +275,18 @@ export const copy = {
     /* What each test would have to read for the answer above it to change. The
        page says its answers are computed; these lines are that claim in a form
        a reader can hold against the next update. */
-    flipBinNo:
-      "This answer is not written in. It comes from a chi-square test across the bins " +
-      "above, which currently reads {statistic} against a threshold of {critical} on {df} " +
-      "degrees of freedom. If it ever passes that threshold, and the effect is large enough " +
-      "to matter, this answer becomes yes on its own.",
-    flipBinYes:
-      "The chi-square across the bins above reads {statistic}, past the {critical} threshold " +
-      "on {df} degrees of freedom. Fall back below it and this answer returns to no.",
-    flipScatterNo:
-      "This answer is not written in. The correlation over {years} years is {r}, and it would " +
-      "have to reach {critical} for this answer to become yes on its own.",
-    flipScatterYes:
-      "The correlation over {years} years is {r}, past the {critical} needed for significance. " +
-      "Fall back below it and this answer returns to no.",
+    /* The table under each panel: what the test would have to read for the
+       answer above it to change, and where it currently reads. The verdict
+       column reuses the verdict strings themselves, so the table cannot
+       describe a rule the page does not follow. */
+    flipTitle: "This answer is calculated, not hard-coded:",
+    flipBinBelow: "chi-square below {critical}",
+    flipBinNegligible: "above {critical}, but the difference is tiny",
+    flipBinMeaningful: "above {critical}, and big enough to matter",
+    flipBinNow: "Right now it is {statistic}, across {bins} bins.",
+    flipScatterWithin: "correlation weaker than ±{critical}",
+    flipScatterBeyond: "correlation stronger than ±{critical}",
+    flipScatterNow: "Right now it is {r}, over {years} years.",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:

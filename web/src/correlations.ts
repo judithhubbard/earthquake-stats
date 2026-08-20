@@ -45,7 +45,7 @@ function panel(question: string, verdict: string, note: string,
                draw: (width: number) => SVGSVGElement | HTMLElement,
                reading?: { label: string; url: string },
                subtitle?: string, legend?: LegendKey[],
-               flip?: string): HTMLElement {
+               flip?: HTMLElement): HTMLElement {
   const section = document.createElement("figure");
   section.className = "chart correlate-panel";
 
@@ -100,12 +100,7 @@ function panel(question: string, verdict: string, note: string,
   // What the test would have to read for the answer above to change. The page
   // claims its answers are computed rather than written; this is the claim in a
   // form the reader can hold against the next update.
-  if (flip) {
-    const line = document.createElement("p");
-    line.className = "correlate-flip";
-    line.textContent = flip;
-    section.append(line);
-  }
+  if (flip) section.append(flip);
 
   if (reading) {
     const link = document.createElement("a");
@@ -259,16 +254,62 @@ function binVerdict(bins: Bin[]): string {
   return v < 0.1 ? copy.correlations.verdictYesNegligible : copy.correlations.verdictYes;
 }
 
-/** How far the statistic is from the threshold that would change the answer. */
-function binFlip(bins: Bin[]): string {
+/**
+ * The rungs of the verdict, as a table, with the one in force marked.
+ *
+ * The right-hand column is the verdict strings themselves rather than a
+ * paraphrase, so the table cannot end up describing a rule the page does not
+ * follow.
+ */
+function flipTable(rows: { when: string; says: string }[],
+                   current: number, now: string): HTMLElement {
+  const box = document.createElement("div");
+  box.className = "correlate-flip";
+
+  const title = document.createElement("p");
+  title.className = "flip-title";
+  title.textContent = copy.correlations.flipTitle;
+  box.append(title);
+
+  const list = document.createElement("ol");
+  list.className = "flip-rows";
+  rows.forEach((row, i) => {
+    const li = document.createElement("li");
+    if (i === current) li.className = "is-current";
+    const when = document.createElement("span");
+    when.className = "flip-when";
+    when.textContent = row.when;
+    const says = document.createElement("span");
+    says.className = "flip-says";
+    says.textContent = row.says;
+    li.append(when, says);
+    list.append(li);
+  });
+  box.append(list);
+
+  const foot = document.createElement("p");
+  foot.className = "flip-now";
+  foot.textContent = now;
+  box.append(foot);
+  return box;
+}
+
+function binFlip(bins: Bin[]): HTMLElement {
   const test = chiSquare(bins);
-  return fill(test.statistic <= test.critical
-    ? copy.correlations.flipBinNo
-    : copy.correlations.flipBinYes, {
-      statistic: test.statistic.toFixed(1),
-      critical: test.critical.toFixed(1),
-      df: test.df,
-    });
+  const n = bins.reduce((a, b) => a + b.count, 0);
+  const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
+  const critical = test.critical.toFixed(1);
+  const current = test.statistic <= test.critical ? 0 : v < 0.1 ? 1 : 2;
+  return flipTable([
+    { when: fill(copy.correlations.flipBinBelow, { critical }),
+      says: copy.correlations.verdictNo },
+    { when: fill(copy.correlations.flipBinNegligible, { critical }),
+      says: copy.correlations.verdictYesNegligible },
+    { when: fill(copy.correlations.flipBinMeaningful, { critical }),
+      says: copy.correlations.verdictYes },
+  ], current, fill(copy.correlations.flipBinNow, {
+    statistic: test.statistic.toFixed(1), bins: bins.length,
+  }));
 }
 
 /** The same for a scatter panel, from the correlation against its 5% threshold. */
@@ -279,11 +320,17 @@ function scatterVerdict(c: Correlation | null): string {
   return c.significant ? copy.correlations.verdictYes : copy.correlations.verdictNo;
 }
 
-function scatterFlip(c: Correlation | null): string {
-  if (!c) return "";
-  return fill(c.significant ? copy.correlations.flipScatterYes : copy.correlations.flipScatterNo, {
-    r: c.r.toFixed(2), critical: c.critical.toFixed(2), years: c.n,
-  });
+function scatterFlip(c: Correlation | null): HTMLElement | undefined {
+  if (!c) return undefined;
+  const critical = c.critical.toFixed(2);
+  return flipTable([
+    { when: fill(copy.correlations.flipScatterWithin, { critical }),
+      says: copy.correlations.verdictNo },
+    { when: fill(copy.correlations.flipScatterBeyond, { critical }),
+      says: copy.correlations.verdictYes },
+  ], c.significant ? 1 : 0, fill(copy.correlations.flipScatterNow, {
+    r: c.r.toFixed(2), years: c.n,
+  }));
 }
 
 /* ---------------- build ---------------- */
