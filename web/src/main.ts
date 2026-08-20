@@ -200,6 +200,15 @@ function answerFor(pct: number, rolling: boolean): string {
  */
 const ANSWER_BOUNDS = [0, 5, 25, 75, 95, 100];
 
+/** 1st, 2nd, 3rd, 61st -- the copy used to append a literal "th". */
+function ordinal(n: number): string {
+  const v = Math.round(n);
+  const suffix = v % 100 >= 11 && v % 100 <= 13
+    ? "th"
+    : ["th", "st", "nd", "rd"][v % 10] ?? "th";
+  return `${v}${suffix}`;
+}
+
 /** Colour per band, palest in the middle: blue below average, red above. */
 const BAND_TINTS = ["down", "down", "mid", "up", "up"] as const;
 const BAND_FADES = [1, 0.45, 1, 0.45, 1];
@@ -213,7 +222,7 @@ const BAND_FADES = [1, 0.45, 1, 0.45, 1];
  * width of its band, which is also the number of years in a hundred: the
  * percentile is uniform by construction, so a band 20 points wide is 20 years.
  */
-function buildAnswerScale(pct: number | null, refCount: number,
+function buildAnswerScale(pct: number | null,
                           minMag: number, kind: string, year: string) {
   const rolling = state.window === "rolling";
   const bands = ANSWER_BOUNDS.slice(0, -1).map((low, i) => {
@@ -274,9 +283,7 @@ function buildAnswerScale(pct: number | null, refCount: number,
   }));
 
   el.scaleNote.textContent = pct === null ? "" : fill(copy.home.scaleNote, {
-    years: refCount, threshold: magLabel(minMag), kind, year,
-    percentile: pct.toFixed(0),
-    band: bands.find((b) => pct >= b.low && pct <= b.high)?.low ?? 0,
+    threshold: magLabel(minMag), kind, year, percentile: ordinal(pct),
   });
 }
 
@@ -843,7 +850,7 @@ async function update() {
     : fill(copy.home.cumulativeSubjectCount, { threshold: magLabel(minMag), kind });
 
   writeHeadline(result, currentYear);
-  buildAnswerScale(result ? result.percentile * 100 : null, refYears.length,
+  buildAnswerScale(result ? result.percentile * 100 : null,
                    minMag, kind, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);
   writeAnnualNote(currentYear, splitMajor, rolling);

@@ -164,10 +164,8 @@ export const copy = {
     scaleRow: "{low}–{high}th percentile",
     scaleFrequency: "{n} years in 100",
     scaleNote:
-      "The answer is chosen from where this year sits among the {years} previous ones, " +
-      "and nothing else. The bands are fixed: a year has to beat 95% of the record before " +
-      "the page will say yes. Right now {threshold} {kind} put {year} at the " +
-      "{percentile}th percentile, which is the {band} band.",
+      "The answer is chosen automatically by comparing earthquakes this year to past " +
+      "years. Right now {threshold} {kind} put {year} at the {percentile} percentile.",
     legendSigma: "±2σ — 95.45% under a normal fit",
     yearsNone: "None",
     yearsSome: "{n} years",
