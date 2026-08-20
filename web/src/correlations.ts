@@ -317,14 +317,17 @@ function binFlip(bins: Bin[]): HTMLElement {
   const n = bins.reduce((a, b) => a + b.count, 0);
   const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
   const critical = test.critical.toFixed(1);
-  const current = test.statistic <= test.critical ? 0 : v < 0.1 ? 1 : 2;
+  // Largest chi-square at the top, like the scatter tables above run from the
+  // strongest positive correlation down, and like the answer scale on the
+  // front page. Strongest evidence first, everywhere.
+  const current = test.statistic <= test.critical ? 2 : v < 0.1 ? 1 : 0;
   return flipTable([
-    { when: fill(copy.correlations.flipBinBelow, { critical }),
-      says: copy.correlations.verdictNo },
-    { when: fill(copy.correlations.flipBinNegligible, { critical }),
-      says: copy.correlations.verdictYesNegligible },
     { when: fill(copy.correlations.flipBinMeaningful, { critical }),
       says: copy.correlations.verdictYes },
+    { when: fill(copy.correlations.flipBinNegligible, { critical }),
+      says: copy.correlations.verdictYesNegligible },
+    { when: fill(copy.correlations.flipBinBelow, { critical }),
+      says: copy.correlations.verdictNo },
   ], current, fill(copy.correlations.flipBinNow, {
     statistic: test.statistic.toFixed(1),
   }), fill(copy.correlations.flipHelpBody, {
