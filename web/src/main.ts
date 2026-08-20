@@ -32,6 +32,12 @@ const WINDOWS = [
   { id: "calendar", label: "This year" },
   { id: "rolling", label: "Last 365 days" },
 ] as const;
+// How the reference years are described. Percentiles say what those years did;
+// sigma says what a normal fit to them predicts. See BandPoint in stats.ts.
+const RANGES = [
+  { id: "percentile", label: "50 / 90%" },
+  { id: "sigma", label: "±2σ" },
+] as const;
 const SORT_MODES = [
   { id: "largest", label: "Largest" },
   { id: "recent", label: "Recent" },
@@ -51,6 +57,7 @@ interface State {
   window: (typeof WINDOWS)[number]["id"];
   measure: Measure;
   sortMode: (typeof SORT_MODES)[number]["id"];
+  range: (typeof RANGES)[number]["id"];
   catalogMode: (typeof CATALOG_MODES)[number]["id"];
   /** Year -> colour slot. Slots are held until a year is deselected, so
       removing one highlight never repaints the others. */
@@ -62,6 +69,7 @@ const state: State = {
   window: "calendar",
   measure: "count",
   sortMode: "largest",
+  range: "percentile",
   catalogMode: "all",
   highlights: new Map(),
 };
@@ -134,6 +142,7 @@ const el = {
   mapTitle: document.getElementById("map-title")!,
   mapLegend: document.getElementById("map-legend")!,
   largestHeading: document.getElementById("largest-heading")!,
+  range: document.getElementById("range-control")!,
   largestList: document.getElementById("largest-list")!,
   largestNote: document.getElementById("largest-note")!,
   generated: document.getElementById("generated")!,
@@ -292,6 +301,8 @@ function syncControlAvailability() {
 function buildControls() {
   buildSegmented(el.mag, MAGNITUDES.map((m) => ({ id: String(m), label: magLabel(m) })),
     () => String(state.minMag), (id) => { state.minMag = Number(id); });
+  buildSegmented(el.range, RANGES.map((r) => ({ id: r.id, label: r.label })),
+    () => state.range, (id) => { state.range = id as State["range"]; });
   buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
     () => state.window, (id) => {
       state.window = id as State["window"];
@@ -793,7 +804,8 @@ async function update() {
         ? copy.home.axisCumulativeMoment
         : fill(copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),
       wholeNumbers: state.measure === "count",
-      yMax: Math.max(0, ...band.map((b) => b.hi),
+      bandMode: state.range,
+      yMax: Math.max(0, ...band.map((b) => b.hi), ...band.map((b) => b.sdHi),
                      ...highlights.map((h) => curves.curves.get(h.year)?.[h.through] ?? 0)),
     });
     el.chart.replaceChildren(figure);
@@ -805,6 +817,7 @@ async function update() {
         ? copy.home.axisAnnualMoment
         : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
       wholeNumbers: state.measure === "count",
+      sigma: state.range === "sigma",
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
@@ -833,9 +846,13 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
   const entries: { color: string; label: string; kind: Kind }[] = [
     ...highlights.map((h) => ({ color: h.color, label: yearLabel(h.year), kind: "accent" as Kind })),
     { color: theme.history, label: fill(copy.home.legendOtherYears, { from, to }), kind: "faint" },
-    { color: theme.median, label: copy.home.legendMedian, kind: "accent" },
-    { color: theme.rangeInner, label: copy.home.legendBandInner, kind: "band" },
-    { color: theme.rangeOuter, label: copy.home.legendBand, kind: "band" },
+    { color: theme.median,
+      label: state.range === "sigma" ? copy.home.legendMean : copy.home.legendMedian,
+      kind: "accent" },
+    ...(state.range === "sigma"
+      ? [{ color: theme.rangeInner, label: copy.home.legendSigma, kind: "band" as Kind }]
+      : [{ color: theme.rangeInner, label: copy.home.legendBandInner, kind: "band" as Kind },
+         { color: theme.rangeOuter, label: copy.home.legendBand, kind: "band" as Kind }]),
   ];
   for (const { color, label, kind } of entries) {
     const span = document.createElement("span");
@@ -900,7 +917,11 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
 }
 
 function writeNote(refCount: number, liveAdded: number) {
-  const notes: string[] = [fill(copy.home.noteBand, { years: refCount })];
+  const notes: string[] = [
+    state.range === "sigma"
+      ? fill(copy.home.noteSigma, { years: refCount })
+      : fill(copy.home.noteBand, { years: refCount }),
+  ];
 
   if (state.measure === "moment") notes.push(copy.home.noteMoment);
 

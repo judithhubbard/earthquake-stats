@@ -43,7 +43,7 @@
               Magnitude
               <span class="hint">
                 <button type="button" class="hint-button" id="magnitude-hint"
-                        aria-describedby="magnitude-tip">what's this?</button>
+                        aria-describedby="magnitude-tip" aria-label="What is this?">?</button>
                 <span class="hint-tip" role="tooltip" id="magnitude-tip">
                   <strong>M6+</strong> counts every earthquake of magnitude 6.0 and up.
                   <strong>M7+</strong> counts only 7.0 and up, which is roughly ten times
@@ -64,7 +64,7 @@
               Period
               <span class="hint">
                 <button type="button" class="hint-button" id="period-hint"
-                        aria-describedby="period-tip">what's this?</button>
+                        aria-describedby="period-tip" aria-label="What is this?">?</button>
                 <span class="hint-tip" role="tooltip" id="period-tip">
                   <strong>This year</strong> counts from 1 January, and compares against
                   the same stretch of every earlier year. It answers "how is this
@@ -84,7 +84,7 @@
               Measure
               <span class="hint">
                 <button type="button" class="hint-button" id="measure-hint"
-                        aria-describedby="measure-tip">what's this?</button>
+                        aria-describedby="measure-tip" aria-label="What is this?">?</button>
                 <span class="hint-tip" role="tooltip" id="measure-tip">
                   <strong>Count</strong> treats every earthquake as one, so an M6 and an
                   M8 weigh the same.
@@ -102,7 +102,7 @@
               Catalog
               <span class="hint">
                 <button type="button" class="hint-button" id="decluster-hint"
-                        aria-describedby="decluster-tip">what's this?</button>
+                        aria-describedby="decluster-tip" aria-label="What is this?">?</button>
                 <span class="hint-tip" role="tooltip" id="decluster-tip">
                   A big earthquake is followed by hundreds of smaller ones nearby. Counting
                   them all makes any year with a big earthquake look like a busy year —
@@ -134,7 +134,13 @@
         </div>
 
         <figure class="chart">
-          <figcaption id="chart-title"></figcaption>
+          <figcaption class="chart-head">
+            <span id="chart-title"></span>
+            <span class="chart-toggle">
+              <span class="chart-toggle-label">Range</span>
+              <span class="segmented segmented-sm" id="range-control"></span>
+            </span>
+          </figcaption>
           <div id="chart"></div>
           <p class="chart-note" id="chart-note"></p>
         </figure>

@@ -202,6 +202,20 @@ export interface BandPoint {
   median: number;
   hiMid: number;
   hi: number;
+  /**
+   * The same day described the other way round: mean, and mean +/- 2 standard
+   * deviations of the reference years.
+   *
+   * The percentiles say what previous years did. These say what a normal
+   * distribution fitted to them would predict, which is the convention the
+   * correlations page uses and is worth being able to compare against -- the
+   * two disagree exactly where the distribution is skewed, and cumulative
+   * counts are skewed. sdLo is clamped at zero: a count cannot be negative,
+   * and early in the year the unclamped figure is.
+   */
+  mean: number;
+  sdLo: number;
+  sdHi: number;
 }
 
 /**
@@ -223,6 +237,11 @@ export function empiricalBand(curves: YearCurves, refYears: number[],
   for (let d = 0; d < DAYS; d++) {
     for (let i = 0; i < series.length; i++) scratch[i] = series[i][d];
     scratch.sort((a, b) => a - b);
+    const n = scratch.length;
+    const mean = scratch.reduce((a, b) => a + b, 0) / n;
+    const sd = n > 1
+      ? Math.sqrt(scratch.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1))
+      : 0;
     out.push({
       day: d,
       lo: q(scratch, 0.05),
@@ -230,6 +249,9 @@ export function empiricalBand(curves: YearCurves, refYears: number[],
       median: q(scratch, 0.5),
       hiMid: q(scratch, 0.75),
       hi: q(scratch, 0.95),
+      mean,
+      sdLo: Math.max(0, mean - 2 * sd),
+      sdHi: mean + 2 * sd,
     });
   }
   return out;

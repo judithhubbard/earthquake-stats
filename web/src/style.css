@@ -182,9 +182,13 @@ main {
   .answer-detail { max-width: 420px; }
 }
 
+/* Prose runs the full width of the panel, matching the figures. It used to be
+   capped at 60-68 characters -- the usual measure for readability -- but with
+   charts beside it at 60rem the text read as a narrow column that stopped
+   two-thirds of the way across, and the caps did not even agree with each other.
+   Line length is now whatever the container is. */
 .hero-intro {
   margin: 1.1rem 0 0;
-  max-width: 60ch;
   color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.55;
@@ -244,12 +248,12 @@ main {
   background: transparent;
   color: var(--text-secondary);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  padding: 0.3rem 0.55rem;
-  border-radius: 6px;
+  padding: 0.22rem 0.45rem;
+  border-radius: 5px;
   cursor: pointer;
-  min-height: 30px;
+  min-height: 26px;
   white-space: nowrap;
 }
 
@@ -270,15 +274,28 @@ main {
   border: 0;
   background: none;
   font: inherit;
-  font-size: 0.62rem;
-  font-weight: 500;
+  font-size: 0.65rem;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--series-1);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: var(--text-muted);
   cursor: help;
   padding: 0;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: text-bottom;
+  margin-left: 0.15rem;
+}
+
+.hint-button:hover,
+.hint-button:focus-visible {
+  color: var(--series-1);
+  border-color: var(--series-1);
 }
 
 .hint-tip {
@@ -462,11 +479,11 @@ main {
 .picker-button {
   appearance: none;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-align: left;
-  padding: 0.35rem 1.7rem 0.35rem 0.6rem;
-  min-height: 30px;
-  min-width: 9rem;
+  padding: 0.25rem 1.5rem 0.25rem 0.55rem;
+  min-height: 26px;
+  min-width: 8rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background-color: var(--plane);
@@ -580,6 +597,32 @@ main {
   margin-bottom: 0.75rem;
 }
 
+/* The band control belongs beside the charts it changes, not in the row of
+   controls at the top -- that row is sized to just fit, and a sixth fieldset
+   would push it onto two lines. */
+.chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.chart-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: none;
+}
+
+.chart-toggle-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 /* No overflow rule here on purpose. `overflow-x: auto` computes overflow-y to
    `auto` as well, which clipped the hover tip at the top of the plot whenever
    the pointed line ran high. Widths are fitted to the container, so the scroll
@@ -628,7 +671,6 @@ main {
   margin: 0.9rem 0 0;
   font-size: 0.8rem;
   color: var(--text-muted);
-  max-width: 68ch;
 }
 
 /* ---------- footer ---------- */
@@ -637,7 +679,6 @@ footer {
   margin-top: 2.5rem;
   font-size: 0.8rem;
   color: var(--text-muted);
-  max-width: 68ch;
 }
 
 footer p { margin: 0 0 0.4rem; }
@@ -715,7 +756,6 @@ footer p { margin: 0 0 0.4rem; }
 /* Explanations carry the argument, so they are body text, not footnotes. */
 .correlate-explain {
   margin: 0 0 1rem;
-  max-width: 62ch;
   font-size: 0.95rem;
   color: var(--text-secondary);
   white-space: pre-line;
@@ -739,7 +779,6 @@ footer p { margin: 0 0 0.4rem; }
   background: var(--surface-1);
   font-size: 0.92rem;
   color: var(--text-secondary);
-  max-width: 68ch;
 }
 
 .guide strong { color: var(--text-primary); }
@@ -759,7 +798,6 @@ footer p { margin: 0 0 0.4rem; }
 
 .feels-close {
   margin: 0 0 0.5rem;
-  max-width: 60ch;
   font-size: 1rem;
   color: var(--text-secondary);
 }

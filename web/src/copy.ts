@@ -106,6 +106,13 @@ export const copy = {
       "Each faint line is one of the {years} previous years. The inner band spans the middle " +
       "50% of those years and the outer band the middle 90%. A line inside the shading falls " +
       "within the range of previous years.",
+    noteSigma:
+      "Each faint line is one of the {years} previous years. The band is the mean of " +
+      "those years plus and minus two standard deviations, the range a normal " +
+      "distribution would put 95.45% of them in. It is a different question from the " +
+      "percentile view: that one shows where past years actually fell, this one shows " +
+      "where a normal model says they should. The two part company when the " +
+      "distribution is skewed, and cumulative counts are skewed.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
@@ -147,6 +154,8 @@ export const copy = {
     legendMedian: "Average year (median)",
     legendBand: "Middle 90% of past years",
     legendBandInner: "Middle half of past years",
+    legendMean: "Average year (mean)",
+    legendSigma: "±2σ of past years",
     yearsNone: "None",
     yearsSome: "{n} years",
     yearsCount: "{n} of {max}",

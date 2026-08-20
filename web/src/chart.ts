@@ -281,6 +281,13 @@ export interface ChartOptions {
   yLabel: string;
   /** Suppress half-step tick labels; counts have no halves. */
   wholeNumbers?: boolean;
+  /**
+   * Which description of the reference years to draw. "percentile" is the two
+   * nested bands of what those years actually did; "sigma" is one band of what
+   * a normal fit to them predicts. One or the other, never both -- three
+   * overlapping bands on a chart that already carries 49 lines is unreadable.
+   */
+  bandMode?: "percentile" | "sigma";
   /** Top of the y range, so the moment ticks can be placed on round magnitudes. */
   yMax?: number;
   /** Real date for a day index, which the rolling window shifts. */
@@ -290,7 +297,7 @@ export interface ChartOptions {
 interface EndPoint { day: number; value: number; label: string; color: string; }
 
 export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
-  const { curves, band, refYears, highlights, today, theme, width, dayToDate } = opts;
+  const { curves, band, refYears, highlights, theme, width, dayToDate } = opts;
 
   const highlighted = new Set(highlights.map((h) => h.year));
   const history: { day: number; value: number; year: number }[] = [];
@@ -321,8 +328,15 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   // Tooltip rows carry every highlighted year at once, so one crosshair explains
   // the whole chart rather than whichever line the pointer happens to be near.
   const primary = highlights[0];
-  const hover = band.slice(0, Math.min(today + 1, DAYS)).map((b) => {
-    const row: Record<string, number> = { day: b.day, median: b.median, lo: b.lo, hi: b.hi };
+  // Every day, not just the elapsed ones. Past today the current year has no
+  // value, but the reference years and the band still do -- and that is most of
+  // what this tip is for.
+  const yTop = opts.yMax ?? Math.max(0, ...band.map((b) => b.hi));
+  const hover = band.map((b) => {
+    const row: Record<string, number> = {
+      day: b.day, median: b.median, lo: b.lo, hi: b.hi,
+      mean: b.mean, sdLo: b.sdLo, sdHi: b.sdHi,
+    };
     for (const h of highlights) {
       const curve = curves.curves.get(h.year);
       row[`y${h.year}`] = curve && b.day <= h.through ? curve[b.day] : NaN;
@@ -331,21 +345,35 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     // collapsing onto the axis.
     const lead = primary ? row[`y${primary.year}`] : NaN;
     row.value = Number.isFinite(lead) ? lead : b.median;
+    // Where the summary box should sit to stay off the lines. Cumulative curves
+    // climb, so the empty half of the frame is above them early in the year and
+    // below them late -- the box follows whichever it is, which also keeps it
+    // clear of the per-line tip, that one always sitting on the line itself.
+    row.tipY = row.value <= yTop / 2 ? yTop : 0;
     return row;
   });
+  const hoverAbove = hover.filter((r) => r.tipY !== 0);
+  const hoverBelow = hover.filter((r) => r.tipY === 0);
 
+  const sigma = opts.bandMode === "sigma";
   const marks: Plot.Markish[] = [
     // Outer band first, inner on top: the middle half sits inside the middle 90%.
-    Plot.areaY(band, { x: "day", y1: "lo", y2: "hi",
-                      fill: theme.rangeOuter, stroke: null, curve: "step-after" }),
-    Plot.areaY(band, { x: "day", y1: "loMid", y2: "hiMid",
-                      fill: theme.rangeInner, stroke: null, curve: "step-after" }),
+    ...(sigma
+      ? [Plot.areaY(band, { x: "day", y1: "sdLo", y2: "sdHi",
+                           fill: theme.rangeInner, stroke: null, curve: "step-after" })]
+      : [Plot.areaY(band, { x: "day", y1: "lo", y2: "hi",
+                           fill: theme.rangeOuter, stroke: null, curve: "step-after" }),
+         Plot.areaY(band, { x: "day", y1: "loMid", y2: "hiMid",
+                           fill: theme.rangeInner, stroke: null, curve: "step-after" })]),
     Plot.line(history, {
       x: "day", y: "value", z: "year", curve: "step-after",
       stroke: theme.history, strokeWidth: 1, strokeOpacity: 0.32,
     }),
+    // The centre line follows the band: a +/-2 sigma band is built around the
+    // mean, so drawing the median through it would be two different statistics
+    // claiming to be the same thing.
     Plot.line(band, {
-      x: "day", y: "median", curve: "step-after",
+      x: "day", y: sigma ? "mean" : "median", curve: "step-after",
       stroke: theme.median, strokeWidth: 2.25,
     }),
     // A surface-coloured casing keeps each accent legible where it crosses the
@@ -389,27 +417,39 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   );
 
   if (hover.length > 0) {
+    // The summary is drawn twice over disjoint halves of the data -- the days
+    // whose lines run low, and the days whose lines run high -- because a tip's
+    // anchor is fixed for the whole mark and these two need opposite ones. Since
+    // no day is in both sets, only one can ever be showing.
+    const summary = (rows: Record<string, number>[], anchor: "top" | "bottom") =>
+      Plot.tip(rows, Plot.pointerX({
+        x: "day", y: "tipY", anchor,
+        // 12px is the charts' own axis size. The tip is meant to read as part
+        // of the figure, not as a caption pasted over it.
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+        title: (d: Record<string, number>) => {
+          const out = [formatDay(d.day, dayToDate)];
+          for (const h of highlights) {
+            const value = d[`y${h.year}`];
+            if (Number.isFinite(value)) out.push(`${h.year}:  ${value.toLocaleString()}`);
+          }
+          if (sigma) {
+            out.push(`Mean:  ${Math.round(d.mean).toLocaleString()}`);
+            out.push(`±2σ:  ${Math.round(d.sdLo).toLocaleString()}–${Math.round(d.sdHi).toLocaleString()}`);
+          } else {
+            out.push(`Average year:  ${Math.round(d.median).toLocaleString()}`);
+            out.push(`Middle 90%:  ${Math.round(d.lo).toLocaleString()}–${Math.round(d.hi).toLocaleString()}`);
+          }
+          return out.join("\n");
+        },
+      }));
+
     marks.push(
       Plot.ruleX(hover, Plot.pointerX({
         x: "day", stroke: theme.muted, strokeWidth: 1, strokeDasharray: "3,3",
       })),
-      Plot.tip(hover, Plot.pointerX({
-        x: "day", y: "value",
-        // 12px is the charts' own axis size. The tip is meant to read as part
-        // of the figure, not as a caption pasted over it.
-        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
-        anchor: "top",
-        title: (d: Record<string, number>) => {
-          const rows = [formatDay(d.day, dayToDate)];
-          for (const h of highlights) {
-            const value = d[`y${h.year}`];
-            if (Number.isFinite(value)) rows.push(`${h.year}:  ${value.toLocaleString()}`);
-          }
-          rows.push(`Average year:  ${Math.round(d.median).toLocaleString()}`);
-          rows.push(`Middle 90%:  ${Math.round(d.lo).toLocaleString()}–${Math.round(d.hi).toLocaleString()}`);
-          return rows.join("\n");
-        },
-      })),
+      summary(hoverAbove, "top"),
+      summary(hoverBelow, "bottom"),
     );
   }
 
@@ -460,6 +500,8 @@ export interface AnnualOptions {
   wholeNumbers?: boolean;
   /** Top of the y range, so the moment ticks can be placed on round magnitudes. */
   yMax?: number;
+  /** Draw the mean +/- 2 standard deviations of the reference years as a band. */
+  sigma?: boolean;
 }
 
 /**
@@ -502,6 +544,21 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
       insetLeft: 0.5, insetRight: 0.5,
     }),
   ];
+
+  // Drawn before the rules so it sits behind them, and behind the bars, which
+  // are already on the mark list above.
+  if (mean > 0 && opts.sigma) {
+    const ref = counts.filter((c) => refSet.has(c.year)).map((c) => c.count);
+    const sd = ref.length > 1
+      ? Math.sqrt(ref.reduce((a, b) => a + (b - mean) ** 2, 0) / (ref.length - 1))
+      : 0;
+    marks.unshift(
+      // No x channels, so the rect spans the frame.
+      Plot.rect([{ lo: Math.max(0, mean - 2 * sd), hi: mean + 2 * sd }], {
+        y1: "lo", y2: "hi", fill: theme.rangeInner, fillOpacity: 0.7,
+      }),
+    );
+  }
 
   if (mean > 0) {
     marks.push(
