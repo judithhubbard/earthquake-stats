@@ -371,12 +371,22 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     }),
   ];
 
-  // No per-line tip here. It was meant to name whichever faint reference year
-  // the pointer was nearest, and a tight maxRadius was supposed to keep it
-  // quiet -- but it uses Plot.pointer while the summary below uses pointerX, so
-  // anywhere near a line both fired and drew two boxes on top of each other.
-  // The crosshair already gives the date, every highlighted year, the median
-  // and the range, which is what the chart is for.
+  // Names whichever faint reference year the pointer is on, which is the only
+  // way to identify one of the 49 grey lines.
+  //
+  // This and the crosshair below can both be showing at once -- one keys off
+  // the nearest point in two dimensions, the other off the x position alone --
+  // and they used to draw on top of each other. They are anchored on opposite
+  // sides of the pointer now: this one sits above it, the summary below.
+  marks.push(
+    Plot.tip(history, Plot.pointer({
+      x: "day", y: "value", maxRadius: 10,
+      fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+      anchor: "bottom",
+      title: (d: { year: number; value: number; day: number }) =>
+        `${d.year}\n${d.value.toLocaleString()} by ${formatDay(d.day, dayToDate)}`,
+    })),
+  );
 
   if (hover.length > 0) {
     marks.push(
@@ -388,13 +398,14 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
         // 12px is the charts' own axis size. The tip is meant to read as part
         // of the figure, not as a caption pasted over it.
         fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+        anchor: "top",
         title: (d: Record<string, number>) => {
           const rows = [formatDay(d.day, dayToDate)];
           for (const h of highlights) {
             const value = d[`y${h.year}`];
             if (Number.isFinite(value)) rows.push(`${h.year}:  ${value.toLocaleString()}`);
           }
-          rows.push(`Reference median:  ${Math.round(d.median).toLocaleString()}`);
+          rows.push(`Average year:  ${Math.round(d.median).toLocaleString()}`);
           rows.push(`Middle 90%:  ${Math.round(d.lo).toLocaleString()}–${Math.round(d.hi).toLocaleString()}`);
           return rows.join("\n");
         },
