@@ -259,7 +259,10 @@ function buildAnswerScale(pct: number | null,
     el.scaleBar.append(marker);
   }
 
-  el.scaleRows.replaceChildren(...bands.map((b) => {
+  // Highest band at the top, so the list reads the way the question is asked:
+  // "are there more?" first. The bar underneath still runs low to high left to
+  // right, which is the only direction an axis can sensibly run.
+  el.scaleRows.replaceChildren(...[...bands].reverse().map((b) => {
     const li = document.createElement("li");
     const swatch = document.createElement("i");
     swatch.className = `scale-seg scale-${b.tint}`;
