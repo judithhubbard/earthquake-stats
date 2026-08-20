@@ -110,7 +110,7 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
     }),
     Plot.tip(events, Plot.pointer({
       x: "lon", y: "lat", maxRadius: 18,
-      fill: theme.surface, stroke: theme.axis, textPadding: 16, fontSize: 22,
+      fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
       title: (d: MapEvent) =>
         `M${d.mag.toFixed(1)}\n` +
         new Date(d.time).toLocaleDateString(undefined, {

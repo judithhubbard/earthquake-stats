@@ -371,18 +371,12 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     }),
   ];
 
-  // Names whichever line the pointer is actually near, so the faint reference
-  // years are identifiable. A tight maxRadius keeps it quiet unless the pointer
-  // is genuinely on a line, which stops it fighting the crosshair summary.
-  marks.push(
-    Plot.tip(history, Plot.pointer({
-      x: "day", y: "value", maxRadius: 14,
-      fill: theme.surface, stroke: theme.axis, textPadding: 16, fontSize: 22,
-      anchor: "bottom",
-      title: (d: { year: number; value: number; day: number }) =>
-        `${d.year}\n${d.value.toLocaleString()} by ${formatDay(d.day, dayToDate)}`,
-    })),
-  );
+  // No per-line tip here. It was meant to name whichever faint reference year
+  // the pointer was nearest, and a tight maxRadius was supposed to keep it
+  // quiet -- but it uses Plot.pointer while the summary below uses pointerX, so
+  // anywhere near a line both fired and drew two boxes on top of each other.
+  // The crosshair already gives the date, every highlighted year, the median
+  // and the range, which is what the chart is for.
 
   if (hover.length > 0) {
     marks.push(
@@ -391,7 +385,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       })),
       Plot.tip(hover, Plot.pointerX({
         x: "day", y: "value",
-        fill: theme.surface, stroke: theme.axis, textPadding: 16, fontSize: 22,
+        fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
         title: (d: Record<string, number>) => {
           const rows = [formatDay(d.day, dayToDate)];
           for (const h of highlights) {
@@ -511,7 +505,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     Plot.ruleY([0], { stroke: theme.axis, strokeWidth: 1 }),
     Plot.tip(counts, Plot.pointerX({
       x: "year", y: "count",
-      fill: theme.surface, stroke: theme.axis, textPadding: 16, fontSize: 22,
+      fill: theme.surface, stroke: theme.axis, textPadding: 12, fontSize: 16,
       title: (d: AnnualCount) => {
         const fmt = (v: number) => (Number.isInteger(v) ? v.toLocaleString()
           : v.toLocaleString(undefined, { maximumFractionDigits: 1 }));
