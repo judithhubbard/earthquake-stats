@@ -164,7 +164,18 @@ main {
   align-items: center;
 }
 
-.answer-detail { min-height: 150px; }
+/* Only on the front page, where this holds the histogram: the correlations
+   page reuses the class for a sentence, and was reserving 150px for a figure
+   that is not there. */
+.answer-row .answer-detail { min-height: 150px; }
+
+/* That sentence, on the correlations page. */
+.hero > .answer-detail {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.55;
+}
 
 .answer-caption {
   margin: 0.1rem 0 0;
