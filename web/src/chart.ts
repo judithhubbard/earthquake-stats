@@ -346,7 +346,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     }),
     Plot.line(band, {
       x: "day", y: "median", curve: "step-after",
-      stroke: theme.median, strokeWidth: 1.5, strokeDasharray: "4,3",
+      stroke: theme.median, strokeWidth: 2.25,
     }),
     // A surface-coloured casing keeps each accent legible where it crosses the
     // spaghetti and where two highlighted years cross each other.
@@ -498,7 +498,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
 
   if (mean > 0) {
     marks.push(
-      Plot.ruleY([mean], { stroke: theme.median, strokeWidth: 1.5, strokeDasharray: "4,3" }),
+      Plot.ruleY([mean], { stroke: theme.muted, strokeWidth: 1.5, strokeDasharray: "4,3" }),
       Plot.text([mean], {
         x: () => counts[0]?.year ?? 0, y: (d: number) => d,
         text: () => `mean ${Math.round(mean).toLocaleString()}`,

@@ -40,7 +40,7 @@
   --map-land: #e9f1ed;
   --map-coast: #6b7b71;
   --history: #898781;
-  --median: #898781;
+  --median: #000000;
 
   /* Highlight slots, assigned in fixed order and held by a year until it is
      deselected, so removing one highlight never repaints the others. */
@@ -607,11 +607,6 @@ main {
 
 /* Swatches mirror the mark they stand for: a solid accent, a faint hairline,
    a dashed median, a filled band. Drawing them all as solid bars made three
-   different marks look like the same thing. */
-.legend .swatch-faint { height: 1.5px; opacity: 0.55; }
-.legend .swatch-dashed { height: 2px; border-radius: 0; background: none; }
-/* Swatches mirror the mark they stand for: a solid accent, a faint hairline, a
-   dashed median, a filled band. Drawing them all as solid bars made three
    different marks look like the same thing. */
 .legend .swatch-faint { height: 1.5px; opacity: 0.55; }
 .legend .swatch-dashed { height: 2px; border-radius: 0; background: none; }

@@ -833,7 +833,7 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
   const entries: { color: string; label: string; kind: Kind }[] = [
     ...highlights.map((h) => ({ color: h.color, label: yearLabel(h.year), kind: "accent" as Kind })),
     { color: theme.history, label: fill(copy.home.legendOtherYears, { from, to }), kind: "faint" },
-    { color: theme.median, label: copy.home.legendMedian, kind: "dashed" },
+    { color: theme.median, label: copy.home.legendMedian, kind: "accent" },
     { color: theme.rangeInner, label: copy.home.legendBandInner, kind: "band" },
     { color: theme.rangeOuter, label: copy.home.legendBand, kind: "band" },
   ];

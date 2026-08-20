@@ -144,7 +144,7 @@ export const copy = {
 
     /* Legend and controls. */
     legendOtherYears: "Other years, since {from}",
-    legendMedian: "Reference median",
+    legendMedian: "Average year (median)",
     legendBand: "Middle 90% of past years",
     legendBandInner: "Middle half of past years",
     yearsNone: "None",

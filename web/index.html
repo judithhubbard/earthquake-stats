@@ -32,18 +32,51 @@
           Many people ask whether there have been an unusual number of large
           earthquakes recently. They may have been told that the number of large
           earthquakes is increasing. This page shows the data, updated live from
-          the USGS.
+          the USGS. The answers here are calculated automatically from that data.
         </p>
       </header>
 
       <section class="panel">
         <div class="controls" id="controls">
           <fieldset>
-            <legend>Magnitude</legend>
+            <legend>
+              Magnitude
+              <span class="hint">
+                <button type="button" class="hint-button" id="magnitude-hint"
+                        aria-describedby="magnitude-tip">what's this?</button>
+                <span class="hint-tip" role="tooltip" id="magnitude-tip">
+                  <strong>M6+</strong> counts every earthquake of magnitude 6.0 and up.
+                  <strong>M7+</strong> counts only 7.0 and up, which is roughly ten times
+                  rarer and about the size at which a shallow earthquake near a city
+                  becomes a disaster.
+                  <br /><br />
+                  Nothing smaller is offered on this page. Below magnitude 6, how many
+                  earthquakes the catalog holds for a given year depends partly on how
+                  many seismometers were listening that year, so the counts cannot be
+                  compared from one decade to the next.
+                </span>
+              </span>
+            </legend>
             <div class="segmented" id="mag-control"></div>
           </fieldset>
           <fieldset>
-            <legend>Period</legend>
+            <legend>
+              Period
+              <span class="hint">
+                <button type="button" class="hint-button" id="period-hint"
+                        aria-describedby="period-tip">what's this?</button>
+                <span class="hint-tip" role="tooltip" id="period-tip">
+                  <strong>This year</strong> counts from 1 January, and compares against
+                  the same stretch of every earlier year. It answers "how is this
+                  calendar year going", but early in January the count is small and
+                  jumpy.
+                  <br /><br />
+                  <strong>Last 365 days</strong> is always a full twelve months, ending
+                  today. Every year it is compared against is also a full twelve months
+                  ending on this date, so nothing is part-finished.
+                </span>
+              </span>
+            </legend>
             <div class="segmented" id="window-control"></div>
           </fieldset>
           <fieldset>
@@ -82,7 +115,7 @@
             <div class="segmented" id="catalog-control"></div>
           </fieldset>
           <fieldset>
-            <legend>Years</legend>
+            <legend>Highlighted years</legend>
             <div class="picker" id="year-picker">
               <button type="button" class="picker-button" id="year-toggle"
                       aria-expanded="false" aria-controls="year-panel">
