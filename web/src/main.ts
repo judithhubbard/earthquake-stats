@@ -143,6 +143,10 @@ const el = {
   mapLegend: document.getElementById("map-legend")!,
   largestHeading: document.getElementById("largest-heading")!,
   range: document.getElementById("range-control")!,
+  scaleTitle: document.getElementById("scale-title")!,
+  scaleBar: document.getElementById("scale-bar")!,
+  scaleRows: document.getElementById("scale-rows")!,
+  scaleNote: document.getElementById("scale-note")!,
   largestList: document.getElementById("largest-list")!,
   largestNote: document.getElementById("largest-note")!,
   generated: document.getElementById("generated")!,
@@ -161,6 +165,99 @@ function fmt(n: number): string {
 /** What one number of this measure is called, e.g. "90" vs "12.4 ×10²⁰ N·m". */
 function withUnit(n: number): string {
   return state.measure === "moment" ? `${fmt(n)} ×10²⁰ N·m` : fmt(n);
+}
+
+/**
+ * Which headline a percentile earns.
+ *
+ * The scale at the foot of the page is built by calling this at the midpoint of
+ * each band, so the two cannot describe different rules -- the table is not a
+ * restatement of these thresholds, it is their output.
+ */
+function answerFor(pct: number, rolling: boolean): string {
+  if (pct > 95) return rolling ? copy.home.rollingBusiest : copy.home.answerBusiest;
+  if (pct < 5) return rolling ? copy.home.rollingQuietest : copy.home.answerQuietest;
+  if (pct >= 75) return rolling ? copy.home.rollingBusy : copy.home.answerBusy;
+  if (pct <= 25) return rolling ? copy.home.rollingQuiet : copy.home.answerQuiet;
+  return rolling ? copy.home.rollingAverage : copy.home.answerAverage;
+}
+
+/**
+ * The boundaries those rules turn on. Kept beside answerFor rather than derived
+ * from it -- a function cannot be asked where its own thresholds are -- so a
+ * change to one wants a change to the other.
+ */
+const ANSWER_BOUNDS = [0, 5, 25, 75, 95, 100];
+
+/** Colour per band, palest in the middle: blue below average, red above. */
+const BAND_TINTS = ["down", "down", "mid", "up", "up"] as const;
+const BAND_FADES = [1, 0.45, 1, 0.45, 1];
+
+/**
+ * Every headline the page can print, with the slice of the percentile range
+ * that earns it and how often that slice comes up.
+ *
+ * Each row's text is answerFor() called at the middle of its band, so this is
+ * the rule's output rather than a second copy of it. The width of a row is the
+ * width of its band, which is also the number of years in a hundred: the
+ * percentile is uniform by construction, so a band 20 points wide is 20 years.
+ */
+function buildAnswerScale(pct: number | null, refCount: number,
+                          minMag: number, kind: string, year: string) {
+  const rolling = state.window === "rolling";
+  const bands = ANSWER_BOUNDS.slice(0, -1).map((low, i) => {
+    const high = ANSWER_BOUNDS[i + 1];
+    return {
+      low, high, width: high - low,
+      text: fill(answerFor((low + high) / 2, rolling), { year, from: REFERENCE_START }),
+      tint: BAND_TINTS[i], fade: BAND_FADES[i],
+    };
+  });
+
+  el.scaleTitle.textContent = copy.home.scaleTitle;
+
+  el.scaleBar.replaceChildren(...bands.map((b) => {
+    const seg = document.createElement("span");
+    seg.className = `scale-seg scale-${b.tint}`;
+    seg.style.flexGrow = String(b.width);
+    seg.style.opacity = String(b.fade);
+    return seg;
+  }));
+  if (pct !== null) {
+    const marker = document.createElement("span");
+    marker.className = "scale-marker";
+    marker.style.left = `${pct}%`;
+    el.scaleBar.append(marker);
+  }
+
+  el.scaleRows.replaceChildren(...bands.map((b) => {
+    const li = document.createElement("li");
+    const swatch = document.createElement("i");
+    swatch.className = `scale-seg scale-${b.tint}`;
+    swatch.style.opacity = String(b.fade);
+
+    const range = document.createElement("span");
+    range.className = "scale-range";
+    range.textContent = fill(copy.home.scaleRow, { low: b.low, high: b.high });
+
+    const said = document.createElement("span");
+    said.className = "scale-said";
+    said.innerHTML = b.text;
+
+    const often = document.createElement("span");
+    often.className = "scale-often";
+    often.textContent = fill(copy.home.scaleFrequency, { n: b.width });
+
+    if (pct !== null && pct >= b.low && pct <= b.high) li.className = "is-current";
+    li.append(swatch, range, said, often);
+    return li;
+  }));
+
+  el.scaleNote.textContent = pct === null ? "" : fill(copy.home.scaleNote, {
+    years: refCount, threshold: magLabel(minMag), kind, year,
+    percentile: pct.toFixed(0),
+    band: bands.find((b) => pct >= b.low && pct <= b.high)?.low ?? 0,
+  });
 }
 
 /* ---------------- highlight slots ---------------- */
@@ -709,6 +806,8 @@ async function update() {
     : fill(copy.home.cumulativeSubjectCount, { threshold: magLabel(minMag), kind });
 
   writeHeadline(result, currentYear);
+  buildAnswerScale(result ? result.percentile * 100 : null, refYears.length,
+                   minMag, kind, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);
   writeAnnualNote(currentYear, splitMajor, rolling);
 
@@ -891,14 +990,9 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
   }
 
   const pct = result.percentile * 100;
-
   const roll = state.window === "rolling";
-  const answer = pct > 95 ? (roll ? copy.home.rollingBusiest : copy.home.answerBusiest)
-    : pct < 5 ? (roll ? copy.home.rollingQuietest : copy.home.answerQuietest)
-    : pct >= 75 ? (roll ? copy.home.rollingBusy : copy.home.answerBusy)
-    : pct <= 25 ? (roll ? copy.home.rollingQuiet : copy.home.answerQuiet)
-    : (roll ? copy.home.rollingAverage : copy.home.answerAverage);
-  el.answer.innerHTML = fill(answer, { year: yearLabel(currentYear), from: REFERENCE_START });
+  el.answer.innerHTML = fill(answerFor(pct, roll),
+                             { year: yearLabel(currentYear), from: REFERENCE_START });
 
   const shared = {
     from: REFERENCE_START, to: currentYear - 1,

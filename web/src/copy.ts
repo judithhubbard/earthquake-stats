@@ -155,6 +155,17 @@ export const copy = {
     legendBand: "Middle 90% of past years",
     legendBandInner: "Middle half of past years",
     legendMean: "Average year (mean)",
+
+    /* The scale at the foot of the page: every headline the site can print, how
+       wide a slice of the percentile range earns it, and how often that is. */
+    scaleTitle: "Every answer this page can give",
+    scaleRow: "{low}–{high}th percentile",
+    scaleFrequency: "{n} years in 100",
+    scaleNote:
+      "The answer is chosen from where this year sits among the {years} previous ones, " +
+      "and nothing else. The bands are fixed: a year has to beat 95% of the record before " +
+      "the page will say yes. Right now {threshold} {kind} put {year} at the " +
+      "{percentile}th percentile, which is the {band} band.",
     legendSigma: "±2σ of past years",
     yearsNone: "None",
     yearsSome: "{n} years",
