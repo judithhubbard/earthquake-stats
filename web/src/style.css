@@ -788,7 +788,7 @@ footer p { margin: 0 0 0.4rem; }
 
 .flip-rows li {
   display: grid;
-  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
   gap: 0.75rem;
   padding: 0.2rem 0.4rem;
   margin: 0 -0.4rem;
@@ -804,18 +804,18 @@ footer p { margin: 0 0 0.4rem; }
 
 .flip-when { font-variant-numeric: tabular-nums; }
 
-/* Sits at the end of the row it selects, so the reading and the rung it
-   picked are one line rather than two things to join up. */
+/* Runs on from the verdict it produced, rather than at the right-hand edge a
+   long way from anything it relates to. */
 .flip-now {
   font-variant-numeric: tabular-nums;
   font-weight: 500;
   white-space: nowrap;
   color: var(--text-secondary);
+  margin-left: 0.15rem;
 }
 
 @media (max-width: 560px) {
   .flip-rows li { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .flip-rows .flip-now { grid-column: 1; }
   .flip-rows .flip-says { color: var(--text-secondary); }
 }
 

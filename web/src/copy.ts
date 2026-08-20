@@ -281,21 +281,39 @@ export const copy = {
        describe a rule the page does not follow. */
     flipTitle: "This answer is calculated, not hard-coded:",
     flipHelp: "what is chi-square?",
+    flipHelpR: "what is a correlation coefficient?",
+    flipHelpRBody:
+      "The correlation coefficient is one number for how closely two things move together." +
+      "\n\nIt runs from −1 to +1. At 0 there is no relationship at all: knowing one value " +
+      "tells you nothing about the other. Near +1 the two rise and fall together; near −1 one " +
+      "rises as the other falls. Real measurements land somewhere in between." +
+      "\n\nThe threshold is where closer-together-than-chance begins. Take {years} pairs of " +
+      "unrelated numbers and a correlation stronger than ±{critical} turns up only 5% of the " +
+      "time, so anything weaker than that is the kind of coincidence {years} unrelated numbers " +
+      "produce on their own." +
+      "\n\nUnlike the chi-square threshold, this one moves. It is set by how many years there " +
+      "are, and it tightens as they accumulate: ±{critical} at {years} years, about ±0.23 at " +
+      "75. More data makes a weaker relationship detectable." +
+      "\n\nIt only measures a straight-line relationship, and it says nothing about which way " +
+      "any influence would run.",
     flipHelpBody:
-      "There are {bins} bins above, holding {total} earthquakes between them. If the thing " +
-      "on the horizontal axis made no difference at all, you would expect about {expected} " +
-      "in each. They will never come out exactly equal — nothing random does." +
-      "\n\nChi-square is one number for how far off the bins are, all together. For each bin " +
-      "it takes the gap between what turned up and what was expected, squares it so that " +
-      "overshoots and undershoots cannot cancel out, and divides by the expected count so a " +
-      "bin expected to be large is allowed to miss by more. Then it adds those up." +
-      "\n\nA small total means the gaps are the size chance produces. A large one means they " +
-      "are bigger than chance explains. The threshold is the value that random data exceeds " +
-      "only 5% of the time." +
-      "\n\nOne catch, and it is why this page checks the size of the difference as well: the " +
-      "threshold does not grow with the amount of data. On {total} earthquakes a difference " +
-      "of a few percent clears it comfortably. Passing the test means a difference is " +
-      "detectable, not that it is large.",
+      "Chi-square is one number for how uneven the {bins} bars above are." +
+      "\n\nIf there were no pattern to find, the bars would sit level apart from random " +
+      "wobble — no set of real measurements ever comes out exactly equal. Chi-square is small " +
+      "when the unevenness looks like that wobble, and grows as the bars depart from level." +
+      "\n\nThe threshold is where more-uneven-than-luck begins. Random data exceeds it only " +
+      "5% of the time, so a value below it means the unevenness is the kind that turns up by " +
+      "chance." +
+      "\n\nWorth knowing: the threshold does not get stricter as the data grows. With " +
+      "{total} earthquakes, a difference of two or three percent is enough to pass it. That is " +
+      "why this page also asks whether a difference is big enough to matter, and not only " +
+      "whether it can be detected." +
+      "\n\nFor that it uses a standard measure of how large a difference is, rather than how " +
+      "detectable — Cramér's V, which counts anything below 0.1 as negligible. These bars are " +
+      "at {v}. They would have to be roughly {multiple} times more uneven than they are to " +
+      "count as big enough to matter." +
+      "\n\nThe threshold itself never moves: it is set by the number of bars alone, so more " +
+      "earthquakes will not change it. Only the chi-square moves.",
     flipBinBelow: "chi-square below {critical}",
     flipBinNegligible: "above {critical}, but the difference is tiny",
     flipBinMeaningful: "above {critical}, and big enough to matter",
@@ -375,7 +393,7 @@ export const copy = {
     moonNewMoon: "new moon",
     moonFullMoon: "full moon",
 
-    climateQuestion: "Is climate change causing earthquakes?",
+    climateQuestion: "Is climate change affecting earthquakes?",
     climateExplain:
       "Some people have suggested that climate change might cause earthquakes to become more " +
       "frequent — suggesting that melting ice, rising sea level, and changes in hydrology could " +
@@ -404,7 +422,7 @@ export const copy = {
     climateYesDown: "Yes — fewer earthquakes in warmer years.",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
-    solarQuestion: "Does solar activity trigger earthquakes?",
+    solarQuestion: "Does solar activity affect earthquakes?",
     solarExplain:
       "There is a popular hypothesis that solar activity causes earthquakes. We checked, just to " +
       "make sure. The plot below uses the same {tierCount} independent {threshold} earthquakes, " +
@@ -418,8 +436,8 @@ export const copy = {
       "The correlation coefficient is {r}, which does reach the {critical} needed for " +
       "statistical significance at the 5% level. On {years} years of data, treat that as " +
       "suggestive rather than established.",
-    solarYesUp: "Yes — earthquakes happen more often in years with more solar activity.",
-    solarYesDown: "Yes — earthquakes happen less often in years with more solar activity.",
+    solarYesUp: "Yes — more earthquakes in years with more sunspots.",
+    solarYesDown: "Yes — fewer earthquakes in years with more sunspots.",
     solarAxis: "Sunspot number",
 
     scatterSubtitle: "Each dot is one year, {from} onward",
@@ -449,7 +467,7 @@ export const copy = {
     oklahomaSubtitle: "Earthquakes of magnitude 3 or more in Oklahoma, each year",
     oklahomaAxis: "Earthquakes per year",
     oklahomaLegendBars: "Earthquakes that year",
-    oklahomaLegendRate: "Normal rate before 2009 — about {rate} a year",
+    oklahomaLegendRate: "Normal rate before 2009: about {rate} a year",
 
     sources: "Data: {list}.",
     errorLoad: "Could not load the data.",

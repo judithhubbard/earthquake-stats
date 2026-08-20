@@ -262,7 +262,8 @@ function binVerdict(bins: Bin[]): string {
  * follow.
  */
 function flipTable(rows: { when: string; says: string }[],
-                   current: number, now: string, help?: string): HTMLElement {
+                   current: number, now: string,
+                   help?: { label: string; body: string }): HTMLElement {
   const box = document.createElement("div");
   box.className = "correlate-flip";
 
@@ -276,12 +277,12 @@ function flipTable(rows: { when: string; says: string }[],
     const button = document.createElement("button");
     button.type = "button";
     button.className = "hint-button";
-    button.setAttribute("aria-label", copy.correlations.flipHelp);
+    button.setAttribute("aria-label", help.label);
     button.textContent = "?";
     const tip = document.createElement("span");
     tip.className = "hint-tip";
     tip.setAttribute("role", "tooltip");
-    tip.textContent = help;
+    tip.textContent = help.body;
     hint.append(button, tip);
     title.append(" ", hint);
   }
@@ -298,14 +299,17 @@ function flipTable(rows: { when: string; says: string }[],
     const says = document.createElement("span");
     says.className = "flip-says";
     says.textContent = row.says;
-    li.append(when, says);
-
+    // Inline after the verdict rather than in a column of its own: a grid
+    // column sizes to the widest cell in it, so on the solar panel -- whose
+    // verdicts run to a full line -- a third column would have flung the
+    // reading back out to the right-hand edge.
     if (i === current) {
       const reading = document.createElement("em");
       reading.className = "flip-now";
-      reading.textContent = now;
-      li.append(reading);
+      reading.textContent = ` ${now}`;
+      says.append(reading);
     }
+    li.append(when, says);
     list.append(li);
   });
   box.append(list);
@@ -330,11 +334,13 @@ function binFlip(bins: Bin[]): HTMLElement {
       says: copy.correlations.verdictNo },
   ], current, fill(copy.correlations.flipBinNow, {
     statistic: test.statistic.toFixed(1),
-  }), fill(copy.correlations.flipHelpBody, {
-    bins: bins.length,
-    total: n.toLocaleString(),
-    expected: Math.round(n / bins.length).toLocaleString(),
-  }));
+  }), {
+    label: copy.correlations.flipHelp,
+    body: fill(copy.correlations.flipHelpBody, {
+      bins: bins.length, total: n.toLocaleString(),
+      v: v.toFixed(3), multiple: Math.round(0.1 / Math.max(v, 1e-9)),
+    }),
+  });
 }
 
 /** The same for a scatter panel, from the correlation against its 5% threshold. */
@@ -362,7 +368,10 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
     { when: fill(copy.correlations.flipScatterWithin, { critical }),
       says: copy.correlations.verdictNo },
     { when: fill(copy.correlations.flipScatterBelow, { critical }), says: down },
-  ], current, fill(copy.correlations.flipScatterNow, { r: c.r.toFixed(2) }));
+  ], current, fill(copy.correlations.flipScatterNow, { r: c.r.toFixed(2) }), {
+    label: copy.correlations.flipHelpR,
+    body: fill(copy.correlations.flipHelpRBody, { years: c.n, critical }),
+  });
 }
 
 /* ---------------- build ---------------- */
