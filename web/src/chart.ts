@@ -345,15 +345,12 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     // collapsing onto the axis.
     const lead = primary ? row[`y${primary.year}`] : NaN;
     row.value = Number.isFinite(lead) ? lead : b.median;
-    // Where the summary box should sit to stay off the lines. Cumulative curves
-    // climb, so the empty half of the frame is above them early in the year and
-    // below them late -- the box follows whichever it is, which also keeps it
-    // clear of the per-line tip, that one always sitting on the line itself.
-    row.tipY = row.value <= yTop / 2 ? yTop : 0;
+    // Pinned to the top of the frame rather than to the line. yTop is the top
+    // of the y range, which is above every mark by construction, so the box
+    // hangs into empty space and cannot land on the per-line tip below it.
+    row.tipY = yTop;
     return row;
   });
-  const hoverAbove = hover.filter((r) => r.tipY !== 0);
-  const hoverBelow = hover.filter((r) => r.tipY === 0);
 
   const sigma = opts.bandMode === "sigma";
   const marks: Plot.Markish[] = [
@@ -417,13 +414,13 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   );
 
   if (hover.length > 0) {
-    // The summary is drawn twice over disjoint halves of the data -- the days
-    // whose lines run low, and the days whose lines run high -- because a tip's
-    // anchor is fixed for the whole mark and these two need opposite ones. Since
-    // no day is in both sets, only one can ever be showing.
-    const summary = (rows: Record<string, number>[], anchor: "top" | "bottom") =>
+    // One tip, not two. Splitting the days between two marks so each could take
+    // its own anchor did not work: pointerX picks the nearest day inside each
+    // mark's own data, so both always matched, on two different days, and the
+    // chart drew three boxes at once counting the per-line one.
+    const summary = (rows: Record<string, number>[]) =>
       Plot.tip(rows, Plot.pointerX({
-        x: "day", y: "tipY", anchor,
+        x: "day", y: "tipY", anchor: "top",
         // 12px is the charts' own axis size. The tip is meant to read as part
         // of the figure, not as a caption pasted over it.
         fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
@@ -448,8 +445,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       Plot.ruleX(hover, Plot.pointerX({
         x: "day", stroke: theme.muted, strokeWidth: 1, strokeDasharray: "3,3",
       })),
-      summary(hoverAbove, "top"),
-      summary(hoverBelow, "bottom"),
+      summary(hover),
     );
   }
 

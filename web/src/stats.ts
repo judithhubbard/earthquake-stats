@@ -78,6 +78,77 @@ export function equivalentMagnitude(moment: number): number {
   return (Math.log10(moment * MOMENT_UNIT) - 9.1) / 1.5;
 }
 
+/**
+ * Mean and +/-2 standard deviations of the total in a window of d days, taken
+ * over every d-day window in the record rather than over the 50 calendar years.
+ *
+ * The per-calendar-day version has a defect this fixes. Its spread on day d is
+ * the spread of the 50 year-to-date totals on that date, so one enormous event
+ * enters the calculation abruptly on its own anniversary: Tohoku is 11 March,
+ * and the band visibly stepped there and stayed stepped for the rest of the
+ * year. That step is an artefact of where the calendar happens to cut, not
+ * something about the eleventh of March.
+ *
+ * Sliding the window over every start date instead spreads that event across
+ * every window that contains it, which is what "how much does a year's worth
+ * vary" actually means. It also makes the band independent of whether the
+ * reader is looking at calendar years or rolling ones.
+ *
+ * Cost is one pass per window length over a prefix-summed daily series, about
+ * six million adds for fifty years, so the result is memoised.
+ */
+const rollingCache = new Map<string, BandPoint[]>();
+
+export function rollingWindowBand(tier: Tier, minMag: number, mainshocksOnly: boolean,
+                                  measure: Measure, minYear: number): BandPoint[] {
+  const key = `${tier.info.threshold}|${minMag}|${mainshocksOnly}|${measure}|${minYear}`;
+  const hit = rollingCache.get(key);
+  if (hit) return hit;
+
+  const start = Date.UTC(minYear, 0, 1);
+  const last = tier.info.lastTime ?? start;
+  const span = Math.max(1, Math.floor((last - start) / 86_400_000) + 1);
+  const daily = new Float64Array(span);
+
+  for (let i = 0; i < tier.n; i++) {
+    if (tier.mag[i] < minMag) continue;
+    if (mainshocksOnly && tier.dependent[i]) continue;
+    const offset = Math.floor((tier.time[i] - start) / 86_400_000);
+    if (offset < 0 || offset >= span) continue;
+    daily[offset] += measure === "moment" ? seismicMoment(tier.mag[i]) : 1;
+  }
+
+  const prefix = new Float64Array(span + 1);
+  for (let i = 0; i < span; i++) prefix[i + 1] = prefix[i] + daily[i];
+
+  const out: BandPoint[] = [];
+  for (let d = 0; d < DAYS; d++) {
+    const width = d + 1;
+    const windows = span - width + 1;
+    if (windows < 2) {
+      out.push({ day: d, lo: 0, loMid: 0, median: 0, hiMid: 0, hi: 0,
+                 mean: 0, sdLo: 0, sdHi: 0 });
+      continue;
+    }
+    let sum = 0, sumSq = 0;
+    for (let i = 0; i < windows; i++) {
+      const v = prefix[i + width] - prefix[i];
+      sum += v;
+      sumSq += v * v;
+    }
+    const mean = sum / windows;
+    const variance = Math.max(0, (sumSq - windows * mean * mean) / (windows - 1));
+    const sd = Math.sqrt(variance);
+    // Only mean and the sigma edges are meaningful here; the percentile fields
+    // are left at zero and never read, because the two views never mix.
+    out.push({ day: d, lo: 0, loMid: 0, median: 0, hiMid: 0, hi: 0,
+               mean, sdLo: Math.max(0, mean - 2 * sd), sdHi: mean + 2 * sd });
+  }
+
+  rollingCache.set(key, out);
+  return out;
+}
+
 export function cumulativeByYear(tier: Tier, minMag: number, minYear: number,
                                  mainshocksOnly = false,
                                  measure: Measure = "count",

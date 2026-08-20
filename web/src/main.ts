@@ -3,7 +3,8 @@ import { renderAnnualChart, renderChart, renderDistribution, readTheme,
          type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand, equivalentMagnitude, verdict, type Measure, type YearCurves,
+  dayIndex, empiricalBand, equivalentMagnitude, rollingWindowBand, verdict,
+  type Measure, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
 import { copy, fill } from "./copy";
@@ -36,7 +37,7 @@ const WINDOWS = [
 // sigma says what a normal fit to them predicts. See BandPoint in stats.ts.
 const RANGES = [
   { id: "percentile", label: "50 / 90%" },
-  { id: "sigma", label: "±2σ" },
+  { id: "sigma", label: "±2σ (95.45%)" },
 ] as const;
 const SORT_MODES = [
   { id: "largest", label: "Largest" },
@@ -795,7 +796,15 @@ async function update() {
   const liveAdded = applyLive(curves, tier, minMag, shift);
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
-  const band = empiricalBand(curves, refYears, state.measure);
+  const percentiles = empiricalBand(curves, refYears, state.measure);
+  // The sigma view takes its spread from every window in the record, not from
+  // the calendar years -- see rollingWindowBand. The percentile view stays as
+  // it is: percentiles are robust to a single huge event, so it has no step to
+  // remove and "what previous years did" is a claim about years.
+  const band = state.range === "sigma"
+    ? rollingWindowBand(tier, minMag, mainshocksOnly, state.measure, REFERENCE_START)
+      .map((r, i) => ({ ...percentiles[i], mean: r.mean, sdLo: r.sdLo, sdHi: r.sdHi }))
+    : percentiles;
   const result = verdict(curves, refYears, currentYear, today, state.measure);
 
   const counts = annualCounts(curves, majorCurves, currentYear, today, refYears,

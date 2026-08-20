@@ -107,12 +107,14 @@ export const copy = {
       "50% of those years and the outer band the middle 90%. A line inside the shading falls " +
       "within the range of previous years.",
     noteSigma:
-      "Each faint line is one of the {years} previous years. The band is the mean of " +
-      "those years plus and minus two standard deviations, the range a normal " +
-      "distribution would put 95.45% of them in. It is a different question from the " +
-      "percentile view: that one shows where past years actually fell, this one shows " +
-      "where a normal model says they should. The two part company when the " +
-      "distribution is skewed, and cumulative counts are skewed.",
+      "Each faint line is one of the {years} previous years. The band is the mean plus " +
+      "and minus two standard deviations — the range a normal distribution would put " +
+      "95.45% of the data in. It is measured over every window of this length anywhere " +
+      "in the record, not over the calendar years: taking it year by year makes a single " +
+      "huge earthquake enter the calculation on its own anniversary, and the band visibly " +
+      "steps on 11 March, the date of Tohoku. Sliding the window spreads that event over " +
+      "every window containing it, which is what asking how much a year's worth varies " +
+      "actually means.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
@@ -166,7 +168,7 @@ export const copy = {
       "and nothing else. The bands are fixed: a year has to beat 95% of the record before " +
       "the page will say yes. Right now {threshold} {kind} put {year} at the " +
       "{percentile}th percentile, which is the {band} band.",
-    legendSigma: "±2σ of past years",
+    legendSigma: "±2σ — 95.45% under a normal fit",
     yearsNone: "None",
     yearsSome: "{n} years",
     yearsCount: "{n} of {max}",
