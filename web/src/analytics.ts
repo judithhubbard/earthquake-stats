@@ -11,7 +11,7 @@
  * third-party host. That is the state the site ships in.
  * -------------------------------------------------------------------------
  */
-const SITE_CODE = "";
+const SITE_CODE = "earthquakestats";
 
 /** GoatCounter's collector. The only host this site talks to besides the USGS. */
 const ENDPOINT = "//gc.zgo.at/count.js";
