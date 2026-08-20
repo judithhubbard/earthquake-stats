@@ -262,13 +262,29 @@ function binVerdict(bins: Bin[]): string {
  * follow.
  */
 function flipTable(rows: { when: string; says: string }[],
-                   current: number, now: string): HTMLElement {
+                   current: number, now: string, help?: string): HTMLElement {
   const box = document.createElement("div");
   box.className = "correlate-flip";
 
   const title = document.createElement("p");
   title.className = "flip-title";
   title.textContent = copy.correlations.flipTitle;
+  // Same question-mark-in-a-ring the front page controls use.
+  if (help) {
+    const hint = document.createElement("span");
+    hint.className = "hint";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "hint-button";
+    button.setAttribute("aria-label", copy.correlations.flipHelp);
+    button.textContent = "?";
+    const tip = document.createElement("span");
+    tip.className = "hint-tip";
+    tip.setAttribute("role", "tooltip");
+    tip.textContent = help;
+    hint.append(button, tip);
+    title.append(" ", hint);
+  }
   box.append(title);
 
   const list = document.createElement("ol");
@@ -311,28 +327,39 @@ function binFlip(bins: Bin[]): HTMLElement {
       says: copy.correlations.verdictYes },
   ], current, fill(copy.correlations.flipBinNow, {
     statistic: test.statistic.toFixed(1),
+  }), fill(copy.correlations.flipHelpBody, {
+    bins: bins.length,
+    total: n.toLocaleString(),
+    expected: Math.round(n / bins.length).toLocaleString(),
   }));
 }
 
 /** The same for a scatter panel, from the correlation against its 5% threshold. */
-function scatterVerdict(c: Correlation | null): string {
+/**
+ * The affirmative names its direction.
+ *
+ * A plain "Yes." to "does solar activity trigger earthquakes" would be printed
+ * by a significant *negative* correlation just as readily as a positive one --
+ * a two-tailed test answering a one-directional question. Both directions are
+ * real answers, they are just not the same answer.
+ */
+function scatterVerdict(c: Correlation | null, up: string, down: string): string {
   if (!c) return copy.correlations.verdictNotEnough;
-  // A plain yes. The hedge belongs in the sentence under the chart, which
-  // already says that fifty years makes a result suggestive rather than settled.
-  return c.significant ? copy.correlations.verdictYes : copy.correlations.verdictNo;
+  if (!c.significant) return copy.correlations.verdictNo;
+  return c.r > 0 ? up : down;
 }
 
-function scatterFlip(c: Correlation | null): HTMLElement | undefined {
+function scatterFlip(c: Correlation | null, up: string, down: string): HTMLElement | undefined {
   if (!c) return undefined;
   const critical = c.critical.toFixed(2);
+  // Ordered like the number line it describes: positive, neither, negative.
+  const current = !c.significant ? 1 : c.r > 0 ? 0 : 2;
   return flipTable([
+    { when: fill(copy.correlations.flipScatterAbove, { critical }), says: up },
     { when: fill(copy.correlations.flipScatterWithin, { critical }),
       says: copy.correlations.verdictNo },
-    { when: fill(copy.correlations.flipScatterBeyond, { critical }),
-      says: copy.correlations.verdictYes },
-  ], c.significant ? 1 : 0, fill(copy.correlations.flipScatterNow, {
-    r: c.r.toFixed(2),
-  }));
+    { when: fill(copy.correlations.flipScatterBelow, { critical }), says: down },
+  ], current, fill(copy.correlations.flipScatterNow, { r: c.r.toFixed(2) }));
 }
 
 /* ---------------- build ---------------- */
@@ -505,7 +532,9 @@ async function boot() {
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    built.push(panel(copy.correlations.climateQuestion, scatterVerdict(c),
+    const cUp = copy.correlations.climateYesUp;
+    const cDown = copy.correlations.climateYesDown;
+    built.push(panel(copy.correlations.climateQuestion, scatterVerdict(c, cUp, cDown),
       fill(copy.correlations.climateExplain, {
         threshold: `M${MIN_MAGNITUDE}+`,
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
@@ -521,13 +550,15 @@ async function boot() {
       (w) => scatterChart(points, w, copy.correlations.climateAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
       undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR }),
-      undefined, scatterFlip(c)));
+      undefined, scatterFlip(c, cUp, cDown)));
   }
 
   if (context.sunspots) {
     const points = seriesPoints(context.sunspots, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c),
+    const sUp = copy.correlations.solarYesUp;
+    const sDown = copy.correlations.solarYesDown;
+    built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c, sUp, sDown),
       fill(copy.correlations.solarExplain, {
         threshold: `M${MIN_MAGNITUDE}+`,
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
@@ -543,7 +574,7 @@ async function boot() {
       (w) => scatterChart(points, w, copy.correlations.solarAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
       undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR }),
-      undefined, scatterFlip(c)));
+      undefined, scatterFlip(c, sUp, sDown)));
   }
 
   if (context.oklahoma) {

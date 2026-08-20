@@ -280,12 +280,29 @@ export const copy = {
        column reuses the verdict strings themselves, so the table cannot
        describe a rule the page does not follow. */
     flipTitle: "This answer is calculated, not hard-coded:",
+    flipHelp: "what is chi-square?",
+    flipHelpBody:
+      "There are {bins} bins above, holding {total} earthquakes between them. If the thing " +
+      "on the horizontal axis made no difference at all, you would expect about {expected} " +
+      "in each. They will never come out exactly equal — nothing random does." +
+      "\n\nChi-square is one number for how far off the bins are, all together. For each bin " +
+      "it takes the gap between what turned up and what was expected, squares it so that " +
+      "overshoots and undershoots cannot cancel out, and divides by the expected count so a " +
+      "bin expected to be large is allowed to miss by more. Then it adds those up." +
+      "\n\nA small total means the gaps are the size chance produces. A large one means they " +
+      "are bigger than chance explains. The threshold is the value that random data exceeds " +
+      "only 5% of the time." +
+      "\n\nOne catch, and it is why this page checks the size of the difference as well: the " +
+      "threshold does not grow with the amount of data. On {total} earthquakes a difference " +
+      "of a few percent clears it comfortably. Passing the test means a difference is " +
+      "detectable, not that it is large.",
     flipBinBelow: "chi-square below {critical}",
     flipBinNegligible: "above {critical}, but the difference is tiny",
     flipBinMeaningful: "above {critical}, and big enough to matter",
     flipBinNow: "right now: {statistic}",
-    flipScatterWithin: "correlation weaker than ±{critical}",
-    flipScatterBeyond: "correlation stronger than ±{critical}",
+    flipScatterAbove: "correlation above +{critical}",
+    flipScatterWithin: "correlation between ±{critical}",
+    flipScatterBelow: "correlation below −{critical}",
     flipScatterNow: "right now: {r}",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
@@ -383,6 +400,8 @@ export const copy = {
       "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
       "needed for statistical significance at the 5% level. With this few years, treat that as " +
       "suggestive rather than established.",
+    climateYesUp: "Yes — more earthquakes in warmer years.",
+    climateYesDown: "Yes — fewer earthquakes in warmer years.",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
     solarQuestion: "Does solar activity trigger earthquakes?",
@@ -399,6 +418,8 @@ export const copy = {
       "The correlation coefficient is {r}, which does reach the {critical} needed for " +
       "statistical significance at the 5% level. On {years} years of data, treat that as " +
       "suggestive rather than established.",
+    solarYesUp: "Yes — earthquakes happen more often in years with more solar activity.",
+    solarYesDown: "Yes — earthquakes happen less often in years with more solar activity.",
     solarAxis: "Sunspot number",
 
     scatterSubtitle: "Each dot is one year, {from} onward",

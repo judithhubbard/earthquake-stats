@@ -770,6 +770,13 @@ footer p { margin: 0 0 0.4rem; }
   color: var(--text-secondary);
 }
 
+/* The tip is multi-paragraph prose; the front page's are single sentences. */
+.flip-title .hint-tip {
+  width: 30rem;
+  white-space: pre-line;
+  font-weight: 400;
+}
+
 .flip-rows {
   list-style: none;
   margin: 0;
