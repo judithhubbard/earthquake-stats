@@ -44,7 +44,8 @@ interface LegendKey { color: string; label: string; band?: boolean; dashed?: boo
 function panel(question: string, verdict: string, note: string,
                draw: (width: number) => SVGSVGElement | HTMLElement,
                reading?: { label: string; url: string },
-               subtitle?: string, legend?: LegendKey[]): HTMLElement {
+               subtitle?: string, legend?: LegendKey[],
+               flip?: string): HTMLElement {
   const section = document.createElement("figure");
   section.className = "chart correlate-panel";
 
@@ -96,6 +97,16 @@ function panel(question: string, verdict: string, note: string,
     }
     section.append(box);
   }
+  // What the test would have to read for the answer above to change. The page
+  // claims its answers are computed rather than written; this is the claim in a
+  // form the reader can hold against the next update.
+  if (flip) {
+    const line = document.createElement("p");
+    line.className = "correlate-flip";
+    line.textContent = flip;
+    section.append(line);
+  }
+
   if (reading) {
     const link = document.createElement("a");
     link.className = "correlate-more";
@@ -238,15 +249,41 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
  */
 function binVerdict(bins: Bin[]): string {
   const test = chiSquare(bins);
-  return test.statistic <= test.critical
-    ? copy.correlations.verdictNo
-    : copy.correlations.verdictNotReally;
+  if (test.statistic <= test.critical) return copy.correlations.verdictNo;
+  // Significant is not the same as meaningful. On 40,000 events a 3% wobble in
+  // one bin clears the threshold, so the affirmative is graded by Cramer's V --
+  // the standard effect size for a chi-square, negligible below 0.1 by
+  // convention rather than by a number picked here.
+  const n = bins.reduce((a, b) => a + b.count, 0);
+  const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
+  return v < 0.1 ? copy.correlations.verdictYesNegligible : copy.correlations.verdictYes;
+}
+
+/** How far the statistic is from the threshold that would change the answer. */
+function binFlip(bins: Bin[]): string {
+  const test = chiSquare(bins);
+  return fill(test.statistic <= test.critical
+    ? copy.correlations.flipBinNo
+    : copy.correlations.flipBinYes, {
+      statistic: test.statistic.toFixed(1),
+      critical: test.critical.toFixed(1),
+      df: test.df,
+    });
 }
 
 /** The same for a scatter panel, from the correlation against its 5% threshold. */
 function scatterVerdict(c: Correlation | null): string {
   if (!c) return copy.correlations.verdictNotEnough;
-  return c.significant ? copy.correlations.verdictMaybe : copy.correlations.verdictNo;
+  // A plain yes. The hedge belongs in the sentence under the chart, which
+  // already says that fifty years makes a result suggestive rather than settled.
+  return c.significant ? copy.correlations.verdictYes : copy.correlations.verdictNo;
+}
+
+function scatterFlip(c: Correlation | null): string {
+  if (!c) return "";
+  return fill(c.significant ? copy.correlations.flipScatterYes : copy.correlations.flipScatterNo, {
+    r: c.r.toFixed(2), critical: c.critical.toFixed(2), years: c.n,
+  });
 }
 
 /* ---------------- build ---------------- */
@@ -360,7 +397,7 @@ async function boot() {
       percent: busiest.deviation.toFixed(1),
     }),
     (w) => binChart(weekday, w), undefined,
-    fill(copy.correlations.weekdaySubtitle, { since }), legend));
+    fill(copy.correlations.weekdaySubtitle, { since }), legend, binFlip(weekday)));
 
   const month = monthBins(times);
   const monthStray = outsideBand(month);
@@ -388,7 +425,7 @@ async function boot() {
       copy.correlations.monthExplain,
     ].join("\n\n"),
     (w) => binChart(month, w), undefined,
-    fill(copy.correlations.monthSubtitle, { since }), legend));
+    fill(copy.correlations.monthSubtitle, { since }), legend, binFlip(month)));
 
   // We do not claim the small spring/neap excess this data seems to show. The
   // three magnitude thresholds that appeared to agree are nested samples, so
@@ -399,7 +436,7 @@ async function boot() {
   const moon = lunarBins(times);
   const moonStray = outsideBand(moon);
   const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-  built.push(panel(copy.correlations.moonQuestion, copy.correlations.moonVerdict,
+  built.push(panel(copy.correlations.moonQuestion, binVerdict(moon),
     fill(copy.correlations.moonExplain, {
       article: TIDES_ARTICLE, count: kept,
       allBut: moonStray.count === 0
@@ -414,7 +451,7 @@ async function boot() {
                 { at: String(FULL_MOON_DAY), label: copy.correlations.moonFullMoon }],
     }),
     undefined,
-    fill(copy.correlations.moonSubtitle, { since }), legend));
+    fill(copy.correlations.moonSubtitle, { since }), legend, binFlip(moon)));
 
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
@@ -434,7 +471,8 @@ async function boot() {
       }),
       (w) => scatterChart(points, w, copy.correlations.climateAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
-      undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR })));
+      undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR }),
+      undefined, scatterFlip(c)));
   }
 
   if (context.sunspots) {
@@ -455,7 +493,8 @@ async function boot() {
       }),
       (w) => scatterChart(points, w, copy.correlations.solarAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
-      undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR })));
+      undefined, fill(copy.correlations.scatterSubtitle, { from: FIRST_YEAR }),
+      undefined, scatterFlip(c)));
   }
 
   if (context.oklahoma) {

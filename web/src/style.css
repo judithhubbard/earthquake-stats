@@ -742,6 +742,17 @@ footer p { margin: 0 0 0.4rem; }
 
 .correlate-chart { min-height: 210px; }
 
+/* What the test would have to read for the verdict to change. Quiet: it is
+   provenance for the answer above, not part of the argument. */
+.correlate-flip {
+  margin: 0.9rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
 .correlate-more {
   display: inline-block;
   margin-top: 0.6rem;

@@ -250,7 +250,7 @@ export const copy = {
      =================================================================== */
   correlations: {
     answer: "<strong>No.</strong>",
-    detail: "We checked.",
+    detail: "We checked. The data below updates as the USGS catalog does, and every answer on this page is computed from it rather than written in.",
 
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
@@ -259,6 +259,8 @@ export const copy = {
 
     /* Verdict lines shared by the bar panels. */
     verdictNo: "No.",
+    verdictYes: "Yes.",
+    verdictYesNegligible: "Yes, but the effect is negligible.",
     verdictNotReally: "Not really.",
     /* The furthest bar, and how many stray bars to expect anyway. Said in one
        breath, because saying "inside the grey" and then "one bar is outside"
@@ -269,6 +271,24 @@ export const copy = {
     /* Verdict lines shared by the scatter panels. */
     verdictMaybe: "Maybe, but only just.",
     verdictNotEnough: "Not enough data.",
+
+    /* What each test would have to read for the answer above it to change. The
+       page says its answers are computed; these lines are that claim in a form
+       a reader can hold against the next update. */
+    flipBinNo:
+      "This answer is not written in. It comes from a chi-square test across the bins " +
+      "above, which currently reads {statistic} against a threshold of {critical} on {df} " +
+      "degrees of freedom. If it ever passes that threshold, and the effect is large enough " +
+      "to matter, this answer becomes yes on its own.",
+    flipBinYes:
+      "The chi-square across the bins above reads {statistic}, past the {critical} threshold " +
+      "on {df} degrees of freedom. Fall back below it and this answer returns to no.",
+    flipScatterNo:
+      "This answer is not written in. The correlation over {years} years is {r}, and it would " +
+      "have to reach {critical} for this answer to become yes on its own.",
+    flipScatterYes:
+      "The correlation over {years} years is {r}, past the {critical} needed for significance. " +
+      "Fall back below it and this answer returns to no.",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:
