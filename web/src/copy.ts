@@ -332,7 +332,8 @@ export const copy = {
       "very sensitive faults, mostly in regions with high subsurface fluid pressures." +
       "\n\nSome people have suggested that tides can be used to predict earthquakes. We tested " +
       "the published claims of tidal precursors directly, and they " +
-      "<a href=\"{article}\" target=\"_blank\" rel=\"noopener noreferrer\">did not hold up</a>.",
+      "<a href=\"{article}\" data-track=\"substack-tides\" target=\"_blank\" " +
+      "rel=\"noopener noreferrer\">did not hold up</a>.",
     moonAllInside: "all of",
     moonAllBut: "all but {n} of",
     moonSubtitle: "Day of the lunar cycle · {since}",

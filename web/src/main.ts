@@ -8,6 +8,7 @@ import {
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
 import { copy, fill } from "./copy";
+import { startAnalytics } from "./analytics";
 
 /**
  * First year of the reference window, and the earliest year shown anywhere.
@@ -1145,4 +1146,5 @@ async function boot() {
   }, LIVE_INTERVAL_MS);
 }
 
+startAnalytics();
 void boot();

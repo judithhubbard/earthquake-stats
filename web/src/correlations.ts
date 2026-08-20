@@ -3,6 +3,7 @@ import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catal
 import { readTheme, type Theme } from "./chart";
 import { MIN_MAGNITUDE, dayIndex } from "./stats";
 import { copy, fill } from "./copy";
+import { startAnalytics } from "./analytics";
 import {
   FULL_MOON_DAY, chiSquare, lunarBins, monthBins, outsideBand, pearson, weekdayBins,
   type Bin, type Correlation,
@@ -519,4 +520,5 @@ window.addEventListener("resize", () => {
   window.clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(() => { for (const fn of redraw) fn(); }, 150);
 });
+startAnalytics();
 void boot();
