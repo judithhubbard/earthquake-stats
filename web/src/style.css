@@ -781,7 +781,7 @@ footer p { margin: 0 0 0.4rem; }
 
 .flip-rows li {
   display: grid;
-  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr) auto;
   gap: 0.75rem;
   padding: 0.2rem 0.4rem;
   margin: 0 -0.4rem;
@@ -797,13 +797,18 @@ footer p { margin: 0 0 0.4rem; }
 
 .flip-when { font-variant-numeric: tabular-nums; }
 
+/* Sits at the end of the row it selects, so the reading and the rung it
+   picked are one line rather than two things to join up. */
 .flip-now {
-  margin: 0.5rem 0 0;
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 560px) {
   .flip-rows li { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .flip-rows .flip-now { grid-column: 1; }
   .flip-rows .flip-says { color: var(--text-secondary); }
 }
 

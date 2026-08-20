@@ -283,10 +283,10 @@ export const copy = {
     flipBinBelow: "chi-square below {critical}",
     flipBinNegligible: "above {critical}, but the difference is tiny",
     flipBinMeaningful: "above {critical}, and big enough to matter",
-    flipBinNow: "Right now it is {statistic}, across {bins} bins.",
+    flipBinNow: "right now: {statistic}",
     flipScatterWithin: "correlation weaker than ±{critical}",
     flipScatterBeyond: "correlation stronger than ±{critical}",
-    flipScatterNow: "Right now it is {r}, over {years} years.",
+    flipScatterNow: "right now: {r}",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:

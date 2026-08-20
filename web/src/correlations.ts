@@ -283,14 +283,16 @@ function flipTable(rows: { when: string; says: string }[],
     says.className = "flip-says";
     says.textContent = row.says;
     li.append(when, says);
+
+    if (i === current) {
+      const reading = document.createElement("em");
+      reading.className = "flip-now";
+      reading.textContent = now;
+      li.append(reading);
+    }
     list.append(li);
   });
   box.append(list);
-
-  const foot = document.createElement("p");
-  foot.className = "flip-now";
-  foot.textContent = now;
-  box.append(foot);
   return box;
 }
 
@@ -308,7 +310,7 @@ function binFlip(bins: Bin[]): HTMLElement {
     { when: fill(copy.correlations.flipBinMeaningful, { critical }),
       says: copy.correlations.verdictYes },
   ], current, fill(copy.correlations.flipBinNow, {
-    statistic: test.statistic.toFixed(1), bins: bins.length,
+    statistic: test.statistic.toFixed(1),
   }));
 }
 
@@ -329,7 +331,7 @@ function scatterFlip(c: Correlation | null): HTMLElement | undefined {
     { when: fill(copy.correlations.flipScatterBeyond, { critical }),
       says: copy.correlations.verdictYes },
   ], c.significant ? 1 : 0, fill(copy.correlations.flipScatterNow, {
-    r: c.r.toFixed(2), years: c.n,
+    r: c.r.toFixed(2),
   }));
 }
 
