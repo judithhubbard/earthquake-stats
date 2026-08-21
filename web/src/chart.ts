@@ -339,13 +339,15 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
       Plot.text([{}], {
         text: () => opts.share.more,
         frameAnchor: flip ? "top-left" : "top-right",
-        dy: 4, dx: flip ? 2 : -2,
+        // The compact block sits three lines deep once it carries a date, so
+        // it starts at the very top of the frame to keep clear of the bars.
+        dy: compact ? 0 : 4, dx: flip ? 2 : -2,
         fill: theme.up, fontWeight: 700, fontSize: compact ? 19 : 25,
       }),
       Plot.text([{}], {
         text: () => opts.share.moreLabel,
         frameAnchor: flip ? "top-left" : "top-right",
-        dy: compact ? 20 : 26, dx: flip ? 2 : -2,
+        dy: compact ? 15 : 26, dx: flip ? 2 : -2,
         fill: theme.muted, fontSize: compact ? 9.5 : 10.5,
       }),
     ],
