@@ -27,6 +27,21 @@
  */
 
 /** Replaces {tokens} with live values. Unknown tokens are left visible on purpose. */
+/**
+ * Small counts as words, for prose that reads badly with a numeral in it --
+ * "Correcting for five questions", not "Correcting for 5 questions".
+ *
+ * The number still comes from the code; this only chooses how to write it.
+ * Anything above twelve stays a numeral, which is the usual house rule and
+ * also the point at which these counts stop being sentence-sized.
+ */
+const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven",
+               "eight", "nine", "ten", "eleven", "twelve"];
+
+export function numberWord(n: number): string {
+  return Number.isInteger(n) && n >= 0 && n < WORDS.length ? WORDS[n] : String(n);
+}
+
 export function fill(template: string, values: Record<string, string | number> = {}): string {
   return template.replace(/\{(\w+)\}/g, (whole, key) =>
     key in values ? String(values[key]) : whole);
@@ -351,7 +366,8 @@ export const copy = {
       "selection options below." +
 
       "\n\n**How the aggregate statistics work.** Each way of counting ranks this year " +
-      "against every year since {from}, which gives {ways} p-values. Stouffer's method turns " +
+      "against every year since {from}, which gives {waysWord} p-values. Stouffer's method " +
+      "turns " +
       "each " +
       "into a " +
       "z-score, adds them, and divides by how much that sum could vary by chance. The " +
@@ -361,7 +377,7 @@ export const copy = {
       "\n\n**Dealing with dependent variables.** The usual divisor assumes the tests are " +
       "independent. They are not: a year busy in M6+ is usually busy in M7+, " +
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
-      "from its largest earthquakes. Measured against the record, the {ways} different " +
+      "from its largest earthquakes. Measured against the record, the {waysWord} different " +
       "dependent tests are worth about {effective} independent tests. That is the divisor " +
       "used: Strube's " +
       "correction, with the correlations taken from the data rather than assumed." +
@@ -804,17 +820,17 @@ export const copy = {
     techTitle: "Technical summary",
     techBody:
       "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
-      "pulled through the FDSN event service, excluding quarry blasts and explosions. " +
-      "Magnitudes are converted to moment magnitude wherever one has been published, because " +
-      "ComCat's preferred magnitude changes kind around 1984 — usually mb or Ms before, usually " +
-      "Mw after — and the two scales do not agree. Aftershocks are removed throughout, using " +
-      "Gardner-Knopoff windows that run forward in time only. The front page has the details." +
+      "pulled through the FDSN event service. Quarry blasts, explosions and other " +
+      "non-tectonic events are excluded. Magnitudes are converted to moment magnitude " +
+      "wherever one has been published, because ComCat's preferred magnitude changes kind " +
+      "around 1984. Aftershocks are removed throughout, using Gardner-Knopoff windows that " +
+      "run forward in time only. The front page has the details." +
 
-      "\n\n**Two magnitude thresholds, for two kinds of question.** The first three panels " +
-      "compare days, months and lunar phases within the record, so a change in detection that " +
-      "affects the whole record cancels out; they use M5+, which gives four times the data. The " +
-      "last two compare one year against another, where a change in detection would look like a " +
-      "real trend, so they use M6+, which has been detected worldwide throughout." +
+      "\n\n**Two magnitude thresholds.** The first three panels compare days, months and " +
+      "lunar phases within the record, so a change in detection that affects the whole record " +
+      "cancels out. They use {binThreshold}, which gives four times the data. The last two " +
+      "compare one year against another, where a change in detection would look like a real " +
+      "trend, so they use {threshold}, which has been detected worldwide throughout." +
 
       "\n\n**How the answers are decided.** The first three panels test whether the counts " +
       "differ across the cycle more than chance allows, using a chi-square goodness-of-fit " +
@@ -822,33 +838,20 @@ export const copy = {
       "correlation. Both produce a p-value: how often data with no pattern in it would give a " +
       "result at least this strong. Below 1% the answer is Probably, between 1% and 5% Maybe, " +
       "above 5% No. Each panel is graded on its own p-value; the page as a whole is graded on " +
-      "the combined one described below. Nothing here is written in — change the data and the " +
-      "answers change." +
+      "the combined one." +
 
-      "\n\n**The page corrects for asking five questions.** Each panel is tested at a 5% " +
-      "cutoff, so across five the chance that at least one crosses by luck alone is about 23%, " +
-      "not 5%. The answer at the top is graded on the combined p-value for all five — the " +
-      "chance of seeing a result at least as strong as the strongest of them when none of the " +
-      "five is real — which is why one panel crossing 5% does not by itself change what the " +
-      "page says." +
-
-      "\n\n**The five tests were checked for independence before being combined.** The " +
-      "combination, Šidák's formula, 1 - (1 - p)⁵, is only valid if the five are independent, " +
-      "and on the front " +
-      "page the equivalent formula is not used because the series there are nested inside one " +
-      "another. Here they are not. Day of the week, month of the year and the lunar cycle are " +
-      "three clocks of 7, 365.25 and 29.53 days, none of which divides into another, so across " +
-      "fifty years an earthquake's position on one says nothing about its position on the " +
-      "others. The two yearly comparisons do share a count of earthquakes, so they were tested " +
-      "as a pair with a permutation test, shuffling the year labels 200,000 times: the " +
-      "correlation between their two " +
-      "statistics came out at 0.01, and the shuffled result agrees with the formula to four " +
-      "decimal places at every cutoff the page uses." +
+      "\n\n**Correcting for {testsWord} questions.** Each panel is tested at a 5% cutoff, so " +
+      "across {testsWord} the chance that at least one crosses by luck alone is about " +
+      "{anyFlag}%, " +
+      "not 5%. The answer at the top is graded on the combined p-value instead, using " +
+      "\u0160id\u00e1k's formula, 1 - (1 - p)\u2075. That formula needs the {testsWord} to be " +
+      "independent, and they are: day of the week, month of the year and the lunar cycle are " +
+      "three clocks of 7, 365.25 and 29.53 days, none of which divides into another." +
 
       "\n\n**A p-value is not the probability that there is no pattern.** It is how often " +
       "chance alone would produce a result this strong. It also says nothing about size: with " +
-      "40,000 earthquakes, a difference of two or three percent is enough to pass a 5% cutoff. " +
-      "A result that crosses is worth looking at, not a finding." +
+      "{kept} earthquakes, a difference of two or three percent is enough to pass a 5% " +
+      "cutoff. A result that crosses is worth looking at, not a finding." +
 
       "\n\n**What these tests cannot do.** A chi-square across bins can say a distribution is " +
       "uneven; it cannot say what makes it uneven. A correlation can say two series move " +

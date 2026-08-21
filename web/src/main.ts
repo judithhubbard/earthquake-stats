@@ -10,7 +10,7 @@ import {
   type Combined, type Measure, type Trend, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
-import { copy, fill } from "./copy";
+import { copy, fill, numberWord } from "./copy";
 import { renderTech } from "./tech";
 import { flipTable } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
@@ -800,6 +800,7 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
   if (aggregate) {
     const pct = (v: number) => (v >= 0.1 ? (100 * v).toFixed(0) : (100 * v).toFixed(1));
     techValues.ways = aggregate.tests;
+    techValues.waysWord = numberWord(aggregate.tests);
     techValues.effective = aggregate.effective.toFixed(1);
     el.spreadAggregate.append(fill(c.spreadAggregate, {
       year: yearLabel(currentYear),

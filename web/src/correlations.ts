@@ -2,7 +2,7 @@ import * as Plot from "@observablehq/plot";
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
 import { readTheme, type Theme } from "./chart";
 import { MIN_MAGNITUDE, dayIndex } from "./stats";
-import { copy, fill } from "./copy";
+import { copy, fill, numberWord } from "./copy";
 import { renderTech } from "./tech";
 import { flipTable } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
@@ -274,6 +274,29 @@ const ANY_FLAG = Math.round((1 - 0.95 ** TESTS) * 100);
 
 const P_STRONG = 0.01;
 const P_WEAK = 0.05;
+
+/**
+ * The numbers the technical summary quotes, collected as they are computed.
+ *
+ * Same reason as the front page: stated as text they drift from the code that
+ * produces them. ANY_FLAG and TESTS are already constants here, and the event
+ * count is whatever the binned panels actually kept.
+ *
+ * A paragraph still holding an unresolved placeholder is dropped rather than
+ * printed with braces in it.
+ */
+const techValues: Record<string, string | number> = {
+  tests: TESTS, testsWord: numberWord(TESTS), anyFlag: ANY_FLAG,
+  threshold: `M${MIN_MAGNITUDE}+`, binThreshold: `M${BIN_MAGNITUDE}+`,
+};
+
+function writeTech() {
+  const body = fill(copy.correlations.techBody, techValues)
+    .split("\n\n")
+    .filter((para) => !/\{\w+\}/.test(para))
+    .join("\n\n");
+  renderTech(copy.correlations.techTitle, body, el.techTitle, el.techBody);
+}
 
 interface Outcome { key: "no" | "maybe" | "probably"; p: number; }
 
@@ -580,6 +603,8 @@ async function boot() {
   const yearly = annualCounts(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
   const annual = annualTotals(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
   const kept = times.length.toLocaleString();
+  techValues.kept = kept;
+  writeTech();
 
   // Set after the panels, once their outcomes are known -- see the end of boot.
   // Every panel that runs a test votes, which is all of them but Oklahoma: that
@@ -827,6 +852,5 @@ window.addEventListener("resize", () => {
   window.clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(() => { for (const fn of redraw) fn(); }, 150);
 });
-renderTech(copy.correlations.techTitle, copy.correlations.techBody, el.techTitle, el.techBody);
 startAnalytics();
 void boot();
