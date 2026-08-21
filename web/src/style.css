@@ -626,7 +626,9 @@ main {
    would push it onto two lines. */
 .chart-head {
   display: flex;
-  align-items: center;
+  /* Baseline, not centre: the title is now much larger than the toggle beside
+     it, and centring would float the toggle in the middle of the title's line. */
+  align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
@@ -701,17 +703,27 @@ main {
    sitting under the chart it is about rather than in a list of its own. */
 .trend { margin-top: 3.25rem; }
 
-/* The question leads, the answer follows it. It used to be set smaller than
-   the "No." underneath, which read as a caption on the answer rather than the
-   thing being answered. */
+/* Section titles. Each one names a whole figure or block, so they share a
+   treatment and nothing smaller is allowed to borrow it: subtitles, axis
+   labels and panel captions all stay quiet and dark. The green is
+   --range-ink, the same as the chart ranges and the map's land. */
+.section-title,
+#chart-title,
+#annual-title,
+#map-title,
 .trend figcaption {
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.01em;
   color: var(--range-ink);
-  margin-bottom: 0.45rem;
 }
+
+.trend figcaption { margin-bottom: 0.45rem; }
+
+.section-title { margin: 0 0 0.6rem; }
+
+
 
 .trend-verdict {
   margin: 0 0 0.7rem;
@@ -747,13 +759,13 @@ main {
 
 .trend-panel { margin: 0; min-width: 0; }
 
-/* The same green as the question above them, so the four read as its parts
-   rather than as four more charts that happen to be on the page. */
+/* Subtitles, not titles: they name a series inside the section the green
+   heading above already named. */
 .trend-panel-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: var(--range-ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
   margin-bottom: 0.2rem;
 }
 
