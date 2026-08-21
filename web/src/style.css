@@ -784,6 +784,34 @@ main {
 
 .trend-overlap { margin-bottom: 0; }
 
+/* Where this year lands on every combination the controls can reach. Quiet:
+   it qualifies the answer above it rather than competing with it. */
+.spread {
+  margin: 1.75rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.spread[hidden] { display: none; }
+
+.spread-title {
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+#spread-chart { min-height: 108px; }
+
+.spread-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
 /* Loud on purpose. If this shows, the numbers below it are not to be trusted,
    and a quiet note at the bottom would be worse than useless. */
 .integrity {

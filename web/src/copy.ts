@@ -89,6 +89,25 @@ export const copy = {
     stripShareMoreMoment: "of years released more\nmoment",
     stripShareLessMoment: "of years released less\nmoment",
 
+    /* The spread strip under the answer. Every combination the controls above
+       can reach, so the reader can see how much the answer depends on which
+       one they are looking at -- rather than discovering it by clicking, or
+       not discovering it at all. */
+    spreadTitle: "Where {year} lands on every way of counting",
+    spreadLabel: "{threshold} {catalog}, {measure}, {window}",
+    spreadAll: "all earthquakes",
+    spreadMainshocks: "mainshocks only",
+    spreadCount: "counted",
+    spreadMoment: "by moment",
+    spreadCalendar: "this year so far",
+    spreadRolling: "last 365 days",
+    spreadNote:
+      "There are {ways} ways to count this with the settings below, and {year} sits between " +
+      "the {low} and the {high} percentile across them. The setting selected below puts it at " +
+      "the {current}. Each dot is one combination — hover to see which.",
+    spreadAxis: "Percentile against every year since 1976",
+    spreadSelected: "selected",
+
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",
 

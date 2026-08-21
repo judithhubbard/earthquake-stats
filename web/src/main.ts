@@ -1,6 +1,6 @@
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, renderDistribution, renderTrend, readTheme,
-         type Highlight, type Theme } from "./chart";
+import { renderAnnualChart, renderChart, renderDistribution, renderSpread, renderTrend,
+         readTheme, type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
   TREND_PERMUTATIONS, combinedTrendP, dayIndex, empiricalBand, equivalentMagnitude,
@@ -98,8 +98,8 @@ const state: State = {
  * complete "year" -- and every past window run to the same date, so a full year
  * is only ever compared against full years.
  */
-function calendarShift(): number {
-  if (state.window === "calendar") return 0;
+function calendarShift(window: State["window"] = state.window): number {
+  if (window === "calendar") return 0;
   const now = new Date();
   const tomorrow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
   return tomorrow - Date.UTC(now.getUTCFullYear(), 0, 1);
@@ -171,6 +171,10 @@ const el = {
   trendQuestion: document.getElementById("trend-question")!,
   trendVerdict: document.getElementById("trend-verdict")!,
   trendBody: document.getElementById("trend-body")!,
+  spread: document.getElementById("spread") as HTMLElement,
+  spreadTitle: document.getElementById("spread-title")!,
+  spreadChart: document.getElementById("spread-chart")!,
+  spreadNote: document.getElementById("spread-note")!,
   trendTable: document.getElementById("trend-table")!,
   trendGrid: document.getElementById("trend-grid")!,
   trendOverlap: document.getElementById("trend-overlap")!,
@@ -516,6 +520,101 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
     added++;
   }
   return added;
+}
+
+/**
+ * This year on every way of counting it, not just the selected one.
+ *
+ * The controls above reach twelve combinations -- two magnitudes, aftershocks
+ * in or out on the count views, count or moment, this year or the last 365
+ * days -- and this year currently lands anywhere from the 39th percentile to
+ * the 92nd across them. A reader who wants an unusual year can find one by
+ * clicking, and a reader who does not know that will take whichever slice
+ * happens to load as the whole story.
+ *
+ * The controls stay, unlike on the trend section, where the four series were
+ * fixed. The difference is what is being claimed. The trend section asserts
+ * something about the world -- that the rate is or is not changing -- and
+ * letting the reader pick the series that best supports it is p-hacking. This
+ * question is descriptive: how does this year compare, on the measure you care
+ * about? Picking M7+ over M6+ is a legitimate interest, not a fishing trip. So
+ * the fix is to show what the choice is worth rather than to take it away.
+ */
+interface SpreadPoint {
+  percentile: number;
+  label: string;
+  selected: boolean;
+}
+
+function spreadPoints(tier: Tier): SpreadPoint[] {
+  const points: SpreadPoint[] = [];
+  for (const minMag of MAGNITUDES) {
+    for (const measure of ["count", "moment"] as Measure[]) {
+      // Declustering is only offered on the count views, so the moment ones
+      // have no aftershock choice to enumerate. Mirroring what the controls
+      // can actually reach matters: a strip that included unreachable
+      // combinations would not be a summary of this page.
+      for (const mainshocksOnly of measure === "count" ? [false, true] : [false]) {
+        for (const window of ["calendar", "rolling"] as State["window"][]) {
+          const shift = calendarShift(window);
+          const curves = cumulativeByYear(
+            tier, minMag, REFERENCE_START, mainshocksOnly, measure, shift);
+          applyLive(curves, tier, minMag, shift);
+          const { year, day } = dayIndex(Date.now(), shift);
+          const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < year);
+          const result = verdict(curves, refYears, year,
+                                 window === "rolling" ? DAYS - 1 : day, measure);
+          if (!result) continue;
+          points.push({
+            percentile: result.percentile * 100,
+            label: fill(copy.home.spreadLabel, {
+              threshold: magLabel(minMag),
+              catalog: mainshocksOnly
+                ? copy.home.spreadMainshocks : copy.home.spreadAll,
+              measure: measure === "moment"
+                ? copy.home.spreadMoment : copy.home.spreadCount,
+              window: window === "rolling"
+                ? copy.home.spreadRolling : copy.home.spreadCalendar,
+            }),
+            selected: minMag === state.minMag && measure === state.measure
+                   && mainshocksOnly === effectiveMainshocksOnly()
+                   && window === state.window,
+          });
+        }
+      }
+    }
+  }
+  return points;
+}
+
+function writeSpread(tier: Tier, currentYear: number,
+                     theme: ReturnType<typeof readTheme>, width: number) {
+  const points = spreadPoints(tier);
+  if (points.length < 2) { el.spread.hidden = true; return; }
+  el.spread.hidden = false;
+
+  const values = points.map((p) => p.percentile);
+  const here = points.find((p) => p.selected);
+  el.spreadTitle.textContent = fill(copy.home.spreadTitle,
+                                    { year: yearLabel(currentYear) });
+  el.spreadNote.textContent = fill(copy.home.spreadNote, {
+    ways: points.length,
+    year: yearLabel(currentYear),
+    low: ordinal(Math.min(...values)),
+    high: ordinal(Math.max(...values)),
+    current: here ? ordinal(here.percentile) : ordinal(median(values)),
+  });
+  el.spreadChart.replaceChildren(renderSpread({
+    points, theme, width,
+    axisLabel: copy.home.spreadAxis,
+    selectedLabel: copy.home.spreadSelected,
+  }));
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 /* ---------------- map ---------------- */
@@ -1262,6 +1361,7 @@ async function update() {
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
+    writeSpread(tier, currentYear, theme, width);
     void writeTrend(currentYear, theme, width);
 
     const mapEvents = highlightedEvents(tier, minMag, highlights, shift);
