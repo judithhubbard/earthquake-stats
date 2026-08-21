@@ -227,7 +227,7 @@ export const copy = {
     trendColCorrected: "Corrected for asking four",
     trendCorrectedBelow: "below 5%",
     trendCorrectedAbove: "above 5%",
-    trendCorrectedNone: "—",
+    trendCorrectedNone: "above 5%",
     trendHelpSmallest: "what is this testing?",
     trendHelpSmallestBody:
       "A straight line is fitted through the {years} yearly counts of each series, and the test " +
@@ -408,7 +408,7 @@ export const copy = {
     pageColCorrected: "Corrected for asking five",
     pageCorrectedBelow: "below 5%",
     pageCorrectedAbove: "above 5%",
-    pageCorrectedNone: "—",
+    pageCorrectedNone: "above 5%",
     pageHelpSmallest: "which of the five?",
     pageHelpSmallestBody:
       "The five questions below are each tested at a 5% cutoff, and this is the smallest " +
