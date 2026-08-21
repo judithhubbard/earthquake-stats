@@ -8,7 +8,8 @@ import { flipTable } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 import {
-  FULL_MOON_DAY, chiSquare, chiSquareP, correlationP, lunarBins, monthBins,
+  FULL_MOON_DAY, LUNAR_DAYS, SYNODIC_DAYS,
+  chiSquare, chiSquareP, correlationP, lunarBins, monthBins,
   pearson, weekdayBins,
   type Bin, type Correlation,
 } from "./correlate";
@@ -289,6 +290,7 @@ const techValues: Record<string, string | number> = {
   tests: TESTS, testsWord: numberWord(TESTS), anyFlag: ANY_FLAG,
   threshold: `M${MIN_MAGNITUDE}+`, binThreshold: `M${BIN_MAGNITUDE}+`,
   minMag: MIN_MAGNITUDE,
+  lunarDays: LUNAR_DAYS, synodic: SYNODIC_DAYS.toFixed(2),
 };
 
 function writeTech() {

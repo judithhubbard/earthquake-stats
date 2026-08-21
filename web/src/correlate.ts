@@ -114,7 +114,8 @@ export function monthBins(times: Float64Array | number[]): Bin[] {
   return toBins(counts, MONTHS, days, MONTHS_FULL);
 }
 
-const SYNODIC_DAYS = 29.530588853;
+/** Mean synodic month, in days. Quoted on the page, so it is exported. */
+export const SYNODIC_DAYS = 29.530588853;
 /** 2000-01-06 18:14 UTC, a new moon. */
 const NEW_MOON_JD = 2451550.259722;
 

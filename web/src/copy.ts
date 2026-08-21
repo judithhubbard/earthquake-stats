@@ -325,7 +325,7 @@ export const copy = {
        =============================================================== */
     techTitle: "Technical summary",
     techBody:
-      "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
+      "**Where the data come from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
       "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes." +
 
@@ -819,9 +819,10 @@ export const copy = {
        =============================================================== */
     techTitle: "Technical summary",
     techBody:
-      "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
+      "**Where the data come from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
-      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes." +
+      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes, and these " +
+      "panels use everything in it, up to and including the incomplete current year." +
 
       "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
       "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +
@@ -852,10 +853,18 @@ export const copy = {
 
       "\n\n**How the answers are decided.** The first three panels test whether the counts " +
       "differ across the cycle more than chance allows, using a chi-square goodness-of-fit " +
-      "test. The last two test whether two annual series move together, using a Pearson " +
-      "correlation. Both produce a p-value: how often data with no pattern in it would give a " +
-      "result at least this strong. Each panel is graded on its own p-value; the page as a " +
-      "whole is graded on the combined one." +
+      "test: seven weekday bins, twelve month bins, {lunarDays} lunar-day bins, each on one " +
+      "degree of freedom fewer than it has bins. Days and months are taken in UTC, and the " +
+      "week starts on Monday. Months are unequal, so each month bin expects earthquakes in " +
+      "proportion to the days it actually ran rather than a flat twelfth. The lunar bins use " +
+      "mean synodic phase — a cycle of {synodic} days measured from a fixed new moon — so " +
+      "day 1 holds the new moon. The last two panels test whether two annual series move " +
+      "together, using a Pearson correlation, with the p-value taken from t on n − 2 degrees " +
+      "of freedom. Both tests report how often data with no pattern in them would give a " +
+      "result at least this strong; both p-values come from closed-form approximations, " +
+      "Wilson-Hilferty for chi-square and a normal approximation for t, which agree with the " +
+      "exact distributions to about a thousandth over the range used here. Each panel is " +
+      "graded on its own p-value; the page as a whole is graded on the combined one." +
 
       "\n\n**Correcting for {testsWord} questions.** Each panel is tested at a 5% cutoff, so " +
       "across {testsWord} the chance that at least one crosses by luck alone is about " +
