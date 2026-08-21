@@ -385,6 +385,106 @@ export function trend(counts: { year: number; value: number }[]): Trend | null {
   };
 }
 
+/**
+ * The chance that the strongest of several trends is this strong, when none of
+ * them is real.
+ *
+ * The obvious formula is Sidak -- 1 - (1 - p)^k for k tests -- but it assumes
+ * the tests are independent, and these are not: every M7+ earthquake is also an
+ * M6+ earthquake and every mainshock is also an earthquake, so the four yearly
+ * count series correlate with each other between 0.11 and 0.80. Sidak therefore
+ * over-states the correction. On the current catalogue it says 25% where the
+ * answer is 20%, which is the difference between three effective tests and
+ * four.
+ *
+ * So the joint distribution is measured rather than assumed. The year labels
+ * are shuffled -- the SAME shuffle applied to every series at once, which is
+ * what keeps the overlap between them intact -- the four slopes are refitted,
+ * and the largest t-statistic is recorded. Doing that many times builds the
+ * distribution of "strongest of four" under the null that none of them trends,
+ * and the answer is how much of it sits at or beyond what the real data
+ * produced. This is the Westfall-Young max-T procedure.
+ *
+ * Two things make it cheap enough to run on page load. Shuffling rows leaves
+ * each series' mean and total sum of squares untouched, so a permutation needs
+ * only one dot product per series; and the generator is seeded, so the same
+ * catalogue always yields the same number rather than a figure that flickers
+ * on every refresh.
+ *
+ * It assumes that with no trend the years would be interchangeable. Aftershock
+ * sequences spanning a new year violate that slightly, in the same way and the
+ * same direction as they violate the t-test this replaces.
+ */
+/** Shuffles behind the combined p-value. Named so the page can say how many. */
+export const TREND_PERMUTATIONS = 100_000;
+
+export function combinedTrendP(series: { year: number; value: number }[][],
+                               permutations = TREND_PERMUTATIONS): number | null {
+  const k = series.length;
+  if (!k) return null;
+  const n = series[0].length;
+  if (n < 5 || series.some((s) => s.length !== n)) return null;
+
+  const mx = series[0].reduce((a, c) => a + c.year, 0) / n;
+  const x = series[0].map((c) => c.year - mx);
+  const sxx = x.reduce((a, v) => a + v * v, 0);
+
+  // Centred values, and the total sum of squares -- both invariant under a row
+  // shuffle, which is what reduces a permutation to k dot products.
+  const cols = series.map((s) => {
+    const my = s.reduce((a, c) => a + c.value, 0) / n;
+    return Float64Array.from(s, (c) => c.value - my);
+  });
+  const syy = cols.map((col) => col.reduce((a, v) => a + v * v, 0));
+
+  const absT = (dot: number, total: number): number => {
+    const slope = dot / sxx;
+    const rss = total - slope * dot;
+    if (!(rss > 0)) return Infinity;
+    return Math.abs(slope) / Math.sqrt(rss / (n - 2) / sxx);
+  };
+
+  let observed = 0;
+  for (let j = 0; j < k; j++) {
+    let dot = 0;
+    for (let i = 0; i < n; i++) dot += x[i] * cols[j][i];
+    observed = Math.max(observed, absT(dot, syy[j]));
+  }
+  if (!Number.isFinite(observed)) return null;
+
+  // mulberry32, seeded. Deterministic on purpose: the number must depend on the
+  // catalogue and nothing else.
+  let seed = 0x9e3779b9;
+  const random = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  const order = Uint32Array.from({ length: n }, (_, i) => i);
+  let atLeast = 0;
+  for (let r = 0; r < permutations; r++) {
+    for (let i = n - 1; i > 0; i--) {
+      const j = (random() * (i + 1)) | 0;
+      const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    }
+    let best = 0;
+    for (let j = 0; j < k; j++) {
+      const col = cols[j];
+      let dot = 0;
+      for (let i = 0; i < n; i++) dot += x[i] * col[order[i]];
+      const t = absT(dot, syy[j]);
+      if (t > best) best = t;
+    }
+    if (best >= observed) atLeast++;
+  }
+  // Add-one, so the result can never be exactly zero: with 100,000 shuffles the
+  // most this can say is "below one in a hundred thousand", and reporting 0
+  // would claim more than the method can support.
+  return (atLeast + 1) / (permutations + 1);
+}
+
 export interface Verdict {
   year: number;
   day: number;

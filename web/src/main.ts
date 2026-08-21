@@ -3,7 +3,9 @@ import { renderAnnualChart, renderChart, renderDistribution, renderTrend, readTh
          type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand, equivalentMagnitude, rollingWindowBand, trend, verdict,
+  TREND_PERMUTATIONS, combinedTrendP, dayIndex, empiricalBand, equivalentMagnitude,
+  rollingWindowBand,
+  trend, verdict,
   type Measure, type Trend, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
@@ -882,6 +884,51 @@ const TREND_SERIES = [
   { threshold: MAJOR_MAGNITUDE, mainshocksOnly: true },
 ];
 
+/**
+ * The permutation test is a hundred thousand shuffles, about 130ms. Every
+ * resize re-renders, and the catalogue has not changed in between, so it is
+ * held against a signature of the data rather than recomputed.
+ */
+const jointCache = new Map<string, number>();
+
+function combinedFor(panels: { points: { year: number; value: number }[] }[]): number | null {
+  const key = panels
+    .map((p) => `${p.points.length}:${p.points.at(-1)?.year}:`
+              + p.points.reduce((a, c) => a + c.value, 0))
+    .join("|");
+  const hit = jointCache.get(key);
+  if (hit !== undefined) return hit;
+  const value = combinedTrendP(panels.map((p) => p.points));
+  if (value === null) return null;
+  jointCache.set(key, value);
+  return value;
+}
+
+/**
+ * How strongly the four series move together, as a range.
+ *
+ * Quoted on the page rather than asserted, because it is the reason the
+ * textbook correction is not used, and because it moves with the catalogue.
+ */
+function correlationRange(cols: number[][]): { min: number; max: number } | null {
+  const centred = cols.map((c) => {
+    const mean = c.reduce((a, v) => a + v, 0) / c.length;
+    return c.map((v) => v - mean);
+  });
+  const pairs: number[] = [];
+  for (let i = 0; i < centred.length; i++) {
+    for (let j = i + 1; j < centred.length; j++) {
+      const a = centred[i], b = centred[j];
+      const num = a.reduce((acc, v, k) => acc + v * b[k], 0);
+      const den = Math.sqrt(a.reduce((acc, v) => acc + v * v, 0)
+                          * b.reduce((acc, v) => acc + v * v, 0));
+      if (den > 0) pairs.push(num / den);
+    }
+  }
+  if (!pairs.length) return null;
+  return { min: Math.min(...pairs), max: Math.max(...pairs) };
+}
+
 interface TrendPanel {
   title: string;
   axis: string;
@@ -933,9 +980,11 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
 
   const outcome = (p: number) => (p < 0.01 ? "probably" : p < 0.05 ? "maybe" : "no");
   const steepest = panels.reduce((a, b) => (b.fit.p < a.fit.p ? b : a));
-  // Sidak over the four looks. The series are nested, so this over-corrects --
-  // said out loud in trendOverlap rather than left for the reader to notice.
-  const corrected = 1 - (1 - steepest.fit.p) ** panels.length;
+  // Measured, not assumed. Sidak would be 1 - (1 - p)^4, but the four series
+  // are nested and correlate between 0.11 and 0.80, so that formula over-states
+  // the correction -- 25% where the answer is 20%. See combinedTrendP.
+  const corrected = combinedFor(panels);
+  if (corrected === null) { el.trendQuestion.textContent = ""; return; }
   // Graded on the combined number, not the smallest. Reporting the best of
   // four tests as though it were the only one is the whole failure mode this
   // section was rebuilt to avoid, so the number that decides the answer is the
@@ -954,8 +1003,11 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
     key === "probably" ? c.trendProbably : key === "maybe" ? c.trendMaybe : c.trendNo,
     { subject: steepest.title, p: pct(steepest.fit.p), corrected: pct(corrected) });
 
+  const corr = correlationRange(panels.map((p) => p.points.map((d) => d.value)));
   el.trendOverlap.textContent = fill(c.trendOverlap, {
     threshold: magLabel(MIN_MAGNITUDE), major: magLabel(MAJOR_MAGNITUDE),
+    minCorr: corr ? corr.min.toFixed(2) : "—",
+    maxCorr: corr ? corr.max.toFixed(2) : "—",
   });
 
   // One column, not two. The smallest p-value used to sit beside the combined
@@ -969,6 +1021,7 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
                body: fill(c.trendHelpBody, {
                  years: steepest.fit.years, p: pct(steepest.fit.p),
                  subject: steepest.title, corrected: pct(corrected),
+                 permutations: TREND_PERMUTATIONS.toLocaleString(),
                }) } },
      { label: cc.flipColAnswer }],
     [

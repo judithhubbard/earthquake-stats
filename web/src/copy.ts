@@ -198,7 +198,8 @@ export const copy = {
       "you look at the results. Here, we first calculate the p-value for each test, which tells " +
       "us how unusual that specific correlation is. Then, we calculate the combined probability " +
       "for all four tests, correcting for the fact that we asked the question in four different " +
-      "ways. This last number is the one you should look at.",
+      "ways — and for the fact that the four overlap. This last number is the one you should " +
+      "look at.",
     /* Every one of these leads with the combined number, because that is the
        one the answer is graded on. The steepest single series is named
        afterwards, as context -- naming it first would put the un-corrected
@@ -221,9 +222,12 @@ export const copy = {
        and saying which direction is the point. */
     trendOverlap:
       "The four series overlap: every {major} earthquake is also an {threshold} earthquake, " +
-      "and every mainshock is also an earthquake. So these are not four independent looks at " +
-      "the data, and the combined number, which assumes they are, is harsher than it needs to " +
-      "be rather than more forgiving.",
+      "and every mainshock is also an earthquake. Their year-to-year counts correlate with " +
+      "each other between {minCorr} and {maxCorr}, so these are not four independent looks at " +
+      "the data, and the usual textbook correction — which assumes they are — would be too " +
+      "harsh. The combined number above is measured instead of assumed: it comes from " +
+      "reshuffling the years and seeing how often four series that genuinely have no trend " +
+      "throw up something this steep.",
 
     trendPanelAll: "{threshold}, all earthquakes",
     trendPanelMainshocks: "{threshold}, mainshocks only",
@@ -237,15 +241,21 @@ export const copy = {
       "and each test asks how often counts with no trend in them would produce a slope at " +
       "least that steep. That gives four p-values. The smallest is {p}%, from {subject}." +
       "\n\nFour tests means four chances for one of them to look unusual, so the four are " +
-      "combined into a single number: if every series were flat, the chance that at least one " +
-      "would still produce a p-value as small as {p}% is {corrected}%. That combined number is " +
-      "what the answer above is graded on." +
+      "combined into a single number. Because the series overlap, that number cannot come " +
+      "from the textbook formula, which assumes the tests are independent. Instead the years " +
+      "are shuffled into a random order — the same order for all four series at once, which " +
+      "keeps the overlap intact — the four lines are refitted, and the steepest of them is " +
+      "recorded. Across {permutations} shuffles, four series with no trend in them produce " +
+      "something at least this steep {corrected}% of the time. That is the number the answer " +
+      "above is graded on." +
       "\n\nThe range under each chart is where that series' true slope lies with 95% " +
       "confidence. When it includes zero, no change is one of the possibilities the data " +
       "allow — which is why this shows the range rather than the single number in the middle " +
       "of it. That number on its own invites arithmetic the data cannot support." +
-      "\n\nA straight line is also an assumption. It would not detect a rate that rose and " +
-      "then fell, or a step change.",
+      "\n\nA straight line is an assumption too. It would not detect a rate that rose and " +
+      "then fell, or a step change. And shuffling the years assumes that, with no trend, one " +
+      "year is interchangeable with another — which an aftershock sequence running across New " +
+      "Year slightly breaks.",
 
     /* ===============================================================
        THE TECHNICAL SUMMARY, front page. Plain and direct: what the
