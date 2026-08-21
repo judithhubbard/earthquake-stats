@@ -621,7 +621,7 @@ async function boot() {
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    headline.push(c?.significant ? "maybe" : "no");
+    headline.push(c ? outcomeFor(correlationP(c.r, c.n)) : "no");
     // Whether the panel has anything to explain, on the same rule as its verdict.
     const flagged = c !== null && outcomeFor(correlationP(c.r, c.n)) !== "no";
     const cUp = copy.correlations.climateUp;
@@ -655,7 +655,7 @@ async function boot() {
   if (context.sunspots) {
     const points = seriesPoints(context.sunspots, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    headline.push(c?.significant ? "maybe" : "no");
+    headline.push(c ? outcomeFor(correlationP(c.r, c.n)) : "no");
     const flagged = c !== null && outcomeFor(correlationP(c.r, c.n)) !== "no";
     const sUp = copy.correlations.solarUp;
     const sDown = copy.correlations.solarDown;
