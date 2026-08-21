@@ -94,19 +94,29 @@ export const copy = {
        one they are looking at -- rather than discovering it by clicking, or
        not discovering it at all. */
     spreadTitle: "Where {year} lands on every way of counting",
-    spreadLabel: "{threshold} {catalog}, {measure}, {window}",
+    spreadLabel: "{threshold} {catalog}, {measure}",
     spreadAll: "all earthquakes",
     spreadMainshocks: "mainshocks only",
     spreadCount: "counted",
     spreadMoment: "by moment",
-    spreadCalendar: "this year so far",
-    spreadRolling: "last 365 days",
+    spreadColWay: "How it is counted",
+    spreadCalendar: "This year so far",
+    spreadRolling: "Last 365 days",
+    /* The one number that answers the title question with no choice hidden in
+       it. Every past year is scored the same {ways} ways and its own average
+       taken, so this year's average can be ranked against theirs directly --
+       no correction, because the redundancy between the slicings applies
+       equally to every year being compared. */
+    spreadAggregate:
+      "Averaged across the {ways} ways of counting the year so far, {year} sits at the " +
+      "{aggregate} percentile — a higher average than {beats}% of the {years} years since " +
+      "1976, each scored exactly the same way.",
     spreadNote:
-      "There are {ways} ways to count this with the settings below, and {year} sits between " +
-      "the {low} and the {high} percentile across them. The setting selected below puts it at " +
-      "the {current}. Each dot is one combination — hover to see which.",
-    spreadAxis: "Percentile against every year since 1976",
-    spreadSelected: "selected",
+      "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
+      "percentile, which is why the answer at the top depends on which one you are looking " +
+      "at. The setting selected below is marked. The last-365-days column is not in the " +
+      "average: its window ends today rather than on 31 December, so it is not a year and " +
+      "cannot be ranked against past ones alongside the rest.",
 
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",

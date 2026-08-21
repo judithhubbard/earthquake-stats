@@ -1,5 +1,5 @@
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, renderDistribution, renderSpread, renderTrend,
+import { renderAnnualChart, renderChart, renderDistribution, renderTrend,
          readTheme, type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
@@ -173,6 +173,7 @@ const el = {
   trendBody: document.getElementById("trend-body")!,
   spread: document.getElementById("spread") as HTMLElement,
   spreadTitle: document.getElementById("spread-title")!,
+  spreadAggregate: document.getElementById("spread-aggregate")!,
   spreadChart: document.getElementById("spread-chart")!,
   spreadNote: document.getElementById("spread-note")!,
   trendTable: document.getElementById("trend-table")!,
@@ -540,81 +541,197 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
  * about? Picking M7+ over M6+ is a legitimate interest, not a fishing trip. So
  * the fix is to show what the choice is worth rather than to take it away.
  */
-interface SpreadPoint {
+interface SpreadCell {
   percentile: number;
-  label: string;
   selected: boolean;
 }
 
-function spreadPoints(tier: Tier): SpreadPoint[] {
-  const points: SpreadPoint[] = [];
+/** One row per way of counting; one cell per time window. */
+interface SpreadRow {
+  label: string;
+  cells: SpreadCell[];
+}
+
+/**
+ * The aggregate answer: this year's average rank across every way of counting,
+ * ranked against past years' averages of the same twelve.
+ *
+ * This is the one number that answers the page's title question without a
+ * choice hidden inside it, and it needs no multiplicity correction, which is
+ * why it is built this way rather than by combining p-values. The twelve
+ * slicings are heavily redundant -- their yearly totals correlate up to +1.00,
+ * and there are about two and a half independent series among them -- so any
+ * formula that assumed independence would be wrong, and measuring the
+ * dependence would be another layer of machinery. Scoring every past year with
+ * exactly the same twelve makes the redundancy cancel: whatever double-counting
+ * the average does to this year, it did to 1998 too. What is left is a plain
+ * empirical rank.
+ */
+interface Aggregate {
+  /** Mean percentile across the slicings, for the current year. */
+  percentile: number;
+  /** Share of past years whose own mean percentile was lower. */
+  beats: number;
+  /** How many slicings went into each year's average. */
+  slices: number;
+  /** How many past years it was ranked against. */
+  years: number;
+}
+
+/** Each value's rank among the others, itself excluded, ties counted as half. */
+function leaveOneOutPercentiles(values: number[]): number[] {
+  return values.map((v, i) => {
+    let below = 0, tied = 0;
+    values.forEach((o, j) => {
+      if (j === i) return;
+      if (o < v) below++;
+      else if (o === v) tied++;
+    });
+    return (100 * (below + tied / 2)) / Math.max(1, values.length - 1);
+  });
+}
+
+const SPREAD_WINDOWS: State["window"][] = ["calendar", "rolling"];
+
+function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Aggregate | null } {
+  const rows: SpreadRow[] = [];
+  // One year -> percentile map per slicing. Keyed by year rather than indexed
+  // by position: the rolling window shifts the year boundary, so its year list
+  // is not the same length as the calendar one, and an earlier version quietly
+  // dropped every rolling slicing on a length check -- averaging six where the
+  // text beside it said twelve.
+  const ranks: Map<number, number>[] = [];
+
   for (const minMag of MAGNITUDES) {
     for (const measure of ["count", "moment"] as Measure[]) {
       // Declustering is only offered on the count views, so the moment ones
       // have no aftershock choice to enumerate. Mirroring what the controls
-      // can actually reach matters: a strip that included unreachable
-      // combinations would not be a summary of this page.
+      // can actually reach matters: a table listing combinations the page
+      // cannot produce would not be a summary of this page.
       for (const mainshocksOnly of measure === "count" ? [false, true] : [false]) {
-        for (const window of ["calendar", "rolling"] as State["window"][]) {
+        const cells: SpreadCell[] = [];
+        for (const window of SPREAD_WINDOWS) {
           const shift = calendarShift(window);
           const curves = cumulativeByYear(
             tier, minMag, REFERENCE_START, mainshocksOnly, measure, shift);
           applyLive(curves, tier, minMag, shift);
-          const { year, day } = dayIndex(Date.now(), shift);
+          const { year, day: today } = dayIndex(Date.now(), shift);
+          const day = window === "rolling" ? DAYS - 1 : today;
           const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < year);
-          const result = verdict(curves, refYears, year,
-                                 window === "rolling" ? DAYS - 1 : day, measure);
+          const result = verdict(curves, refYears, year, day, measure);
           if (!result) continue;
-          points.push({
+
+          // Calendar slicings only. A shifted window labels the 365 days
+          // ending today as year 2025, because that is where its year boundary
+          // falls, while a calendar slicing means by 2025 the whole of last
+          // year. Averaging the two puts this year's rolling total next to last
+          // year's completed one under the same label. Rolling stays in the
+          // table, where each column is read on its own terms; it is left out
+          // of the average, which has to compare like with like.
+          if (window === "calendar") {
+            const scored = curves.years.filter((y) => y >= REFERENCE_START && y <= year);
+            const percentiles = leaveOneOutPercentiles(
+              scored.map((y) => curves.curves.get(y)![day]));
+            ranks.push(new Map(scored.map((y, i) => [y, percentiles[i]])));
+          }
+
+          cells.push({
             percentile: result.percentile * 100,
-            label: fill(copy.home.spreadLabel, {
-              threshold: magLabel(minMag),
-              catalog: mainshocksOnly
-                ? copy.home.spreadMainshocks : copy.home.spreadAll,
-              measure: measure === "moment"
-                ? copy.home.spreadMoment : copy.home.spreadCount,
-              window: window === "rolling"
-                ? copy.home.spreadRolling : copy.home.spreadCalendar,
-            }),
             selected: minMag === state.minMag && measure === state.measure
                    && mainshocksOnly === effectiveMainshocksOnly()
                    && window === state.window,
           });
         }
+        if (cells.length !== SPREAD_WINDOWS.length) continue;
+        rows.push({
+          label: fill(copy.home.spreadLabel, {
+            threshold: magLabel(minMag),
+            catalog: mainshocksOnly ? copy.home.spreadMainshocks : copy.home.spreadAll,
+            measure: measure === "moment" ? copy.home.spreadMoment : copy.home.spreadCount,
+          }),
+          cells,
+        });
       }
     }
   }
-  return points;
+
+  // Only years every slicing scored, so each year's average is over the same
+  // set of numbers as every other year's.
+  let aggregate: Aggregate | null = null;
+  const shared = ranks.length
+    ? [...ranks[0].keys()].filter((y) => ranks.every((r) => r.has(y))).sort((a, b) => a - b)
+    : [];
+  if (ranks.length && shared.length > 1) {
+    const mean = shared.map((y) =>
+      ranks.reduce((a, r) => a + r.get(y)!, 0) / ranks.length);
+    const current = mean[mean.length - 1];
+    const past = mean.slice(0, -1);
+    aggregate = {
+      percentile: current,
+      beats: (100 * past.filter((m) => m < current).length) / past.length,
+      slices: ranks.length,
+      years: past.length,
+    };
+  }
+  return { rows, aggregate };
 }
 
-function writeSpread(tier: Tier, currentYear: number,
-                     theme: ReturnType<typeof readTheme>, width: number) {
-  const points = spreadPoints(tier);
-  if (points.length < 2) { el.spread.hidden = true; return; }
+function writeSpread(tier: Tier, currentYear: number) {
+  const { rows, aggregate } = spreadTable(tier);
+  if (rows.length < 2) { el.spread.hidden = true; return; }
   el.spread.hidden = false;
 
-  const values = points.map((p) => p.percentile);
-  const here = points.find((p) => p.selected);
-  el.spreadTitle.textContent = fill(copy.home.spreadTitle,
-                                    { year: yearLabel(currentYear) });
-  el.spreadNote.textContent = fill(copy.home.spreadNote, {
-    ways: points.length,
-    year: yearLabel(currentYear),
-    low: ordinal(Math.min(...values)),
-    high: ordinal(Math.max(...values)),
-    current: here ? ordinal(here.percentile) : ordinal(median(values)),
+  const c = copy.home;
+  const all = rows.flatMap((r) => r.cells.map((cell) => cell.percentile));
+  el.spreadTitle.textContent = fill(c.spreadTitle, { year: yearLabel(currentYear) });
+  el.spreadAggregate.textContent = aggregate
+    ? fill(c.spreadAggregate, {
+        ways: aggregate.slices, year: yearLabel(currentYear),
+        aggregate: ordinal(aggregate.percentile),
+        beats: Math.round(aggregate.beats),
+      })
+    : "";
+  el.spreadNote.textContent = fill(c.spreadNote, {
+    ways: all.length,
+    low: ordinal(Math.min(...all)),
+    high: ordinal(Math.max(...all)),
   });
-  el.spreadChart.replaceChildren(renderSpread({
-    points, theme, width,
-    axisLabel: copy.home.spreadAxis,
-    selectedLabel: copy.home.spreadSelected,
-  }));
-}
+  if (aggregate) {
+    el.spreadAggregate.textContent = fill(c.spreadAggregate, {
+      ways: aggregate.slices, year: yearLabel(currentYear),
+      aggregate: ordinal(aggregate.percentile),
+      beats: Math.round(aggregate.beats), years: aggregate.years,
+    });
+  }
 
-function median(values: number[]): number {
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = sorted.length >> 1;
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  const box = document.createElement("div");
+  box.className = "correlate-flip spread-box";
+  const list = document.createElement("ol");
+  list.className = "flip-rows";
+  const template = "minmax(0, 1fr) minmax(0, 7.5rem) minmax(0, 7.5rem)";
+
+  const row = (cells: string[], cls: string, marked: boolean[] = []) => {
+    const li = document.createElement("li");
+    li.className = cls;
+    li.style.gridTemplateColumns = template;
+    cells.forEach((text, i) => {
+      const cell = document.createElement("span");
+      cell.className = i === 0 ? "flip-when" : "flip-when flip-num";
+      if (marked[i]) cell.classList.add("is-selected");
+      cell.textContent = text;
+      li.append(cell);
+    });
+    return li;
+  };
+
+  list.append(row([c.spreadColWay, c.spreadCalendar, c.spreadRolling], "flip-head"));
+  for (const r of rows) {
+    list.append(row(
+      [r.label, ...r.cells.map((cell) => ordinal(cell.percentile))],
+      "", [false, ...r.cells.map((cell) => cell.selected)]));
+  }
+  box.append(list);
+  el.spreadChart.replaceChildren(box);
 }
 
 /* ---------------- map ---------------- */
@@ -1361,7 +1478,7 @@ async function update() {
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
-    writeSpread(tier, currentYear, theme, width);
+    writeSpread(tier, currentYear);
     void writeTrend(currentYear, theme, width);
 
     const mapEvents = highlightedEvents(tier, minMag, highlights, shift);
