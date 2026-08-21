@@ -329,7 +329,10 @@ function flipTable(columns: Column[], rows: string[][], current: number,
  */
 /**
  * How many questions this page puts a cutoff to: weekday, season, moon,
- * climate, solar. Oklahoma is not a test.
+ * climate, solar. Oklahoma is not one -- it has no statistic.
+ *
+ * The same five vote on the page's own answer, so the count quoted in the
+ * tooltips and the set that decides the headline cannot drift apart.
  */
 const TESTS = 5;
 const ANY_FLAG = Math.round((1 - 0.95 ** TESTS) * 100);
@@ -527,9 +530,8 @@ async function boot() {
   const kept = times.length.toLocaleString();
 
   // Set after the panels, once their outcomes are known -- see the end of boot.
-  // Only the four that correspond to the headline question count. The weekday
-  // panel is a control on the catalogue rather than one of the three things the
-  // question names, and Oklahoma answers a different question entirely.
+  // Every panel that runs a test votes, which is all of them but Oklahoma: that
+  // one has no statistic and answers a different question.
   const headline: string[] = [];
   el.answerDetail.textContent = copy.correlations.detail;
 
@@ -548,6 +550,7 @@ async function boot() {
   const weekday = weekdayBins(times);
   const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
   const weekdayOut = binOutcome(weekday);
+  headline.push(weekdayOut.key);
   built.push(panel(copy.correlations.weekdayQuestion,
     plainVerdict(weekdayOut.key),
     fill([copy.correlations.weekdayIntro,
