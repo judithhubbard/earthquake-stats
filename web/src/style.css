@@ -788,12 +788,35 @@ footer p { margin: 0 0 0.4rem; }
 
 .flip-rows li {
   display: grid;
-  grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
   gap: 0.75rem;
-  padding: 0.2rem 0.4rem;
+  padding: 0.25rem 0.4rem;
   margin: 0 -0.4rem;
   border-radius: 5px;
   line-height: 1.45;
+}
+
+/* The heading and the readings are not candidate answers; they frame the ones
+   that are, and need to look it. Rules above and below, and no row styling. */
+.flip-rows .flip-head {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.3rem;
+  border-bottom: 1px solid var(--axis);
+  border-radius: 0;
+}
+
+.flip-rows .flip-reading {
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--axis);
+  border-radius: 0;
+  color: var(--text-primary);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
 
 .flip-rows li.is-current {
@@ -804,18 +827,26 @@ footer p { margin: 0 0 0.4rem; }
 
 .flip-when { font-variant-numeric: tabular-nums; }
 
-/* Runs on from the verdict it produced, rather than at the right-hand edge a
-   long way from anything it relates to. */
-.flip-now {
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-  white-space: nowrap;
+/* A ring beside a small uppercase heading needs centring on it. */
+.flip-head .hint-button {
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+
+.flip-head .hint-tip {
+  width: 30rem;
+  white-space: pre-line;
+  font-weight: 400;
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.5;
   color: var(--text-secondary);
-  margin-left: 1.4rem;
 }
 
 @media (max-width: 560px) {
-  .flip-rows li { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .flip-rows li { grid-template-columns: minmax(0, 1fr) !important; gap: 0.1rem; }
+  .flip-rows .flip-head { display: none; }
   .flip-rows .flip-says { color: var(--text-secondary); }
 }
 

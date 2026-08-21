@@ -5,7 +5,8 @@ import { MIN_MAGNITUDE, dayIndex } from "./stats";
 import { copy, fill } from "./copy";
 import { startAnalytics } from "./analytics";
 import {
-  FULL_MOON_DAY, chiSquare, lunarBins, monthBins, outsideBand, pearson, weekdayBins,
+  FULL_MOON_DAY, chiSquare, chiSquareP, correlationP, lunarBins, monthBins, outsideBand,
+  pearson, weekdayBins,
   type Bin, type Correlation,
 } from "./correlate";
 
@@ -242,16 +243,34 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
  * Only the verdict: each panel writes its own explanation now, with its own
  * figures, so a shared note would repeat them in a second voice.
  */
-function binVerdict(bins: Bin[]): string {
+/**
+ * Which of the three answers a bar panel is on, and how often chance alone
+ * would produce what it is showing.
+ *
+ * Passing at the 5% level is not a finding, so it earns "Maybe." rather than
+ * "Yes." -- the affirmative also needs an effect large enough to matter, graded
+ * by Cramer's V, negligible below 0.1 by convention rather than by a number
+ * picked here.
+ */
+interface Outcome { key: "no" | "maybe" | "yes"; verdict: string; p: string; }
+
+function binOutcome(bins: Bin[]): Outcome {
   const test = chiSquare(bins);
-  if (test.statistic <= test.critical) return copy.correlations.verdictNo;
-  // Significant is not the same as meaningful. On 40,000 events a 3% wobble in
-  // one bin clears the threshold, so the affirmative is graded by Cramer's V --
-  // the standard effect size for a chi-square, negligible below 0.1 by
-  // convention rather than by a number picked here.
   const n = bins.reduce((a, b) => a + b.count, 0);
   const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
-  return v < 0.1 ? copy.correlations.verdictYesNegligible : copy.correlations.verdictYes;
+  const p = asPercent(chiSquareP(test.statistic, test.df));
+  if (test.statistic <= test.critical) {
+    return { key: "no", verdict: copy.correlations.verdictNo, p };
+  }
+  return v < NEGLIGIBLE_V
+    ? { key: "maybe", verdict: copy.correlations.verdictMaybe, p }
+    : { key: "yes", verdict: copy.correlations.verdictYes, p };
+}
+
+/** A share as a readable percentage: 0.077 reads 8, 0.0004 reads "under 1". */
+function asPercent(share: number): string {
+  const pct = share * 100;
+  return pct < 1 ? "under 1" : pct.toFixed(0);
 }
 
 /**
@@ -261,9 +280,10 @@ function binVerdict(bins: Bin[]): string {
  * paraphrase, so the table cannot end up describing a rule the page does not
  * follow.
  */
-function flipTable(columns: string[], rows: string[][], current: number,
-                   now: (string | null)[],
-                   help?: { label: string; body: string }): HTMLElement {
+interface Column { label: string; help?: { label: string; body: string }; }
+
+function flipTable(columns: Column[], rows: string[][], current: number,
+                   now: (string | null)[]): HTMLElement {
   const box = document.createElement("div");
   box.className = "correlate-flip";
   // Column widths are set here rather than in the stylesheet because the two
@@ -275,22 +295,31 @@ function flipTable(columns: string[], rows: string[][], current: number,
   const title = document.createElement("p");
   title.className = "flip-title";
   title.textContent = copy.correlations.flipTitle;
-  if (help) {
-    const hint = document.createElement("span");
-    hint.className = "hint";
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "hint-button";
-    button.setAttribute("aria-label", help.label);
-    button.textContent = "?";
-    const tip = document.createElement("span");
-    tip.className = "hint-tip";
-    tip.setAttribute("role", "tooltip");
-    tip.textContent = help.body;
-    hint.append(button, tip);
-    title.append(" ", hint);
-  }
   box.append(title);
+
+  // Each statistic explains itself, in its own column heading, rather than one
+  // tip on the title trying to cover both.
+  const heading = (col: Column): HTMLElement => {
+    const cell = document.createElement("span");
+    cell.className = "flip-when";
+    cell.textContent = col.label;
+    if (col.help) {
+      const hint = document.createElement("span");
+      hint.className = "hint";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "hint-button";
+      button.setAttribute("aria-label", col.help.label);
+      button.textContent = "?";
+      const tip = document.createElement("span");
+      tip.className = "hint-tip";
+      tip.setAttribute("role", "tooltip");
+      tip.textContent = col.help.body;
+      hint.append(button, tip);
+      cell.append(" ", hint);
+    }
+    return cell;
+  };
 
   const list = document.createElement("ol");
   list.className = "flip-rows";
@@ -308,7 +337,11 @@ function flipTable(columns: string[], rows: string[][], current: number,
     return li;
   };
 
-  list.append(row(columns, "flip-head"));
+  const head = document.createElement("li");
+  head.className = "flip-head";
+  head.style.gridTemplateColumns = template;
+  columns.forEach((col) => head.append(heading(col)));
+  list.append(head);
   rows.forEach((cells, i) => list.append(row(cells, i === current ? "is-current" : "")));
   // The readings sit in a row of their own, each under the threshold it is
   // being compared against. Anywhere else and the reader has to work out which
@@ -330,18 +363,20 @@ function binFlip(bins: Bin[]): HTMLElement {
   const current = test.statistic <= test.critical ? 2 : v < NEGLIGIBLE_V ? 1 : 0;
   const c = copy.correlations;
   return flipTable(
-    [c.flipColChi, c.flipColSize, c.flipColAnswer],
+    [{ label: c.flipColChi,
+       help: { label: c.flipHelp, body: fill(c.flipHelpBody, { bins: bins.length }) } },
+     { label: c.flipColSize, help: { label: c.flipHelpV, body: c.flipHelpVBody } },
+     { label: c.flipColAnswer }],
     [
       [fill(c.flipBinAbove, { critical }), fill(c.flipVAbove, { v: NEGLIGIBLE_V }),
        c.verdictYes],
       [fill(c.flipBinAbove, { critical }), fill(c.flipVBelow, { v: NEGLIGIBLE_V }),
-       c.verdictYesNegligible],
+       c.verdictMaybe],
       [fill(c.flipBinBelow, { critical }), c.flipVAny, c.verdictNo],
     ],
     current,
     [fill(c.flipNow, { value: test.statistic.toFixed(1) }),
      fill(c.flipNow, { value: v.toFixed(3) }), null],
-    { label: c.flipHelp, body: fill(c.flipHelpBody, { bins: bins.length }) },
   );
 }
 
@@ -351,6 +386,11 @@ function scatterVerdict(c: Correlation | null, up: string, down: string): string
   return c.r > 0 ? up : down;
 }
 
+/** The same for a scatter panel. Fifty annual counts never earn a plain yes. */
+function scatterP(c: Correlation | null): string {
+  return c ? asPercent(correlationP(c.r, c.n)) : "";
+}
+
 function scatterFlip(c: Correlation | null, up: string, down: string): HTMLElement | undefined {
   if (!c) return undefined;
   const critical = c.critical.toFixed(2);
@@ -358,7 +398,9 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
   // Ordered like the number line it describes: positive, neither, negative.
   const current = !c.significant ? 1 : c.r > 0 ? 0 : 2;
   return flipTable(
-    [t.flipColR, t.flipColAnswer],
+    [{ label: t.flipColR,
+       help: { label: t.flipHelpR, body: fill(t.flipHelpRBody, { years: c.n, critical }) } },
+     { label: t.flipColAnswer }],
     [
       [fill(t.flipScatterAbove, { critical }), up],
       [fill(t.flipScatterWithin, { critical }), t.verdictNo],
@@ -366,7 +408,6 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
     ],
     current,
     [fill(t.flipNow, { value: c.r.toFixed(2) }), null],
-    { label: t.flipHelpR, body: fill(t.flipHelpRBody, { years: c.n, critical }) },
   );
 }
 
@@ -472,9 +513,15 @@ async function boot() {
   // earthquakes occur on", so it has to name a day that is actually above it.
   const weekday = weekdayBins(times);
   const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
+  const weekdayOut = binOutcome(weekday);
   built.push(panel(copy.correlations.weekdayQuestion,
-    binVerdict(weekday),
-    fill(copy.correlations.weekdayExplain, {
+    weekdayOut.verdict,
+    fill([copy.correlations.weekdayIntro,
+          weekdayOut.key === "no"
+            ? copy.correlations.weekdayTail
+            : [copy.correlations.weekdayFlipped, copy.correlations.maybeBin].join("\n\n"),
+         ].join("\n\n"), {
+      p: weekdayOut.p,
       threshold: `M${BIN_MAGNITUDE}+`, from: FIRST_YEAR,
       raw: raw.toLocaleString(), count: kept,
       bin: busiest.full,
@@ -488,8 +535,9 @@ async function boot() {
   const ranked = [...month].sort((a, b) => Math.abs(b.deviation) - Math.abs(a.deviation));
   const gap = Math.abs(month.indexOf(ranked[0]) - month.indexOf(ranked[1]));
   const word = (d: number) => (d >= 0 ? "more" : "fewer");
+  const monthOut = binOutcome(month);
   built.push(panel(copy.correlations.monthQuestion,
-    binVerdict(month),
+    monthOut.verdict,
     [
       fill(copy.correlations.monthIntro, {
         count: kept,
@@ -506,7 +554,10 @@ async function boot() {
         bin2: ranked[1].full, pct2: Math.abs(ranked[1].deviation).toFixed(1),
         dir2: word(ranked[1].deviation),
       }),
-      copy.correlations.monthExplain,
+      monthOut.key === "no"
+        ? copy.correlations.monthExplain
+        : [fill(copy.correlations.monthFlipped, { p: monthOut.p }),
+           fill(copy.correlations.maybeBin, { p: monthOut.p })].join("\n\n"),
     ].join("\n\n"),
     (w) => binChart(month, w), undefined,
     fill(copy.correlations.monthSubtitle, { since }), legend, binFlip(month)));
@@ -520,9 +571,14 @@ async function boot() {
   const moon = lunarBins(times);
   const moonStray = outsideBand(moon);
   const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-  built.push(panel(copy.correlations.moonQuestion, binVerdict(moon),
-    fill(copy.correlations.moonExplain, {
-      article: TIDES_ARTICLE, count: kept,
+  const moonOut = binOutcome(moon);
+  built.push(panel(copy.correlations.moonQuestion, moonOut.verdict,
+    fill([copy.correlations.moonOpen,
+          moonOut.key === "no"
+            ? copy.correlations.moonTail
+            : [copy.correlations.moonFlipped, copy.correlations.maybeBin].join("\n\n"),
+          copy.correlations.moonRest].join("\n\n"), {
+      article: TIDES_ARTICLE, count: kept, p: moonOut.p,
       allBut: moonStray.count === 0
         ? copy.correlations.moonAllInside
         : fill(copy.correlations.moonAllBut, {
@@ -543,8 +599,14 @@ async function boot() {
     const cUp = copy.correlations.climateYesUp;
     const cDown = copy.correlations.climateYesDown;
     built.push(panel(copy.correlations.climateQuestion, scatterVerdict(c, cUp, cDown),
-      fill(copy.correlations.climateExplain, {
-        threshold: `M${MIN_MAGNITUDE}+`,
+      fill([c?.significant ? copy.correlations.climateOpenFlipped
+                           : copy.correlations.climateOpen,
+            copy.correlations.climateMiddle,
+            c?.significant ? copy.correlations.climateCloseFlipped
+                           : copy.correlations.climateCloseNo,
+            ...(c?.significant ? [copy.correlations.maybeScatter] : []),
+           ].join("\n\n"), {
+        threshold: `M${MIN_MAGNITUDE}+`, p: scatterP(c),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
         binThreshold: `M${BIN_MAGNITUDE}+`,
@@ -553,7 +615,8 @@ async function boot() {
           c.significant
             ? copy.correlations.climateStatSignificant
             : copy.correlations.climateStatNull,
-          { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2) }),
+          { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2),
+            p: scatterP(c) }),
       }),
       (w) => scatterChart(points, w, copy.correlations.climateAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
@@ -567,8 +630,10 @@ async function boot() {
     const sUp = copy.correlations.solarYesUp;
     const sDown = copy.correlations.solarYesDown;
     built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c, sUp, sDown),
-      fill(copy.correlations.solarExplain, {
-        threshold: `M${MIN_MAGNITUDE}+`,
+      fill([copy.correlations.solarExplain,
+            ...(c?.significant ? [copy.correlations.maybeScatter] : []),
+           ].join("\n\n"), {
+        threshold: `M${MIN_MAGNITUDE}+`, p: scatterP(c),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
         binThreshold: `M${BIN_MAGNITUDE}+`,
@@ -577,7 +642,8 @@ async function boot() {
           c.significant
             ? copy.correlations.solarStatSignificant
             : copy.correlations.solarStatNull,
-          { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2) }),
+          { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2),
+            p: scatterP(c) }),
       }),
       (w) => scatterChart(points, w, copy.correlations.solarAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),

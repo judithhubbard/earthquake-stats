@@ -260,7 +260,7 @@ export const copy = {
     /* Verdict lines shared by the bar panels. */
     verdictNo: "No.",
     verdictYes: "Yes.",
-    verdictYesNegligible: "Yes, but the effect is negligible.",
+    verdictMaybe: "Maybe.",
     verdictNotReally: "Not really.",
     /* The furthest bar, and how many stray bars to expect anyway. Said in one
        breath, because saying "inside the grey" and then "one bar is outside"
@@ -269,8 +269,18 @@ export const copy = {
         built on the null hypothesis, so it is right to name the null. */
 
     /* Verdict lines shared by the scatter panels. */
-    verdictMaybe: "Maybe, but only just.",
     verdictNotEnough: "Not enough data.",
+
+    /* Shown when a test passes its threshold. Passing at the 5% level is not a
+       finding, and this is the sentence that says so. */
+    maybeBin:
+      "The data do show a pattern. Does a pattern mean a cause? If earthquakes occur at " +
+      "random, we would expect to see a spread like this {p}% of the time. So this is not a " +
+      "full answer, but it suggests the data are worth a deeper look.",
+    maybeScatter:
+      "The data do show a correlation. Does correlation equal causation? If earthquakes occur " +
+      "at random, we would expect to see a correlation like this {p}% of the time. So this is " +
+      "not a full answer, but it suggests the data are worth a deeper look.",
 
     /* What each test would have to read for the answer above it to change. The
        page says its answers are computed; these lines are that claim in a form
@@ -282,6 +292,17 @@ export const copy = {
     flipTitle: "This answer is calculated, not hard-coded:",
     flipHelp: "what is chi-square?",
     flipHelpR: "what is a correlation coefficient?",
+    flipHelpV: "what is Cramér's V?",
+    flipHelpVBody:
+      "Cramér's V measures how large the unevenness is, rather than how confidently it can be " +
+      "told apart from chance." +
+      "\n\nIt runs from 0 to 1. At 0 the bars are exactly level. The larger it gets, the " +
+      "further from level they are." +
+      "\n\nChi-square grows with the amount of data: given enough earthquakes, a difference of " +
+      "a fraction of a percent will pass its threshold. V does not. It stays the same size as " +
+      "the data accumulate, so it answers whether a difference is worth caring about rather " +
+      "than whether it can be detected." +
+      "\n\nAnything below 0.1 is conventionally treated as negligible.",
     flipHelpRBody:
       "The correlation coefficient is one way to assess whether two quantities move together, " +
       "or vary independently." +
@@ -311,10 +332,10 @@ export const copy = {
        against -- classifying a difference as negligible while never showing
        the number that decides it would be the sort of thing this page argues
        against. */
-    flipColChi: "chi-square",
-    flipColSize: "size of the difference",
-    flipColR: "correlation",
-    flipColAnswer: "the answer",
+    flipColChi: "Chi-square",
+    flipColSize: "Cramér's V",
+    flipColR: "Correlation (r)",
+    flipColAnswer: "The answer",
     flipBinAbove: "above {critical}",
     flipBinBelow: "below {critical}",
     flipVAbove: "{v} or more",
@@ -326,14 +347,27 @@ export const copy = {
     flipNow: "Right now: {value}",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
-    weekdayExplain:
+    /* The first paragraph is the method and holds whatever the answer is; the
+       rest depends on it, so the two are separate strings. */
+    weekdayIntro:
       "We took every {threshold} earthquake recorded since {from} — {raw} of them — " +
       "and removed the aftershocks, leaving {count} independent earthquakes. Then we " +
-      "classified each of those by its day of the week in UTC." +
-      "\n\nMore earthquakes occur on {bin}s, at {percent}% above the average. So, are {bin}s " +
-      "earthquake days? No; that kind of variation is within the range of what we expect if the " +
-      "distribution is random. On the plot, the gray shows ±2 standard deviations — i.e., where " +
-      "we expect 95.45% to fall.",
+      "classified each of those by its day of the week in UTC.",
+    weekdayTail:
+      "More earthquakes occur on {bin}s, at {percent}% above the average. So, are {bin}s " +
+      "earthquake days? No — with seven days, one of them is always the busiest, and {percent}% " +
+      "is the sort of margin that produces. On the plot, the gray shows ±2 standard deviations " +
+      "— i.e., where we expect 95.45% to fall.",
+    weekdayFlipped:
+      "More earthquakes occur on {bin}s, at {percent}% above the average — but with seven days, " +
+      "one of them is always the busiest, and the test below does not ask about {bin}s in " +
+      "particular. It asks whether the seven counts differ by more than chance allows." +
+      "\n\nRight now they do: a spread like this turns up {p}% of the time when the day of the " +
+      "week makes no difference. On the plot, the gray shows ±2 standard deviations — i.e., " +
+      "where we expect 95.45% to fall." +
+      "\n\nWe would read that as a sign of something in the catalog rather than in the Earth. " +
+      "Earthquakes have no way to know what day it is, but the people and networks that record " +
+      "them keep human schedules.",
     weekdaySubtitle: "Day of the week · {since}",
 
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
@@ -365,22 +399,38 @@ export const copy = {
       "\n\nThere are a few locations where there are slight differences between earthquake rates " +
       "between summer and winter, but they are rare and associated with large swings, like the " +
       "South Asian monsoon.",
+    monthFlipped:
+      "Here, month is a proxy for weather. If weather had a noticeable impact on earthquake " +
+      "rates, we would see something here, because we see different weather during different " +
+      "months. Right now we do see something: a spread like this turns up {p}% of the time when " +
+      "the month makes no difference." +
+      "\n\nThat is worth a look, but it is not yet a reason to think weather drives " +
+      "earthquakes. Earthquakes typically start ten kilometers or more underground, where the " +
+      "small stresses caused by weather patterns have essentially no impact." +
+      "\n\nThere are a few locations where there are slight differences between earthquake " +
+      "rates between summer and winter, but they are rare and associated with large swings, " +
+      "like the South Asian monsoon.",
     monthSubtitle: "Month of the year · {since}",
 
     moonQuestion: "Does the moon set off earthquakes?",
     moonVerdict: "No.",
     /* {allBut} is filled from the data, so the count cannot go stale, and the
        link is built from one URL held in correlations.ts. */
-    moonExplain:
+    /* Split three ways: the setup, the part that depends on the answer, and the
+       two paragraphs that follow whatever it is. Duplicating the last two to
+       make a second whole string would have meant editing both forever. */
+    moonOpen:
       "Many people have suggested that lunar tides might cause earthquakes — this is a topic " +
       "that has shown up not just in popular culture, but research papers. Here, we show those " +
       "same {count} earthquakes, classified by the lunar day on which each occurred. This chart " +
-      "tests the question as " +
-      "it is usually asked: does the count depend on the phase of the moon? If it did, the " +
-      "simplest expectation is two peaks, at new and full moon, when the sun and moon pull " +
-      "together. That pattern does not show up. Instead, {allBut} the data points fall within " +
-      "±2 standard deviations — i.e., where we expect 95.45% of the data to fall if it is random." +
-      "\n\nAs with many things, it is possible to make this question much more complicated — " +
+      "tests the question as it is usually asked: does the count depend on the phase of the " +
+      "moon? If it did, the simplest expectation is two peaks, at new and full moon, when the " +
+      "sun and moon pull together.",
+    moonTail:
+      "That pattern does not show up. Instead, {allBut} the data points fall within ±2 standard " +
+      "deviations — i.e., where we expect 95.45% of the data to fall if it is random.",
+    moonRest:
+      "As with many things, it is possible to make this question much more complicated — " +
       "looking at different types of stresses, different types of faults, different regions on " +
       "Earth. All of those studies for global earthquakes show ambiguous results at best, and " +
       "non-results at worst. A few careful studies do find a small effect on a small number of " +
@@ -389,6 +439,12 @@ export const copy = {
       "the published claims of tidal precursors directly, and they " +
       "<a href=\"{article}\" data-track=\"substack-tides\" target=\"_blank\" " +
       "rel=\"noopener noreferrer\">did not hold up</a>.",
+    moonFlipped:
+      "That pattern is not what shows up, but the counts are more uneven than chance " +
+      "comfortably explains: a spread like this turns up {p}% of the time when the lunar day " +
+      "makes no difference." +
+      "\n\nWhether that unevenness has the shape the tidal argument predicts is a separate " +
+      "question, and one this chart cannot settle on its own.",
     moonAllInside: "all of",
     moonAllBut: "all but {n} of",
     moonSubtitle: "Day of the lunar cycle · {since}",
@@ -396,13 +452,14 @@ export const copy = {
     moonFullMoon: "full moon",
 
     climateQuestion: "Is climate change affecting earthquakes?",
-    climateExplain:
+    climateOpen:
       "Some people have suggested that climate change might cause earthquakes to become more " +
       "frequent — suggesting that melting ice, rising sea level, and changes in hydrology could " +
       "affect the rate of earthquakes. While these things can affect earthquakes, the effects " +
       "are very small, and there is no evidence that they cause an effect that rises above the " +
-      "level of the noise." +
-      "\n\nBelow, we show the number of {threshold} earthquakes per year, again with the " +
+      "level of the noise.",
+    climateMiddle:
+      "Below, we show the number of {threshold} earthquakes per year, again with the " +
       "aftershocks removed, plotted against the global temperature in that year. Why {threshold} " +
       "instead of {binThreshold}? Earthquake networks have improved over time, so we can detect " +
       "earthquakes now that we could not detect in the 1970s. Because we're looking at " +
@@ -410,9 +467,15 @@ export const copy = {
       "signal. Fortunately, networks have been good enough since {from} to detect all global " +
       "{threshold} earthquakes." +
       "\n\nAs before, we remove aftershocks, so our initial catalog of {tierRaw} decreases to " +
-      "{tierCount}, which is plenty for this analysis. As expected, we see no change. {stat}",
-    /* Two versions of the statistic, so the sentence stays true if the
-       correlation ever clears the threshold. */
+      "{tierCount}, which is plenty for this analysis.",
+    climateOpenFlipped:
+      "Some people have suggested that climate change might cause earthquakes to become more " +
+      "frequent — suggesting that melting ice, rising sea level, and changes in hydrology could " +
+      "affect the rate of earthquakes. While these things can affect earthquakes, the effects " +
+      "are very small. Right now, though, the data show a correlation larger than we would " +
+      "usually put down to chance.",
+    climateCloseNo: "As expected, we see no change. {stat}",
+    climateCloseFlipped: "That is not what we expected. {stat}",
     climateStatNull:
       "The correlation coefficient over {years} years is {r}, well below the {critical} we " +
       "would need for statistical significance at the 5% level.",
@@ -420,8 +483,8 @@ export const copy = {
       "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
       "needed for statistical significance at the 5% level. With this few years, treat that as " +
       "suggestive rather than established.",
-    climateYesUp: "Yes — more earthquakes in warmer years.",
-    climateYesDown: "Yes — fewer earthquakes in warmer years.",
+    climateYesUp: "Maybe — more earthquakes in warmer years.",
+    climateYesDown: "Maybe — fewer earthquakes in warmer years.",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
     solarQuestion: "Does solar activity affect earthquakes?",
@@ -435,11 +498,11 @@ export const copy = {
       "As expected, the correlation coefficient is {r}; it does not reach the {critical} needed " +
       "for statistical significance at the 5% level.",
     solarStatSignificant:
-      "The correlation coefficient is {r}, which does reach the {critical} needed for " +
-      "statistical significance at the 5% level. On {years} years of data, treat that as " +
-      "suggestive rather than established.",
-    solarYesUp: "Yes — more earthquakes in years with more sunspots.",
-    solarYesDown: "Yes — fewer earthquakes in years with more sunspots.",
+      "The correlation coefficient is {r}. If earthquakes occur at random, we would expect a " +
+      "correlation this strong {p}% of the time. On {years} years of data, that is suggestive " +
+      "rather than established.",
+    solarYesUp: "Maybe — more earthquakes in years with more sunspots.",
+    solarYesDown: "Maybe — fewer earthquakes in years with more sunspots.",
     solarAxis: "Sunspot number",
 
     scatterSubtitle: "Each dot is one year, {from} onward",
