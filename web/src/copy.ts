@@ -343,7 +343,7 @@ export const copy = {
       "standard deviations, measured over every window of that length anywhere in the " +
       "record rather than over calendar years." +
 
-      "\n\n**The answer at the top ignores the settings.** The controls reach twelve " +
+      "\n\n**The answer at the top ignores the user selections.** The controls reach twelve " +
       "combinations, and this year lands anywhere from the 41st percentile to the 92nd across " +
       "them. An answer read off whichever one was selected could be changed by clicking, so " +
       "the answer pools all of them. Everything below it still follows the controls, and says " +
