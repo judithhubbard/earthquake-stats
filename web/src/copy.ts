@@ -301,16 +301,11 @@ export const copy = {
       "\n\nEach bar is compared with the count it would hold if there were no pattern at all. " +
       "Those differences are combined into a single number. The larger the differences, the " +
       "larger the number." +
-      "\n\nWhat counts as large depends on how many bars there are. The threshold in the rows " +
-      "below is the value that purely random data exceeds only 5% of the time. Below it, the " +
-      "differences are the size chance produces. Above it, they are not." +
-      "\n\nPassing that test means a difference is detectable, not that it is large. With " +
-      "{total} earthquakes, a difference of two or three percent is enough. So the answer also " +
-      "depends on the size of the difference, measured by Cramér's V, which treats anything " +
-      "below 0.1 as negligible. These bars are at {v} — they would have to be about {multiple} " +
-      "times more uneven to count." +
+      "\n\nWhat counts as large depends on how many bars there are. If the data are random, " +
+      "we expect the chi-square to exceed the threshold only 5% of the time." +
       "\n\nThe threshold never moves. It is set by the number of bars alone, so more " +
-      "earthquakes will not change it. Only the chi-square moves.",
+      "earthquakes will not change it. Only the chi-square moves, as new earthquakes occur and " +
+      "are added to the dataset.",
     flipBinBelow: "chi-square below {critical}",
     flipBinNegligible: "above {critical}, but the difference is tiny",
     flipBinMeaningful: "above {critical}, and big enough to matter",

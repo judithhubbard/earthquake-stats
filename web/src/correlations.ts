@@ -336,10 +336,7 @@ function binFlip(bins: Bin[]): HTMLElement {
     statistic: test.statistic.toFixed(1),
   }), {
     label: copy.correlations.flipHelp,
-    body: fill(copy.correlations.flipHelpBody, {
-      bins: bins.length, total: n.toLocaleString(),
-      v: v.toFixed(3), multiple: Math.round(0.1 / Math.max(v, 1e-9)),
-    }),
+    body: fill(copy.correlations.flipHelpBody, { bins: bins.length }),
   });
 }
 
