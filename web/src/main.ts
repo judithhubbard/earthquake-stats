@@ -242,14 +242,14 @@ const BAND_FADES = [1, 0.45, 1, 0.45, 1];
  * width of its band, which is also the number of years in a hundred: the
  * percentile is uniform by construction, so a band 20 points wide is 20 years.
  */
-function buildAnswerScale(pct: number | null,
-                          minMag: number, kind: string, year: string) {
-  const rolling = state.window === "rolling";
+function buildAnswerScale(pct: number | null, year: string) {
   const bands = ANSWER_BOUNDS.slice(0, -1).map((low, i) => {
     const high = ANSWER_BOUNDS[i + 1];
     return {
       low, high, width: high - low,
-      text: fill(answerFor((low + high) / 2, rolling), { year, from: REFERENCE_START }),
+      // false, not the window setting: these are the sentences the headline can
+      // print, and it prints the calendar ones.
+      text: fill(answerFor((low + high) / 2, false), { year, from: REFERENCE_START }),
       tint: BAND_TINTS[i], fade: BAND_FADES[i],
     };
   });
@@ -306,7 +306,7 @@ function buildAnswerScale(pct: number | null,
   }));
 
   el.scaleNote.textContent = pct === null ? "" : fill(copy.home.scaleNote, {
-    threshold: magLabel(minMag), kind, year, percentile: ordinal(pct),
+    year, percentile: ordinal(pct),
   });
 }
 
@@ -685,8 +685,8 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
   return { rows, aggregate, years: shared.length - 1 };
 }
 
-function writeSpread(tier: Tier, currentYear: number) {
-  const { rows, aggregate } = spreadTable(tier);
+function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number) {
+  const { rows, aggregate } = spread;
   if (rows.length < 2) { el.spread.hidden = true; return; }
   el.spread.hidden = false;
 
@@ -1356,6 +1356,15 @@ async function update() {
     ? { lo: windows[windows.length - 1].sdLo, hi: windows[windows.length - 1].sdHi }
     : null;
   const result = verdict(curves, refYears, currentYear, today, state.measure);
+  // Before the headline, because the headline is now read off it. Every way of
+  // counting the year, pooled -- see spreadTable.
+  const spread = spreadTable(tier);
+  // The one number the controls cannot move. Falling back to the selected
+  // slice only if the pooling could not be done at all, which needs three
+  // years of catalogue.
+  const headlinePct = spread.aggregate
+    ? 100 * (1 - spread.aggregate.p)
+    : (result ? result.percentile * 100 : null);
 
   const counts = annualCounts(curves, majorCurves, currentYear, today, refYears,
                              state.measure);
@@ -1364,10 +1373,9 @@ async function update() {
     ? fill(copy.home.cumulativeSubjectMoment, { threshold: magLabel(minMag) })
     : fill(copy.home.cumulativeSubjectCount, { threshold: magLabel(minMag), kind });
 
-  writeHeadline(result, currentYear);
+  writeHeadline(result, currentYear, headlinePct);
   void writeLatest(minMag);
-  buildAnswerScale(result ? result.percentile * 100 : null,
-                   minMag, kind, yearLabel(currentYear));
+  buildAnswerScale(headlinePct, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);
   writeAnnualNote(currentYear, splitMajor, rolling);
 
@@ -1486,7 +1494,7 @@ async function update() {
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
-    writeSpread(tier, currentYear);
+    writeSpread(spread, currentYear);
     void writeTrend(currentYear, theme, width);
 
     const mapEvents = highlightedEvents(tier, minMag, highlights, shift);
@@ -1544,7 +1552,19 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
  * change between visits, and cannot be checked by eye against the chart, so it
  * belongs beside the annual chart instead.
  */
-function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) {
+/**
+ * The answer at the top of the page.
+ *
+ * The sentence is read off the pooled percentile, not off whichever way of
+ * counting the controls happen to be set to. Those move it from the 41st to the
+ * 92nd, which meant the page's own answer could be changed by clicking; the
+ * pooled figure is what the question deserves, and it does not move. What the
+ * controls still change is everything below the sentence -- the histogram
+ * beside it, the charts, the table -- all of which say which setting they are
+ * showing.
+ */
+function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
+                       pooled: number | null) {
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const moment = state.measure === "moment";
 
@@ -1558,9 +1578,11 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number) 
     return;
   }
 
-  const pct = result.percentile * 100;
   const roll = state.window === "rolling";
-  el.answer.innerHTML = fill(answerFor(pct, roll),
+  // Never the rolling wording: the pooled figure is built from calendar years
+  // only, because a 365-day window ending today is not a year and cannot be
+  // ranked against past ones. See spreadTable.
+  el.answer.innerHTML = fill(answerFor(pooled ?? result.percentile * 100, false),
                              { year: yearLabel(currentYear), from: REFERENCE_START });
 
   const shared = {

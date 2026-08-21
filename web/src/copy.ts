@@ -214,8 +214,9 @@ export const copy = {
     scaleRow: "{low}–{high}th percentile",
     scaleFrequency: "{n} years in 100",
     scaleNote:
-      "The answer is chosen automatically by comparing earthquakes this year to past " +
-      "years. Right now {threshold} {kind} put {year} at the {percentile} percentile.",
+      "The answer is chosen automatically by comparing this year with past years, combining " +
+      "every way of counting shown above rather than any one of them. Right now that puts " +
+      "{year} at the {percentile} percentile.",
     legendSigma: "±2σ — 95.45% under a normal fit",
     yearsNone: "None",
     yearsSome: "{n} years",
