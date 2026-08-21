@@ -496,7 +496,11 @@ async function boot() {
   const annual = annualTotals(coarse, MIN_MAGNITUDE, FIRST_YEAR, lastComplete);
   const kept = times.length.toLocaleString();
 
-  el.answer.innerHTML = copy.correlations.answer;
+  // Set after the panels, once their outcomes are known -- see the end of boot.
+  // Only the four that correspond to the headline question count. The weekday
+  // panel is a control on the catalogue rather than one of the three things the
+  // question names, and Oklahoma answers a different question entirely.
+  const headline: string[] = [];
   el.answerDetail.textContent = copy.correlations.detail;
 
   const legend: LegendKey[] = [
@@ -536,6 +540,7 @@ async function boot() {
   const gap = Math.abs(month.indexOf(ranked[0]) - month.indexOf(ranked[1]));
   const word = (d: number) => (d >= 0 ? "more" : "fewer");
   const monthOut = binOutcome(month);
+  headline.push(monthOut.key);
   built.push(panel(copy.correlations.monthQuestion,
     monthOut.verdict,
     [
@@ -572,6 +577,7 @@ async function boot() {
   const moonStray = outsideBand(moon);
   const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   const moonOut = binOutcome(moon);
+  headline.push(moonOut.key);
   built.push(panel(copy.correlations.moonQuestion, moonOut.verdict,
     fill([copy.correlations.moonOpen,
           moonOut.key === "no"
@@ -596,6 +602,7 @@ async function boot() {
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
+    headline.push(c?.significant ? "maybe" : "no");
     const cUp = copy.correlations.climateYesUp;
     const cDown = copy.correlations.climateYesDown;
     built.push(panel(copy.correlations.climateQuestion, scatterVerdict(c, cUp, cDown),
@@ -627,6 +634,7 @@ async function boot() {
   if (context.sunspots) {
     const points = seriesPoints(context.sunspots, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
+    headline.push(c?.significant ? "maybe" : "no");
     const sUp = copy.correlations.solarYesUp;
     const sDown = copy.correlations.solarYesDown;
     built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c, sUp, sDown),
@@ -700,6 +708,11 @@ async function boot() {
          label: fill(copy.correlations.oklahomaLegendRate, { rate: rate.toFixed(0) }) }]));
   }
 
+  // A hard-coded "No." at the top of a page arguing that its answers are
+  // computed would be the same fault the panels just had. If any of the four
+  // has stopped saying no, the page stops saying it too and leaves the sentence
+  // below to speak for itself.
+  el.answer.innerHTML = headline.every((k) => k === "no") ? copy.correlations.answer : "";
   el.panels.replaceChildren(...built);
   for (const fn of redraw) fn();
 

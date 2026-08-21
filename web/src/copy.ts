@@ -481,8 +481,7 @@ export const copy = {
       "would need for statistical significance at the 5% level.",
     climateStatSignificant:
       "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
-      "needed for statistical significance at the 5% level. With this few years, treat that as " +
-      "suggestive rather than established.",
+      "needed for statistical significance at the 5% level.",
     climateYesUp: "Maybe — more earthquakes in warmer years.",
     climateYesDown: "Maybe — fewer earthquakes in warmer years.",
     climateAxis: "Global temperature (°C above 1951–1980)",
@@ -498,9 +497,8 @@ export const copy = {
       "As expected, the correlation coefficient is {r}; it does not reach the {critical} needed " +
       "for statistical significance at the 5% level.",
     solarStatSignificant:
-      "The correlation coefficient is {r}. If earthquakes occur at random, we would expect a " +
-      "correlation this strong {p}% of the time. On {years} years of data, that is suggestive " +
-      "rather than established.",
+      "The correlation coefficient is {r}, which reaches the {critical} needed for statistical " +
+      "significance at the 5% level.",
     solarYesUp: "Maybe — more earthquakes in years with more sunspots.",
     solarYesDown: "Maybe — fewer earthquakes in years with more sunspots.",
     solarAxis: "Sunspot number",
