@@ -259,7 +259,8 @@ export const copy = {
 
     /* Verdict lines shared by the bar panels. */
     verdictNo: "No.",
-    verdictYes: "Yes.",
+    verdictDirected: "{strength} — {direction}",
+    verdictProbably: "Probably.",
     verdictMaybe: "Maybe.",
     /* The furthest bar, and how many stray bars to expect anyway. Said in one
        breath, because saying "inside the grey" and then "one bar is outside"
@@ -305,17 +306,6 @@ export const copy = {
       "not what happens here — all {tests} are shown whatever they say — but the arithmetic " +
       "still holds: one panel below 5% on a page of {tests} is close to what you should " +
       "expect, not a discovery.",
-    flipHelpV: "what is Cramér's V?",
-    flipHelpVBody:
-      "Cramér's V measures how large the unevenness is, rather than how confidently it can be " +
-      "told apart from chance." +
-      "\n\nIt runs from 0 to 1. At 0 the bars are exactly level. The larger it gets, the " +
-      "further from level they are." +
-      "\n\nThe p-value shrinks as data accumulate: given enough earthquakes, a difference of a " +
-      "fraction of a percent will drop it below 5%. V does not. It stays the same size, so it " +
-      "answers whether a difference is worth caring about rather than whether it can be " +
-      "detected." +
-      "\n\nAnything below 0.1 is conventionally treated as negligible.",
     flipHelpR: "what is a correlation coefficient?",
     flipHelpRBody:
       "The correlation coefficient is one way to assess whether two quantities move together, " +
@@ -347,17 +337,14 @@ export const copy = {
        the number that decides it would be the sort of thing this page argues
        against. */
     flipColP: "p-value",
-    flipColSize: "Cramér's V",
-    flipColR: "Correlation (r)",
+    flipColR: "Correlation",
     flipColAnswer: "The answer",
-    flipPBelow: "below 5%",
-    flipPAbove: "above 5%",
-    flipVAbove: "{v} or more",
-    flipVBelow: "below {v}",
-    flipVAny: "—",
-    flipScatterAbove: "above +{critical}",
-    flipScatterWithin: "between ±{critical}",
-    flipScatterBelow: "below −{critical}",
+    flipPStrong: "below 1%",
+    flipPWeak: "1% to 5%",
+    flipPNone: "above 5%",
+    flipRUp: "positive",
+    flipRDown: "negative",
+    flipRAny: "—",
     flipNow: "Right now: {value}",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
@@ -493,8 +480,8 @@ export const copy = {
     climateStatSignificant:
       "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
       "needed for statistical significance at the 5% level.",
-    climateYesUp: "Maybe — more earthquakes in warmer years.",
-    climateYesDown: "Maybe — fewer earthquakes in warmer years.",
+    climateUp: "more earthquakes in warmer years.",
+    climateDown: "fewer earthquakes in warmer years.",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
     solarQuestion: "Does solar activity affect earthquakes?",
@@ -510,8 +497,8 @@ export const copy = {
     solarStatSignificant:
       "The correlation coefficient is {r}, which reaches the {critical} needed for statistical " +
       "significance at the 5% level.",
-    solarYesUp: "Maybe — more earthquakes in years with more sunspots.",
-    solarYesDown: "Maybe — fewer earthquakes in years with more sunspots.",
+    solarUp: "more earthquakes in years with more sunspots.",
+    solarDown: "fewer earthquakes in years with more sunspots.",
     solarAxis: "Sunspot number",
 
     scatterSubtitle: "Each dot is one year, {from} onward",

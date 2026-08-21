@@ -237,41 +237,6 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
 
 /* ---------------- verdicts ---------------- */
 
-/**
- * The one-word answer for a bar panel, from a chi-square across its bins.
- *
- * Only the verdict: each panel writes its own explanation now, with its own
- * figures, so a shared note would repeat them in a second voice.
- */
-/**
- * Which of the three answers a bar panel is on, and how often chance alone
- * would produce what it is showing.
- *
- * Passing at the 5% level is not a finding, so it earns "Maybe." rather than
- * "Yes." -- the affirmative also needs an effect large enough to matter, graded
- * by Cramer's V, negligible below 0.1 by convention rather than by a number
- * picked here.
- */
-interface Outcome { key: "no" | "maybe" | "yes"; verdict: string; p: string; }
-
-function binOutcome(bins: Bin[]): Outcome {
-  const test = chiSquare(bins);
-  const n = bins.reduce((a, b) => a + b.count, 0);
-  const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
-  const p = asPercent(chiSquareP(test.statistic, test.df));
-  if (test.statistic <= test.critical) {
-    return { key: "no", verdict: copy.correlations.verdictNo, p };
-  }
-  return v < NEGLIGIBLE_V
-    ? { key: "maybe", verdict: copy.correlations.verdictMaybe, p }
-    : { key: "yes", verdict: copy.correlations.verdictYes, p };
-}
-
-/** A share as a readable percentage: 0.077 reads 8, 0.0004 reads "under 1". */
-function asPercent(share: number): string {
-  const pct = share * 100;
-  return pct < 1 ? "under 1" : pct.toFixed(0);
-}
 
 /**
  * The rungs of the verdict, as a table, with the one in force marked.
@@ -352,82 +317,116 @@ function flipTable(columns: Column[], rows: string[][], current: number,
   return box;
 }
 
-/** Cramer's V is negligible below this by convention, not by a choice made here. */
-const NEGLIGIBLE_V = 0.1;
-
 /**
- * How many questions this page puts a 5% cutoff to: weekday, season, moon,
- * climate, solar. Oklahoma is not a test.
+ * The two conventional cutoffs, and nothing else.
  *
- * Kept beside the panels rather than counted from them because the tips are
- * built while the panels are still being assembled -- if a sixth is ever added,
- * this wants changing with it.
+ * There is no effect-size column any more. It guarded against a difference that
+ * is significant but trivial, which on 40,000 events is a real risk -- but the
+ * decade-by-decade check is a better guard and catches more: a real pattern
+ * stays in the same place, a fluke wanders. Grading by p alone costs a column,
+ * a tooltip, and a threshold that would have had to be invented or borrowed
+ * from another field.
+ */
+/**
+ * How many questions this page puts a cutoff to: weekday, season, moon,
+ * climate, solar. Oklahoma is not a test.
  */
 const TESTS = 5;
 const ANY_FLAG = Math.round((1 - 0.95 ** TESTS) * 100);
 
+const P_STRONG = 0.01;
+const P_WEAK = 0.05;
+
+interface Outcome { key: "no" | "maybe" | "probably"; p: number; }
+
+function outcomeFor(p: number): Outcome["key"] {
+  return p < P_STRONG ? "probably" : p < P_WEAK ? "maybe" : "no";
+}
+
+/** A share as a readable percentage: 0.077 reads 8, 0.0004 reads "under 1". */
+function asPercent(share: number): string {
+  const pct = share * 100;
+  return pct < 1 ? "under 1" : pct.toFixed(0);
+}
+
+function binOutcome(bins: Bin[]): Outcome {
+  const test = chiSquare(bins);
+  return { key: outcomeFor(chiSquareP(test.statistic, test.df)),
+           p: chiSquareP(test.statistic, test.df) };
+}
+
+/** "Probably." / "Maybe." / "No." -- the whole ladder. */
+function plainVerdict(key: Outcome["key"]): string {
+  const c = copy.correlations;
+  return key === "probably" ? c.verdictProbably
+       : key === "maybe" ? c.verdictMaybe
+       : c.verdictNo;
+}
+
 function binFlip(bins: Bin[]): HTMLElement {
   const test = chiSquare(bins);
-  const n = bins.reduce((a, b) => a + b.count, 0);
-  const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
   const p = chiSquareP(test.statistic, test.df);
-  // One direction only -- more uneven is the only way to depart from level --
-  // so the p column orders the table and stays monotonic down it.
-  const current = test.statistic <= test.critical ? 2 : v < NEGLIGIBLE_V ? 1 : 0;
   const c = copy.correlations;
+  const current = p < P_STRONG ? 0 : p < P_WEAK ? 1 : 2;
   return flipTable(
     [{ label: c.flipColP,
-       help: { label: c.flipHelp, body: fill(c.flipHelpBody,
+       help: { label: c.flipHelp,
+               body: fill(c.flipHelpBody,
                           { p: asPercent(p), tests: TESTS, anyFlag: ANY_FLAG }) } },
-     { label: c.flipColSize, help: { label: c.flipHelpV, body: c.flipHelpVBody } },
      { label: c.flipColAnswer }],
     [
-      [c.flipPBelow, fill(c.flipVAbove, { v: NEGLIGIBLE_V }), c.verdictYes],
-      [c.flipPBelow, fill(c.flipVBelow, { v: NEGLIGIBLE_V }), c.verdictMaybe],
-      [c.flipPAbove, c.flipVAny, c.verdictNo],
+      [c.flipPStrong, c.verdictProbably],
+      [c.flipPWeak, c.verdictMaybe],
+      [c.flipPNone, c.verdictNo],
     ],
     current,
-    [fill(c.flipNow, { value: `${asPercent(p)}%` }),
-     fill(c.flipNow, { value: v.toFixed(3) }), null],
+    [fill(c.flipNow, { value: `${asPercent(p)}%` }), null],
   );
 }
 
+/**
+ * The scatter verdict carries a direction as well as a strength, so its table
+ * runs from a strong positive relationship down to a strong negative one, with
+ * no relationship in the middle.
+ */
 function scatterVerdict(c: Correlation | null, up: string, down: string): string {
   if (!c) return copy.correlations.verdictNotEnough;
-  if (!c.significant) return copy.correlations.verdictNo;
-  return c.r > 0 ? up : down;
-}
-
-/** The same for a scatter panel. Fifty annual counts never earn a plain yes. */
-function scatterP(c: Correlation | null): string {
-  return c ? asPercent(correlationP(c.r, c.n)) : "";
+  const key = outcomeFor(correlationP(c.r, c.n));
+  if (key === "no") return copy.correlations.verdictNo;
+  return fill(copy.correlations.verdictDirected, {
+    strength: key === "probably" ? "Probably" : "Maybe",
+    direction: c.r > 0 ? up : down,
+  });
 }
 
 function scatterFlip(c: Correlation | null, up: string, down: string): HTMLElement | undefined {
   if (!c) return undefined;
-  const critical = c.critical.toFixed(2);
   const t = copy.correlations;
-  // The correlation leads here, not the p-value. This test has two tails, so p
-  // is small at both ends and large in the middle -- which reads as a mistake
-  // unless the column that runs monotonically is the one you meet first.
-  const current = !c.significant ? 1 : c.r > 0 ? 0 : 2;
+  const p = correlationP(c.r, c.n);
+  const key = outcomeFor(p);
+  const current = key === "no" ? 2
+                : c.r > 0 ? (key === "probably" ? 0 : 1)
+                : (key === "probably" ? 4 : 3);
+  const say = (strength: string, direction: string) =>
+    fill(t.verdictDirected, { strength, direction });
   return flipTable(
     [{ label: t.flipColR,
        help: { label: t.flipHelpR, body: t.flipHelpRBody } },
      { label: t.flipColP,
        help: { label: t.flipHelpRP,
                body: fill(t.flipHelpRPBody,
-                          { years: c.n, p: asPercent(correlationP(c.r, c.n)),
-                            tests: TESTS, anyFlag: ANY_FLAG }) } },
+                          { years: c.n, p: asPercent(p), tests: TESTS, anyFlag: ANY_FLAG }) } },
      { label: t.flipColAnswer }],
     [
-      [fill(t.flipScatterAbove, { critical }), t.flipPBelow, up],
-      [fill(t.flipScatterWithin, { critical }), t.flipPAbove, t.verdictNo],
-      [fill(t.flipScatterBelow, { critical }), t.flipPBelow, down],
+      [t.flipRUp, t.flipPStrong, say("Probably", up)],
+      [t.flipRUp, t.flipPWeak, say("Maybe", up)],
+      [t.flipRAny, t.flipPNone, t.verdictNo],
+      [t.flipRDown, t.flipPWeak, say("Maybe", down)],
+      [t.flipRDown, t.flipPStrong, say("Probably", down)],
     ],
     current,
     [fill(t.flipNow, { value: c.r.toFixed(2) }),
-     fill(t.flipNow, { value: `${asPercent(correlationP(c.r, c.n))}%` }), null],
+     fill(t.flipNow, { value: `${asPercent(p)}%` }), null],
   );
 }
 
@@ -539,13 +538,13 @@ async function boot() {
   const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
   const weekdayOut = binOutcome(weekday);
   built.push(panel(copy.correlations.weekdayQuestion,
-    weekdayOut.verdict,
+    plainVerdict(weekdayOut.key),
     fill([copy.correlations.weekdayIntro,
           weekdayOut.key === "no"
             ? copy.correlations.weekdayTail
             : [copy.correlations.weekdayFlipped, copy.correlations.maybeBin].join("\n\n"),
          ].join("\n\n"), {
-      p: weekdayOut.p,
+      p: asPercent(weekdayOut.p),
       threshold: `M${BIN_MAGNITUDE}+`, from: FIRST_YEAR,
       raw: raw.toLocaleString(), count: kept,
       bin: busiest.full,
@@ -562,7 +561,7 @@ async function boot() {
   const monthOut = binOutcome(month);
   headline.push(monthOut.key);
   built.push(panel(copy.correlations.monthQuestion,
-    monthOut.verdict,
+    plainVerdict(monthOut.key),
     [
       fill(copy.correlations.monthIntro, {
         count: kept,
@@ -581,8 +580,8 @@ async function boot() {
       }),
       monthOut.key === "no"
         ? copy.correlations.monthExplain
-        : [fill(copy.correlations.monthFlipped, { p: monthOut.p }),
-           fill(copy.correlations.maybeBin, { p: monthOut.p })].join("\n\n"),
+        : [fill(copy.correlations.monthFlipped, { p: asPercent(monthOut.p) }),
+           fill(copy.correlations.maybeBin, { p: asPercent(monthOut.p) })].join("\n\n"),
     ].join("\n\n"),
     (w) => binChart(month, w), undefined,
     fill(copy.correlations.monthSubtitle, { since }), legend, binFlip(month)));
@@ -598,7 +597,7 @@ async function boot() {
   const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   const moonOut = binOutcome(moon);
   headline.push(moonOut.key);
-  built.push(panel(copy.correlations.moonQuestion, moonOut.verdict,
+  built.push(panel(copy.correlations.moonQuestion, plainVerdict(moonOut.key),
     fill([copy.correlations.moonOpen,
           moonOut.key === "no"
             ? copy.correlations.moonTail
@@ -623,17 +622,19 @@ async function boot() {
     const points = seriesPoints(context.temperature, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
     headline.push(c?.significant ? "maybe" : "no");
-    const cUp = copy.correlations.climateYesUp;
-    const cDown = copy.correlations.climateYesDown;
+    // Whether the panel has anything to explain, on the same rule as its verdict.
+    const flagged = c !== null && outcomeFor(correlationP(c.r, c.n)) !== "no";
+    const cUp = copy.correlations.climateUp;
+    const cDown = copy.correlations.climateDown;
     built.push(panel(copy.correlations.climateQuestion, scatterVerdict(c, cUp, cDown),
-      fill([c?.significant ? copy.correlations.climateOpenFlipped
-                           : copy.correlations.climateOpen,
+      fill([flagged ? copy.correlations.climateOpenFlipped
+                    : copy.correlations.climateOpen,
             copy.correlations.climateMiddle,
-            c?.significant ? copy.correlations.climateCloseFlipped
-                           : copy.correlations.climateCloseNo,
-            ...(c?.significant ? [copy.correlations.maybeScatter] : []),
+            flagged ? copy.correlations.climateCloseFlipped
+                    : copy.correlations.climateCloseNo,
+            ...(flagged ? [copy.correlations.maybeScatter] : []),
            ].join("\n\n"), {
-        threshold: `M${MIN_MAGNITUDE}+`, p: scatterP(c),
+        threshold: `M${MIN_MAGNITUDE}+`, p: asPercent(correlationP(c!.r, c!.n)),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
         binThreshold: `M${BIN_MAGNITUDE}+`,
@@ -643,7 +644,7 @@ async function boot() {
             ? copy.correlations.climateStatSignificant
             : copy.correlations.climateStatNull,
           { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2),
-            p: scatterP(c) }),
+            p: asPercent(correlationP(c!.r, c!.n)) }),
       }),
       (w) => scatterChart(points, w, copy.correlations.climateAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
@@ -655,13 +656,14 @@ async function boot() {
     const points = seriesPoints(context.sunspots, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
     headline.push(c?.significant ? "maybe" : "no");
-    const sUp = copy.correlations.solarYesUp;
-    const sDown = copy.correlations.solarYesDown;
+    const flagged = c !== null && outcomeFor(correlationP(c.r, c.n)) !== "no";
+    const sUp = copy.correlations.solarUp;
+    const sDown = copy.correlations.solarDown;
     built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c, sUp, sDown),
       fill([copy.correlations.solarExplain,
-            ...(c?.significant ? [copy.correlations.maybeScatter] : []),
+            ...(flagged ? [copy.correlations.maybeScatter] : []),
            ].join("\n\n"), {
-        threshold: `M${MIN_MAGNITUDE}+`, p: scatterP(c),
+        threshold: `M${MIN_MAGNITUDE}+`, p: asPercent(correlationP(c!.r, c!.n)),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
         binThreshold: `M${BIN_MAGNITUDE}+`,
@@ -671,7 +673,7 @@ async function boot() {
             ? copy.correlations.solarStatSignificant
             : copy.correlations.solarStatNull,
           { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2),
-            p: scatterP(c) }),
+            p: asPercent(correlationP(c!.r, c!.n)) }),
       }),
       (w) => scatterChart(points, w, copy.correlations.solarAxis,
                           fill(copy.correlations.scatterYAxis, { threshold: `M${MIN_MAGNITUDE}+` })),
