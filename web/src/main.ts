@@ -130,6 +130,7 @@ const el = {
   answer: document.getElementById("answer")!,
   answerDetail: document.getElementById("answer-detail")!,
   answerSummary: document.getElementById("answer-summary")!,
+  latest: document.getElementById("latest")!,
   measure: document.getElementById("measure-control")!,
   mag: document.getElementById("mag-control")!,
   window: document.getElementById("window-control")!,
@@ -794,6 +795,51 @@ function linkMapAndList(events: MapEvent[], theme: Theme) {
   svg.addEventListener("mouseleave", clear);
 }
 
+/**
+ * The most recent earthquake at the selected threshold.
+ *
+ * Reads the live feed first and falls back to the catalog, so it stays correct
+ * in the window between an event happening and the next catalog rebuild -- and
+ * because the feed is polled every minute, the line updates itself without a
+ * reload.
+ */
+async function writeLatest(minMag: number) {
+  const info = store.detailTierFor(minMag);
+  let best: { time: number; mag: number; place: string } | null = null;
+
+  for (const event of liveEvents) {
+    if (event.mag < minMag) continue;
+    if (!best || event.time > best.time) {
+      best = { time: event.time, mag: event.mag, place: event.place };
+    }
+  }
+  if (info) {
+    try {
+      const [tier, detail] = await Promise.all([store.load(info.threshold),
+                                                store.loadDetail(info)]);
+      for (let i = tier.n - 1; i >= 0; i--) {
+        if (tier.mag[i] < minMag) continue;
+        if (!best || tier.time[i] > best.time) {
+          best = { time: tier.time[i], mag: tier.mag[i], place: detail.places[i] };
+        }
+        break;
+      }
+    } catch {
+      // The line is a nicety; its absence should never break the page.
+    }
+  }
+  if (!best) { el.latest.textContent = ""; return; }
+
+  el.latest.textContent = fill(copy.home.latest, {
+    threshold: magLabel(minMag),
+    when: new Date(best.time).toLocaleDateString(undefined, {
+      day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
+    }),
+    mag: best.mag.toFixed(1),
+    place: best.place || "",
+  });
+}
+
 /* ---------------- render ---------------- */
 
 let lastRender: (() => void) | null = null;
@@ -854,6 +900,7 @@ async function update() {
     : fill(copy.home.cumulativeSubjectCount, { threshold: magLabel(minMag), kind });
 
   writeHeadline(result, currentYear);
+  void writeLatest(minMag);
   buildAnswerScale(result ? result.percentile * 100 : null,
                    minMag, kind, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);
@@ -1108,6 +1155,36 @@ window.addEventListener("resize", () => {
   window.clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(() => lastRender?.(), 150);
 });
+/** The last event time across all tiers, which is where the live feed takes over. */
+function newestTime(): number {
+  return Math.max(...meta.tiers.map((t) => t.lastTime ?? 0));
+}
+
+/**
+ * Pick up a rebuilt catalog without a page reload.
+ *
+ * The pipeline republishes every fifteen minutes, but a tab that stayed open
+ * kept whatever it loaded at first paint. That was not merely stale: the live
+ * feed only reaches back a day, so once an event aged out of it, a tab whose
+ * catalog predated that event dropped it from the page entirely. Counts went
+ * down while you watched.
+ *
+ * meta.json is 4 KB and carries a build timestamp, so the check is cheap and
+ * the tiers are only refetched when there is something new to fetch.
+ */
+async function refreshCatalog() {
+  try {
+    const fresh = await loadMeta();
+    if (fresh.generated === meta.generated) return;
+    meta = fresh;
+    store = new CatalogStore(meta);
+    el.generated.textContent = fill(copy.home.generated,
+      { when: new Date(meta.generated).toUTCString() });
+  } catch {
+    // Keep serving what we have; the next tick tries again.
+  }
+}
+
 async function boot() {
   try {
     meta = await loadMeta();
@@ -1132,8 +1209,7 @@ async function boot() {
   el.generated.textContent = fill(copy.home.generated,
     { when: new Date(meta.generated).toUTCString() });
 
-  const newest = Math.max(...meta.tiers.map((t) => t.lastTime ?? 0));
-  await Promise.all([pollLive(newest), loadPosts()]);
+  await Promise.all([pollLive(newestTime()), loadPosts()]);
   await update();
 
   // Coastlines arrive after the first paint; the charts do not wait on them.
@@ -1141,7 +1217,8 @@ async function boot() {
     .catch(() => { el.mapLegend.textContent = copy.home.errorBasemap; });
 
   window.setInterval(async () => {
-    await pollLive(newest);
+    await refreshCatalog();
+    await pollLive(newestTime());
     await update();
   }, LIVE_INTERVAL_MS);
 }

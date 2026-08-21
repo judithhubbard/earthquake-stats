@@ -172,6 +172,7 @@ export const copy = {
     yearsCount: "{n} of {max}",
 
     /* Footer and failures. */
+    latest: "Latest {threshold}: {when}, M{mag} {place}",
     generated: "Catalog snapshot built {when}; live events appended from the USGS one-day feed.",
     errorCatalog: "Could not load the catalog: {message}",
     errorNoHistory: "Not enough history yet to draw a reference range.",
@@ -269,11 +270,18 @@ export const copy = {
       "random is {corrected}%. That is worth explaining, and it is still not a cause. The data " +
       "below updates as the USGS catalog does, and every answer on this page is computed from " +
       "it rather than hard-coded.",
-    pageColSmallest: "Smallest of the five",
-    pageColCorrected: "Corrected for five",
+    pageColSmallest: "Smallest p-value of the five",
+    pageColCorrected: "Corrected for asking five",
     pageCorrectedBelow: "below 5%",
     pageCorrectedAbove: "above 5%",
     pageCorrectedNone: "—",
+    pageHelpSmallest: "which of the five?",
+    pageHelpSmallestBody:
+      "The five questions below are each tested at a 5% cutoff, and this is the smallest " +
+      "p-value among them — the one closest to crossing." +
+      "\n\nRight now that is {subject}, at {p}%." +
+      "\n\nA p-value is how often data with no pattern in it would produce a result at least " +
+      "this strong. It is not the probability that there is no pattern.",
     pageHelp: "why correct it?",
     pageHelpBody:
       "Each question below is tested on its own at a 5% cutoff. Ask five questions that way " +

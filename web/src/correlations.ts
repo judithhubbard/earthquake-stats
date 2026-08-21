@@ -473,7 +473,10 @@ function writePageAnswer(tests: { p: number; subject: string }[]) {
       });
 
   el.answerTable.replaceChildren(flipTable(
-    [{ label: c.pageColSmallest },
+    [{ label: c.pageColSmallest,
+       help: { label: c.pageHelpSmallest,
+               body: fill(c.pageHelpSmallestBody,
+                          { subject: closest.subject, p: asPercent(closest.p) }) } },
      { label: c.pageColCorrected,
        help: { label: c.pageHelp,
                body: fill(c.pageHelpBody, { tests: tests.length, anyFlag: ANY_FLAG }) } },
