@@ -11,7 +11,7 @@ import { copy } from "./copy";
 export interface Column { label: string; help?: { label: string; body: string }; }
 
 export function flipTable(columns: Column[], rows: string[][], current: number,
-                   now: (string | null)[], headingText?: string): HTMLElement {
+                   now: (string | null)[]): HTMLElement {
   const box = document.createElement("div");
   box.className = "correlate-flip";
   // Column widths are set here rather than in the stylesheet because the two
@@ -22,7 +22,7 @@ export function flipTable(columns: Column[], rows: string[][], current: number,
 
   const title = document.createElement("p");
   title.className = "flip-title";
-  title.textContent = headingText ?? copy.correlations.flipTitle;
+  title.textContent = copy.correlations.flipTitle;
   box.append(title);
 
   // Each statistic explains itself, in its own column heading, rather than one

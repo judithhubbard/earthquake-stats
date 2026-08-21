@@ -929,16 +929,13 @@ footer p { margin: 0 0 0.4rem; }
   border-top: 0;
 }
 
+/* Neither table is titled: the column headings already say what each one is,
+   and two titles above two tables read as a heading for the pair. */
+.answer-tables .flip-title { display: none; }
+
 /* Right-aligned so the column reads as numbers, and tabular so 8% and 70%
    line up on the per-cent sign. */
 .flip-num { text-align: right; padding-right: 0.6rem; }
-
-.flip-note {
-  margin: 0.6rem 0 0;
-  font-size: 0.76rem;
-  line-height: 1.55;
-  color: var(--text-muted);
-}
 
 /* The rungs of the verdict, with the one in force marked. Quiet: it is
    provenance for the answer above, not part of the argument. Laid out like the

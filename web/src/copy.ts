@@ -439,20 +439,14 @@ export const copy = {
        one of these five wants that one answered, not averaged into the other
        four: the combined number is the right way to read the page as a whole
        and the wrong way to answer "do sunspots cause earthquakes". */
-    pageTestsTitle: "Each question, answered on its own:",
     pageColQuestion: "The question",
     pageColOwnP: "Its p-value",
-    pageTestsNote:
-      "Each row is graded on its own p-value, at the same 1% and 5% lines. The table beside " +
-      "this one asks a different question — whether anything on the page stands out once you " +
-      "allow for having asked five times — and it is the one the answer at the top is based on.",
-    pageCombinedTitle: "And the page as a whole, allowing for five questions:",
     pageColCombined: "Combined p-value for the five tests",
     pageHelp: "how is this calculated?",
     pageHelpBody:
-      "Each question below gets its own p-value: how often data with no pattern in it would " +
-      "produce a result at least that strong. It is not the probability that there is no " +
-      "pattern. The smallest of the five right now is {p}%, from {subject}." +
+      "Each question gets its own p-value: how often data with no pattern in it would " +
+      "produce a result at least that strong. The smallest of the five right now is {p}%, " +
+      "from {subject}." +
       "\n\nAsk five questions at a 5% cutoff and the chance that at least one crosses by " +
       "chance alone is not 5% but about {anyFlag}%. So the five are combined into one number: " +
       "if none of the five relationships were real, the chance of seeing a p-value at least as " +

@@ -423,10 +423,6 @@ function writeTestTable(tests: { p: number; label: string }[]): HTMLElement {
   const box = document.createElement("div");
   box.className = "correlate-flip answer-tests-box";
 
-  const title = document.createElement("p");
-  title.className = "flip-title";
-  title.textContent = c.pageTestsTitle;
-
   const list = document.createElement("ol");
   list.className = "flip-rows";
   const template = "minmax(0, 1fr) minmax(0, 5rem) minmax(0, 5rem)";
@@ -454,11 +450,7 @@ function writeTestTable(tests: { p: number; label: string }[]): HTMLElement {
     ], key === "no" ? "" : "is-current"));
   }
 
-  const note = document.createElement("p");
-  note.className = "flip-note";
-  note.textContent = c.pageTestsNote;
-
-  box.append(title, list, note);
+  box.append(list);
   return box;
 }
 
@@ -498,7 +490,6 @@ function writePageAnswer(tests: { p: number; subject: string; label: string }[])
     ],
     key === "probably" ? 0 : key === "maybe" ? 1 : 2,
     [fill(c.flipNow, { value: `${asPercent(corrected)}%` }), null],
-    c.pageCombinedTitle,
   ));
 }
 
