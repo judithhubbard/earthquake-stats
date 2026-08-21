@@ -342,10 +342,10 @@ export const copy = {
       "exists. About {mwShare}% of {threshold} events carry an Mw." +
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
-      "hundreds of smaller ones with it. **Mainshocks only** removes them, using " +
-      "Gardner-Knopoff windows, widened to twice the Wells and Coppersmith rupture length " +
-      "wherever that is larger: 53 km at M6, 87 km at M7. The windows run forward in time " +
-      "only, so " +
+      "hundreds of smaller ones with it. **Mainshocks only** removes them — the operation is " +
+      "called declustering — using Gardner-Knopoff windows, widened to twice the Wells and " +
+      "Coppersmith rupture length wherever that is larger: 53 km at M6, 87 km at M7. The " +
+      "windows run forward in time only, so " +
       "an earthquake is removed if a larger one came before it and never if a larger one " +
       "followed." +
 
@@ -655,8 +655,8 @@ export const copy = {
        rest depends on it, so the two are separate strings. */
     weekdayIntro:
       "We took every {threshold} earthquake recorded since {from} — {raw} of them — " +
-      "and removed the aftershocks, leaving {count} independent earthquakes. Then we " +
-      "classified each of those by its day of the week in UTC.",
+      "and removed the aftershocks, leaving {count} mainshocks. Then we classified each of " +
+      "those by its day of the week in UTC.",
     weekdayTail:
       "More earthquakes occur on {bin}s, at {percent}% above the average. So, are {bin}s " +
       "earthquake days? No — with seven days, one of them is always the busiest, and {percent}% " +
@@ -680,7 +680,7 @@ export const copy = {
     /* Values are filled from the data. The "right next to" line only holds while
        the two largest deviations are adjacent months, so there is a fallback. */
     monthIntro:
-      "We classified the same {count} independent earthquakes by the month each one occurred " +
+      "We classified the same {count} mainshocks by the month each one occurred " +
       "in. Here we show the rate of earthquakes per day within the month, since months have " +
       "different numbers of days.",
     monthPairAdjacent:
@@ -854,10 +854,10 @@ export const copy = {
       "magnitude." +
 
       "\n\n**Aftershocks are removed.** A year containing one great earthquake carries " +
-      "hundreds of smaller ones with it. They are removed everywhere on this page, using " +
-      "Gardner-Knopoff windows, widened to twice the Wells and Coppersmith rupture length " +
-      "wherever that is larger: 53 km at M6, 87 km at M7. The windows run forward in time " +
-      "only, so " +
+      "hundreds of smaller ones with it. They are removed everywhere on this page — the " +
+      "operation is called declustering — using Gardner-Knopoff windows, widened to twice " +
+      "the Wells and Coppersmith rupture length wherever that is larger: 53 km at M6, 87 km " +
+      "at M7. The windows run forward in time only, so " +
       "an earthquake is removed if a larger one came before it and never if a larger one " +
       "followed." +
 
