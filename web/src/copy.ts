@@ -297,7 +297,14 @@ export const copy = {
       "\n\nPeople usually use a cutoff of 5% to identify a statistically significant result. " +
       "That does not mean there is a 5% chance the data are random: it means that if they were " +
       "random, we would wrongly call them significant one time in twenty. At a 1% cutoff, one " +
-      "time in a hundred.",
+      "time in a hundred." +
+      "\n\nOne caution. This page tests {tests} questions, and the more questions you test, " +
+      "the more likely one of them crosses the line by chance alone. At a 5% cutoff, the odds " +
+      "that at least one of {tests} does are about {anyFlag}%, not 5%." +
+      "\n\nChoosing which results to report after seeing them is called p-hacking. That is " +
+      "not what happens here — all {tests} are shown whatever they say — but the arithmetic " +
+      "still holds: one panel below 5% on a page of {tests} is close to what you should " +
+      "expect, not a discovery.",
     flipHelpV: "what is Cramér's V?",
     flipHelpVBody:
       "Cramér's V measures how large the unevenness is, rather than how confidently it can be " +
@@ -326,7 +333,14 @@ export const copy = {
       "\n\nPeople usually use a cutoff of 5% to identify a statistically significant result. " +
       "That does not mean there is a 5% chance the two are unrelated: it means that if they " +
       "were unrelated, we would wrongly call them significant one time in twenty. At a 1% " +
-      "cutoff, one time in a hundred.",
+      "cutoff, one time in a hundred." +
+      "\n\nOne caution. This page tests {tests} questions, and the more questions you test, " +
+      "the more likely one of them crosses the line by chance alone. At a 5% cutoff, the odds " +
+      "that at least one of {tests} does are about {anyFlag}%, not 5%." +
+      "\n\nChoosing which results to report after seeing them is called p-hacking. That is " +
+      "not what happens here — all {tests} are shown whatever they say — but the arithmetic " +
+      "still holds: one panel below 5% on a page of {tests} is close to what you should " +
+      "expect, not a discovery.",
     /* Column headings, then the conditions in each. A row is one combination
        of them, and the values underneath sit in the column they are compared
        against -- classifying a difference as negligible while never showing

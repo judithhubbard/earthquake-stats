@@ -355,6 +355,17 @@ function flipTable(columns: Column[], rows: string[][], current: number,
 /** Cramer's V is negligible below this by convention, not by a choice made here. */
 const NEGLIGIBLE_V = 0.1;
 
+/**
+ * How many questions this page puts a 5% cutoff to: weekday, season, moon,
+ * climate, solar. Oklahoma is not a test.
+ *
+ * Kept beside the panels rather than counted from them because the tips are
+ * built while the panels are still being assembled -- if a sixth is ever added,
+ * this wants changing with it.
+ */
+const TESTS = 5;
+const ANY_FLAG = Math.round((1 - 0.95 ** TESTS) * 100);
+
 function binFlip(bins: Bin[]): HTMLElement {
   const test = chiSquare(bins);
   const n = bins.reduce((a, b) => a + b.count, 0);
@@ -366,7 +377,8 @@ function binFlip(bins: Bin[]): HTMLElement {
   const c = copy.correlations;
   return flipTable(
     [{ label: c.flipColP,
-       help: { label: c.flipHelp, body: fill(c.flipHelpBody, { p: asPercent(p) }) } },
+       help: { label: c.flipHelp, body: fill(c.flipHelpBody,
+                          { p: asPercent(p), tests: TESTS, anyFlag: ANY_FLAG }) } },
      { label: c.flipColSize, help: { label: c.flipHelpV, body: c.flipHelpVBody } },
      { label: c.flipColAnswer }],
     [
@@ -405,7 +417,8 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
      { label: t.flipColP,
        help: { label: t.flipHelpRP,
                body: fill(t.flipHelpRPBody,
-                          { years: c.n, p: asPercent(correlationP(c.r, c.n)) }) } },
+                          { years: c.n, p: asPercent(correlationP(c.r, c.n)),
+                            tests: TESTS, anyFlag: ANY_FLAG }) } },
      { label: t.flipColAnswer }],
     [
       [fill(t.flipScatterAbove, { critical }), t.flipPBelow, up],
