@@ -104,9 +104,9 @@ export const copy = {
     spreadAggregate:
       "{year} is in the {percentile} percentile: on average, {p}% of years are busier.",
     aggregateShareMore: "of years scored higher",
-    aggregateCurrent: "{year}: {percentile}",
+    aggregateCurrent: "{year}",
     aggregateCaption:
-      "Every year since {from} on the combined score, {ways} ways of counting pooled into one",
+      "Every year since {from}, ranked with all {ways} ways of counting pooled into one",
     spreadHelp: "how is this worked out?",
     spreadHelpBody:
       "Each way of counting asks how often a year since 1976 ran at least as busy as {year}. " +

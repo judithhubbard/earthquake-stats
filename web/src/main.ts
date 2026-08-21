@@ -4,6 +4,7 @@ import { renderAnnualChart, renderChart, renderDistribution, renderTrend,
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
   TREND_PERMUTATIONS, combineRanks, combinedTrendP, dayIndex, empiricalBand,
+  normalCdf, normalQuantile,
   equivalentMagnitude,
   rollingWindowBand,
   trend, verdict,
@@ -609,10 +610,13 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
       more: fill(copy.home.stripShare, { share: above }),
       moreLabel: copy.home.aggregateShareMore,
     },
-    currentLabel: fill(copy.home.aggregateCurrent, {
-      year: yearLabel(currentYear), percentile: ordinal(100 * (1 - a.p)),
-    }),
-    tickFormat: (n: number) => n.toFixed(1),
+    // Just the year. The percentile was on the marker as well as in the
+    // sentence above the chart, which printed the same number twice.
+    currentLabel: fill(copy.home.aggregateCurrent, { year: yearLabel(currentYear) }),
+    // The axis is the combined score, which nobody has a feel for. Ticks go at
+    // the scores that mean these percentiles, and are labelled with them.
+    tickValues: [0.05, 0.25, 0.5, 0.75, 0.95].map(normalQuantile),
+    tickFormat: (n: number) => ordinal(100 * normalCdf(n)),
     theme, width,
   });
 
