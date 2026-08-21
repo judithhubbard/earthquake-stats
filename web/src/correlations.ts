@@ -306,7 +306,7 @@ function flipTable(rows: { when: string; says: string }[],
     if (i === current) {
       const reading = document.createElement("em");
       reading.className = "flip-now";
-      reading.textContent = ` ${now}`;
+      reading.textContent = now;
       says.append(reading);
     }
     li.append(when, says);
