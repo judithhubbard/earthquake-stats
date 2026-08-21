@@ -69,15 +69,6 @@ export const copy = {
       "{median} — {above}% of years since {from} released more",
     /* Labels on the distribution strip under the answer. The sentence those
        replaced is still in detailCount below, read aloud to screen readers. */
-    stripAxisCount: "{threshold} {kind} by {date}, each year {from}–{to}",
-    stripAxisCountRolling: "{threshold} {kind} in a year, each year {from}–{to}",
-    /* The moment axis is drawn as the magnitude of the single earthquake that
-       would release the year's moment. Raw moment spans a factor of a hundred
-       and is unreadable; this is the same number the answer sentence quotes. */
-    stripAxisMoment:
-      "Moment released by {date}, as the equivalent of a single earthquake · {from}–{to}",
-    stripAxisMomentRolling:
-      "Moment released in a year, as the equivalent of a single earthquake · {from}–{to}",
     stripCurrent: "{year}: {count}",
     stripCurrentMoment: "{year}: M{count}",
     stripShare: "{share}%",
@@ -114,6 +105,11 @@ export const copy = {
        whether any one of them crosses a line. */
     spreadAggregate:
       "{year} is in the {percentile} percentile: on average, {p}% of years are busier.",
+    aggregateShareMore: "of years scored higher",
+    aggregateShareLess: "of years scored lower",
+    aggregateCurrent: "{year}: {percentile}",
+    aggregateCaption:
+      "Every year since {from} on the combined score, {ways} ways of counting pooled into one",
     spreadHelp: "how is this worked out?",
     spreadHelpBody:
       "Each way of counting asks how often a year since 1976 ran at least as busy as {year}. " +

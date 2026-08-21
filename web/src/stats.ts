@@ -530,6 +530,12 @@ export interface Combined {
   each: number[];
   /** Number of tests combined. */
   tests: number;
+  /**
+   * The same combined score for every year, oldest first, this one last. Not
+   * needed for the answer, but it is what the answer is a rank within, and a
+   * page that prints a rank ought to be able to show the thing ranked.
+   */
+  scores: number[];
 }
 
 /**
@@ -582,9 +588,17 @@ export function combineRanks(ranks: number[][]): Combined | null {
   }
   if (!(total > 0)) return null;
 
-  const combined = current.reduce((a, v) => a + v, 0) / Math.sqrt(total);
+  const root = Math.sqrt(total);
+  const scores: number[] = [];
+  for (let j = 0; j < n; j++) {
+    let sum = 0;
+    for (let i = 0; i < k; i++) sum += z[i][j];
+    scores.push(sum / root);
+  }
+  const combined = scores[n - 1];
   return {
     z: combined,
+    scores,
     p: 1 - normalCdf(combined),
     effective: (k * k) / total,
     each: current.map((v) => 1 - normalCdf(v)),

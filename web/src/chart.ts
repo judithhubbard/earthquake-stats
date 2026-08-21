@@ -205,6 +205,8 @@ export interface DistributionOptions {
   currentLabel: string;
   /** Ticks are magnitudes on the moment view, plain numbers on the count view. */
   tickFormat?: (n: number) => string;
+  /** Smaller, for the one tucked into the corner of the cumulative chart. */
+  compact?: boolean;
   theme: Theme;
   width: number;
 }
@@ -285,16 +287,23 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     }
   }
 
+  const compact = opts.compact ?? false;
   return Plot.plot({
     width,
-    height: 150,
+    height: compact ? 112 : 150,
     // Side margins hold a tick label; the first and last ticks sit on the frame
     // edge, so 8px cut them in half. The caption lives outside the figure, in
     // HTML that can wrap -- inside the plot it was one line and ran off the end.
-    marginTop: 30, marginBottom: 42, marginLeft: 24, marginRight: 24,
-    style: { background: "transparent", color: theme.text, fontSize: "11px" },
+    marginTop: compact ? 24 : 30,
+    marginBottom: compact ? 24 : 42,
+    marginLeft: compact ? 18 : 24,
+    marginRight: compact ? 18 : 24,
+    style: {
+      background: "transparent", color: theme.text,
+      fontSize: compact ? "10px" : "11px",
+    },
     x: {
-      label: null, ticks: 4, tickSize: 0, tickPadding: 7,
+      label: null, ticks: compact ? 3 : 4, tickSize: 0, tickPadding: compact ? 5 : 7,
       ...(opts.tickFormat ? { tickFormat: opts.tickFormat } : {}),
     },
     y: { axis: null, domain: [0, tallest * 1.35] },
@@ -319,19 +328,20 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
         x: "x", y: "y", text: () => opts.currentLabel,
         textAnchor: place < 0.14 ? "start" : place > 0.86 ? "end" : "middle",
         fill: theme.series[0], stroke: theme.surface, strokeWidth: 4,
-        fontWeight: 650, fontSize: 12.5,
+        fontWeight: 650, fontSize: compact ? 11 : 12.5,
       }),
       Plot.text([{}], {
         text: () => (flip ? opts.share.less : opts.share.more),
         frameAnchor: flip ? "top-left" : "top-right",
         dy: 4, dx: flip ? 2 : -2,
-        fill: flip ? theme.rangeInk : theme.up, fontWeight: 700, fontSize: 25,
+        fill: flip ? theme.rangeInk : theme.up, fontWeight: 700,
+        fontSize: compact ? 19 : 25,
       }),
       Plot.text([{}], {
         text: () => (flip ? opts.share.lessLabel : opts.share.moreLabel),
         frameAnchor: flip ? "top-left" : "top-right",
-        dy: 26, dx: flip ? 2 : -2,
-        fill: theme.muted, fontSize: 10.5,
+        dy: compact ? 20 : 26, dx: flip ? 2 : -2,
+        fill: theme.muted, fontSize: compact ? 9.5 : 10.5,
       }),
     ],
   });

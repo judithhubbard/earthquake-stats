@@ -169,7 +169,14 @@ main {
 /* The answer, and beside it the histogram it is read off. Two columns while
    there is room for both; below that the figure drops under the sentence
    rather than being squeezed to a width where the bars stop meaning anything. */
-.answer-row { display: block; }
+.answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.answer-row .answer-detail { min-height: 150px; }
 
 /* Only on the front page, where this holds the histogram: the correlations
    page reuses the class for a sentence, and was reserving 150px for a figure
@@ -185,10 +192,9 @@ main {
   position: absolute;
   top: 3.4rem;
   left: 4.6rem;
-  width: 21rem;
+  width: 16.5rem;
   max-width: calc(100% - 6rem);
-  min-height: 150px;
-  padding: 0.4rem 0.5rem 0.2rem;
+  padding: 0.3rem 0.35rem 0.1rem;
   border-radius: 10px;
   background: color-mix(in srgb, var(--surface-1) 88%, transparent);
 }
@@ -203,6 +209,13 @@ main {
     padding: 0;
     margin-top: 0.75rem;
     background: none;
+  }
+}
+
+@media (max-width: 52rem) {
+  .answer-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
   }
 }
 

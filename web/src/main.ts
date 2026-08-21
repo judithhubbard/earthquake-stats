@@ -173,6 +173,7 @@ const el = {
   trendVerdict: document.getElementById("trend-verdict")!,
   trendBody: document.getElementById("trend-body")!,
   spread: document.getElementById("spread") as HTMLElement,
+  answerAggregate: document.getElementById("answer-aggregate")!,
   spreadAggregate: document.getElementById("spread-aggregate")!,
   spreadChart: document.getElementById("spread-chart")!,
   spreadNote: document.getElementById("spread-note")!,
@@ -579,6 +580,52 @@ function leaveOneOutPercentiles(values: number[]): number[] {
   });
 }
 
+/**
+ * The combined score of every year since 1976, with this one marked.
+ *
+ * The score, not the percentile it maps to. Percentiles are uniform by
+ * construction -- fifty years spread five or six to a decile -- so a histogram
+ * of them is a flat row of bars carrying no information but the marker. The
+ * score behind them is a standard normal, so the same picture becomes a
+ * distribution with a middle and two tails, and where this year sits in it is
+ * legible at a glance.
+ */
+function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
+                             currentYear: number) {
+  const a = spread.aggregate;
+  if (!a || a.scores.length < 3) { el.answerAggregate.replaceChildren(); return; }
+
+  const theme = readTheme(document.body);
+  const width = Math.max(260, el.answerAggregate.clientWidth || 340);
+  const scores = a.scores;
+  const first = currentYear - (scores.length - 1);
+  const peers = scores.slice(0, -1).map((value, i) => ({ year: first + i, value }));
+  const above = Math.round(100 * a.p);
+
+  const strip = renderDistribution({
+    peers,
+    value: a.z,
+    share: {
+      more: fill(copy.home.stripShare, { share: above }),
+      moreLabel: copy.home.aggregateShareMore,
+      less: fill(copy.home.stripShare, { share: 100 - above }),
+      lessLabel: copy.home.aggregateShareLess,
+    },
+    currentLabel: fill(copy.home.aggregateCurrent, {
+      year: yearLabel(currentYear), percentile: ordinal(100 * (1 - a.p)),
+    }),
+    tickFormat: (n: number) => n.toFixed(1),
+    theme, width,
+  });
+
+  const caption = document.createElement("p");
+  caption.className = "answer-caption";
+  caption.textContent = fill(copy.home.aggregateCaption, {
+    from: first, ways: a.tests,
+  });
+  el.answerAggregate.replaceChildren(strip, caption);
+}
+
 /** "58th, 60th, 68th, 82nd and 92nd". */
 function listOf(parts: string[]): string {
   if (parts.length < 2) return parts[0] ?? "";
@@ -711,6 +758,8 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
       z: aggregate.z.toFixed(2), p: pct(aggregate.p),
     })));
   }
+
+  writeAggregateChart(spread, currentYear);
 
   const box = document.createElement("div");
   box.className = "correlate-flip spread-box";
@@ -1422,9 +1471,6 @@ async function update() {
       const above = Math.round(result.aboveShare * 100);
       const moment = state.measure === "moment";
       const stripWidth = Math.max(240, el.answerDetail.clientWidth || 340);
-      const axisKey = moment
-        ? (rolling ? copy.home.stripAxisMomentRolling : copy.home.stripAxisMoment)
-        : (rolling ? copy.home.stripAxisCountRolling : copy.home.stripAxisCount);
       // Moment is plotted as the magnitude of the single earthquake that would
       // release it. Raw moment runs from 6 to 592 x10^20 N.m -- 2011 alone is 26
       // times the median -- so the bars pile into one bin and the axis carries a
@@ -1458,18 +1504,13 @@ async function update() {
               year: yearLabel(currentYear), count: fmt(result.count),
             }),
         tickFormat: moment ? (n: number) => `M${n.toFixed(1)}` : undefined,
+        // Tucked into the corner of the chart, so it gives up its caption and
+        // a third of its height. What it is showing is named by the controls
+        // directly above it.
+        compact: true,
         theme, width: stripWidth,
       });
-      // The caption is HTML rather than an axis label so it can wrap. As a
-      // one-line label inside the plot it ran off the end of a 340px figure.
-      const caption = document.createElement("p");
-      caption.className = "answer-caption";
-      caption.textContent = fill(axisKey, {
-        threshold: magLabel(minMag), kind, from: REFERENCE_START,
-        to: currentYear - 1,
-        date: new Date().toLocaleDateString(undefined, { day: "numeric", month: "long" }),
-      });
-      el.answerDetail.replaceChildren(strip, caption);
+      el.answerDetail.replaceChildren(strip);
     }
     const figure = renderChart({
       curves, band, refYears, highlights, today, theme, width, dayToDate,
