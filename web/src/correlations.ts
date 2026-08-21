@@ -593,6 +593,20 @@ async function boot() {
   if (problem) showProblem(problem);
 
   const store = new CatalogStore(meta);
+
+  // Counted by the pipeline and carried in meta.json. Quoted per tier because
+  // the two differ enormously: nearly every M6+ event has a published moment
+  // magnitude, while most M5+ events never got one, and the binned panels run
+  // on M5+.
+  const mwShare = (threshold: number): string | null => {
+    const t = meta.tiers.find((x) => Math.abs(x.threshold - threshold) < 1e-9);
+    return t && t.count ? (100 * t.homogenised / t.count).toFixed(1) : null;
+  };
+  const above = mwShare(MIN_MAGNITUDE);
+  const binned = mwShare(BIN_MAGNITUDE);
+  if (above) techValues.mwShare = above;
+  if (binned) techValues.binMwShare = binned;
+  techValues.from = FIRST_YEAR;
   const [fine, coarse] = await Promise.all([
     store.load(BIN_MAGNITUDE), store.load(MIN_MAGNITUDE),
   ]);

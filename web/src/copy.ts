@@ -821,10 +821,27 @@ export const copy = {
     techBody:
       "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
-      "non-tectonic events are excluded. Magnitudes are converted to moment magnitude " +
-      "wherever one has been published, because ComCat's preferred magnitude changes kind " +
-      "around 1984. Aftershocks are removed throughout, using Gardner-Knopoff windows that " +
-      "run forward in time only. The front page has the details." +
+      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes." +
+
+      "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
+      "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +
+      "of magnitudes for some earthquakes. Here, we replace those alternative magnitudes with " +
+      "Mw where we can, to make earthquakes comparable across years. We use W-phase first, " +
+      "then GCMT centroid, then body-wave, then any other Mw — and fall back only where none " +
+      "exists. About {mwShare}% of {threshold} events carry an Mw. Only about {binMwShare}% " +
+      "of {binThreshold} events do: below M6 most earthquakes have never had a moment " +
+      "magnitude published, so the {binThreshold} panels run largely on ComCat's preferred " +
+      "magnitude." +
+
+      "\n\n**Aftershocks are removed.** A year containing one great earthquake carries " +
+      "hundreds of smaller ones with it. They are removed everywhere on this page, using " +
+      "Gardner-Knopoff windows with the distance widened to twice the Wells and Coppersmith " +
+      "rupture length: 40 km at M5, 159 km at M8. The windows run forward in time only, so " +
+      "an earthquake is removed if a larger one came before it and never if a larger one " +
+      "followed." +
+
+      "\n\n**The record starts in {from},** when the Global CMT catalog begins — the " +
+      "earliest date from which moment magnitudes are broadly available." +
 
       "\n\n**Two magnitude thresholds.** The first three panels compare days, months and " +
       "lunar phases within the record, so a change in detection that affects the whole record " +
