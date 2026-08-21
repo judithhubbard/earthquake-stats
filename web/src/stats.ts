@@ -485,6 +485,126 @@ export function combinedTrendP(series: { year: number; value: number }[][],
   return (atLeast + 1) / (permutations + 1);
 }
 
+/** Standard normal CDF, via Abramowitz and Stegun 7.1.26 on erf. */
+export function normalCdf(x: number): number {
+  const z = Math.abs(x) / Math.SQRT2;
+  const t = 1 / (1 + 0.3275911 * z);
+  const erf = 1 - t * (0.254829592 + t * (-0.284496736 + t * (1.421413741
+            + t * (-1.453152027 + t * 1.061405429)))) * Math.exp(-z * z);
+  return x >= 0 ? 0.5 * (1 + erf) : 0.5 * (1 - erf);
+}
+
+/** Its inverse, by Acklam's rational approximation. Good to about 1e-9. */
+export function normalQuantile(p: number): number {
+  const a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2,
+             1.383577518672690e2, -3.066479806614716e1, 2.506628277459239];
+  const b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2,
+             6.680131188771972e1, -1.328068155288572e1];
+  const c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838,
+             -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996,
+             3.754408661907416];
+  const lo = 0.02425;
+  if (p <= 0) return -Infinity;
+  if (p >= 1) return Infinity;
+  if (p < lo) {
+    const q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5])
+         / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  if (p > 1 - lo) return -normalQuantile(1 - p);
+  const q = p - 0.5;
+  const r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q
+       / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+
+export interface Combined {
+  /** Stouffer's combined statistic, corrected for the correlation between tests. */
+  z: number;
+  /** One-sided p: how often a year with nothing unusual about it runs this high. */
+  p: number;
+  /** How many independent tests the correlated set is worth. */
+  effective: number;
+  /** The one-sided p-value of each test, in the order given. */
+  each: number[];
+  /** Number of tests combined. */
+  tests: number;
+}
+
+/**
+ * Stouffer's Z over several tests that are not independent of each other.
+ *
+ * Every way of counting a year is a test of the same claim -- that this year is
+ * no busier than usual -- so the question is how to pool them, not how to
+ * correct for having asked several times. Those are different jobs and want
+ * different tools. Westfall-Young, used for the trend section, answers "does
+ * ANY of these look unusual once you have paid for looking k times", which is
+ * the guard against cherry-picking. Stouffer answers "taken together, is the
+ * whole set running high", which is the question the front page asks.
+ *
+ * Plain Stouffer sums the z-scores and divides by sqrt(k), which assumes the
+ * tests are independent. These are anything but: M6+ and M7+ moment correlate
+ * at 0.99, because moment is dominated by the largest earthquakes either way,
+ * and six tests here are worth about 1.7 independent ones. The correction is
+ * Strube's -- divide by sqrt of the sum of the whole correlation matrix rather
+ * than by sqrt(k) -- with the correlations measured from the past years rather
+ * than assumed.
+ *
+ * `ranks[i]` is test i's percentile for each year, oldest first, with the year
+ * being judged last. Percentiles rather than raw values so that tests measured
+ * in different units can be pooled at all.
+ */
+export function combineRanks(ranks: number[][]): Combined | null {
+  const k = ranks.length;
+  if (!k) return null;
+  const n = ranks[0].length;
+  if (n < 3 || ranks.some((r) => r.length !== n)) return null;
+
+  // A percentile of 0 or 100 would be an infinite z. Held half a step inside
+  // the range the ranking can resolve, which with fifty reference years is one
+  // percentile point -- the honest limit of what this many years can say.
+  const step = 100 / (2 * (n - 1));
+  const z = ranks.map((r) => r.map((v) =>
+    normalQuantile(Math.min(100 - step, Math.max(step, v)) / 100)));
+
+  const current = z.map((r) => r[n - 1]);
+  const past = z.map((r) => r.slice(0, n - 1));
+
+  // Sum of the correlation matrix, diagonal included: k + 2 * sum of the upper
+  // triangle. This is the variance of the sum of k unit-variance correlated
+  // scores, which is exactly what the divisor has to be.
+  let total = k;
+  for (let i = 0; i < k; i++) {
+    for (let j = i + 1; j < k; j++) {
+      total += 2 * correlation(past[i], past[j]);
+    }
+  }
+  if (!(total > 0)) return null;
+
+  const combined = current.reduce((a, v) => a + v, 0) / Math.sqrt(total);
+  return {
+    z: combined,
+    p: 1 - normalCdf(combined),
+    effective: (k * k) / total,
+    each: current.map((v) => 1 - normalCdf(v)),
+    tests: k,
+  };
+}
+
+function correlation(a: number[], b: number[]): number {
+  const n = a.length;
+  const ma = a.reduce((x, v) => x + v, 0) / n;
+  const mb = b.reduce((x, v) => x + v, 0) / n;
+  let num = 0, da = 0, db = 0;
+  for (let i = 0; i < n; i++) {
+    const x = a[i] - ma, y = b[i] - mb;
+    num += x * y; da += x * x; db += y * y;
+  }
+  const den = Math.sqrt(da * db);
+  return den > 0 ? num / den : 0;
+}
+
 export interface Verdict {
   year: number;
   day: number;

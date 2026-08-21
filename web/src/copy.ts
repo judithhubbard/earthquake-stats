@@ -106,23 +106,37 @@ export const copy = {
        taken, so this year's average can be ranked against theirs directly --
        no correction, because the redundancy between the slicings applies
        equally to every year being compared. */
-    /* One number, not two. It used to report the average of the six percentiles
-       and then the rank of that average, which read as a contradiction: "the
-       72nd percentile — higher than 80%". Both were right and they measure
-       different things, because averaging six percentiles pulls the result
-       toward the middle, so a 72 among averages is further out than a 72 among
-       single years. The rank is the one that answers the question, and it is
-       clearer as a count of years than as a second percentage. */
+    /* The aggregate answer. Stouffer's Z over the six ways of counting, with
+       the divisor corrected for how strongly they correlate -- Strube's
+       version, with the correlations measured from the past years rather than
+       assumed. Pooling, not a multiplicity correction: every way of counting
+       tests the same claim, so the question is what they say together, not
+       whether any one of them crosses a line. */
     spreadAggregate:
-      "Averaged across the {ways} ways of counting the year so far, {year} is running higher " +
-      "than {beaten} of the {years} years since 1976 — each of them scored the same {ways} " +
-      "ways, so the comparison is like for like.",
+      "Combined across the {ways} ways of counting the year so far, a year with nothing " +
+      "unusual about it runs at least this busy {p}% of the time.",
+    spreadHelp: "how is this worked out?",
+    spreadHelpBody:
+      "Each way of counting ranks {year} against every year since 1976, which gives {ways} " +
+      "p-values: {ranks}. Each one is how often a past year ran at least this high on that " +
+      "way of counting." +
+      "\n\nThose {ways} are then pooled into a single number using Stouffer's method, which " +
+      "converts each p-value to a standard score, adds them, and divides by how much the sum " +
+      "could vary by chance." +
+      "\n\nThe usual divisor assumes the {ways} tests are independent. These are close to " +
+      "the same test repeated: counting M6+ and counting M7+ move together, and by moment the " +
+      "two are almost identical, because a year's moment is dominated by its largest " +
+      "earthquakes whichever threshold you set. Measured against the past years, the {ways} " +
+      "are worth about {effective} independent tests, and the divisor uses that instead. " +
+      "Ignoring it would make this year look far more unusual than it is." +
+      "\n\nThe result is Z = {z}, or p = {p}%. Below 1% would read as probably, 1% to 5% as " +
+      "maybe, above 5% as no.",
     spreadNote:
       "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
       "percentile, which is why the answer at the top depends on which one you are looking " +
       "at. The setting selected below is marked. The last-365-days column is not in the " +
-      "average: its window ends today rather than on 31 December, so it is not a year and " +
-      "cannot be ranked against past ones alongside the rest.",
+      "combined figure: its window ends today rather than on 31 December, so it is not a year " +
+      "and cannot be ranked against past ones alongside the rest.",
 
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",

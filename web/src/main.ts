@@ -3,10 +3,11 @@ import { renderAnnualChart, renderChart, renderDistribution, renderTrend,
          readTheme, type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  TREND_PERMUTATIONS, combinedTrendP, dayIndex, empiricalBand, equivalentMagnitude,
+  TREND_PERMUTATIONS, combineRanks, combinedTrendP, dayIndex, empiricalBand,
+  equivalentMagnitude,
   rollingWindowBand,
   trend, verdict,
-  type Measure, type Trend, type YearCurves,
+  type Combined, type Measure, type Trend, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
 import { copy, fill } from "./copy";
@@ -552,31 +553,19 @@ interface SpreadRow {
 }
 
 /**
- * The aggregate answer: this year's average rank across every way of counting,
- * ranked against past years' averages of the same twelve.
+ * The aggregate answer to the page's own question.
  *
- * This is the one number that answers the page's title question without a
- * choice hidden inside it, and it needs no multiplicity correction, which is
- * why it is built this way rather than by combining p-values. The twelve
- * slicings are heavily redundant -- their yearly totals correlate up to +1.00,
- * and there are about two and a half independent series among them -- so any
- * formula that assumed independence would be wrong, and measuring the
- * dependence would be another layer of machinery. Scoring every past year with
- * exactly the same twelve makes the redundancy cancel: whatever double-counting
- * the average does to this year, it did to 1998 too. What is left is a plain
- * empirical rank.
+ * Every way of counting the year tests the same claim -- that this year is no
+ * busier than usual -- so the six are pooled rather than corrected for. That is
+ * a different job from the trend section's, where the question is whether ANY
+ * of four series shows a trend once you have paid for looking four times, and
+ * it wants a different tool: Westfall-Young there, Stouffer here.
+ *
+ * Stouffer needs the correlation between the tests, and these are close to the
+ * same test six times over -- M6+ and M7+ moment correlate at 0.99, because
+ * moment is dominated by the largest earthquakes either way -- so the six are
+ * worth about 1.7 independent ones. See combineRanks.
  */
-interface Aggregate {
-  /** Mean percentile across the slicings, for the current year. */
-  percentile: number;
-  /** How many past years had a lower mean percentile than this one. */
-  beaten: number;
-  /** How many slicings went into each year's average. */
-  slices: number;
-  /** How many past years it was ranked against. */
-  years: number;
-}
-
 /** Each value's rank among the others, itself excluded, ties counted as half. */
 function leaveOneOutPercentiles(values: number[]): number[] {
   return values.map((v, i) => {
@@ -590,9 +579,33 @@ function leaveOneOutPercentiles(values: number[]): number[] {
   });
 }
 
+/** "58th, 60th, 68th, 82nd and 92nd". */
+function listOf(parts: string[]): string {
+  if (parts.length < 2) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
+
+/** The page's question-mark tooltip, built as nodes rather than markup. */
+function hint(label: string, body: string): HTMLElement {
+  const wrap = document.createElement("span");
+  wrap.className = "hint";
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "hint-button";
+  button.setAttribute("aria-label", label);
+  button.textContent = "?";
+  const tip = document.createElement("span");
+  tip.className = "hint-tip";
+  tip.setAttribute("role", "tooltip");
+  tip.textContent = body;
+  wrap.append(button, tip);
+  return wrap;
+}
+
 const SPREAD_WINDOWS: State["window"][] = ["calendar", "rolling"];
 
-function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Aggregate | null } {
+function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | null;
+                                    years: number } {
   const rows: SpreadRow[] = [];
   // One year -> percentile map per slicing. Keyed by year rather than indexed
   // by position: the rolling window shifts the year boundary, so its year list
@@ -654,25 +667,15 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Aggregate | nu
     }
   }
 
-  // Only years every slicing scored, so each year's average is over the same
-  // set of numbers as every other year's.
-  let aggregate: Aggregate | null = null;
+  // Only years every slicing scored, so the correlation between the tests is
+  // measured over one common set of years.
   const shared = ranks.length
     ? [...ranks[0].keys()].filter((y) => ranks.every((r) => r.has(y))).sort((a, b) => a - b)
     : [];
-  if (ranks.length && shared.length > 1) {
-    const mean = shared.map((y) =>
-      ranks.reduce((a, r) => a + r.get(y)!, 0) / ranks.length);
-    const current = mean[mean.length - 1];
-    const past = mean.slice(0, -1);
-    aggregate = {
-      percentile: current,
-      beaten: past.filter((m) => m < current).length,
-      slices: ranks.length,
-      years: past.length,
-    };
-  }
-  return { rows, aggregate };
+  const aggregate = shared.length > 2
+    ? combineRanks(ranks.map((r) => shared.map((y) => r.get(y)!)))
+    : null;
+  return { rows, aggregate, years: shared.length - 1 };
 }
 
 function writeSpread(tier: Tier, currentYear: number) {
@@ -687,12 +690,18 @@ function writeSpread(tier: Tier, currentYear: number) {
     low: ordinal(Math.min(...all)),
     high: ordinal(Math.max(...all)),
   });
-  el.spreadAggregate.textContent = aggregate
-    ? fill(c.spreadAggregate, {
-        ways: aggregate.slices, year: yearLabel(currentYear),
-        beaten: aggregate.beaten, years: aggregate.years,
-      })
-    : "";
+  el.spreadAggregate.replaceChildren();
+  if (aggregate) {
+    const pct = (v: number) => (v >= 0.1 ? (100 * v).toFixed(0) : (100 * v).toFixed(1));
+    el.spreadAggregate.append(fill(c.spreadAggregate, {
+      ways: aggregate.tests, p: pct(aggregate.p),
+    }), " ", hint(c.spreadHelp, fill(c.spreadHelpBody, {
+      ways: aggregate.tests, year: yearLabel(currentYear),
+      ranks: listOf(aggregate.each.map((v) => `${pct(v)}%`)),
+      effective: aggregate.effective.toFixed(1),
+      z: aggregate.z.toFixed(2), p: pct(aggregate.p),
+    })));
+  }
 
   const box = document.createElement("div");
   box.className = "correlate-flip spread-box";
