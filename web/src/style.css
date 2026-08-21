@@ -701,15 +701,21 @@ main {
    sitting under the chart it is about rather than in a list of its own. */
 .trend { margin-top: 3.25rem; }
 
+/* The question leads, the answer follows it. It used to be set smaller than
+   the "No." underneath, which read as a caption on the answer rather than the
+   thing being answered. */
 .trend figcaption {
-  font-size: 1.05rem;
-  font-weight: 650;
-  margin-bottom: 0.3rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--range-ink);
+  margin-bottom: 0.45rem;
 }
 
 .trend-verdict {
-  margin: 0 0 0.6rem;
-  font-size: 1.15rem;
+  margin: 0 0 0.7rem;
+  font-size: 1.1rem;
   font-weight: 650;
   color: var(--text-primary);
 }
@@ -741,12 +747,14 @@ main {
 
 .trend-panel { margin: 0; min-width: 0; }
 
+/* The same green as the question above them, so the four read as its parts
+   rather than as four more charts that happen to be on the page. */
 .trend-panel-title {
-  font-size: 0.82rem;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  color: var(--text-primary);
-  margin-bottom: 0.15rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--range-ink);
+  margin-bottom: 0.2rem;
 }
 
 .trend-panel-chart { min-height: 150px; overflow-x: auto; }
