@@ -5,7 +5,7 @@ import { MIN_MAGNITUDE, dayIndex } from "./stats";
 import { copy, fill } from "./copy";
 import { startAnalytics } from "./analytics";
 import {
-  FULL_MOON_DAY, chiSquare, chiSquareP, correlationP, lunarBins, monthBins, outsideBand,
+  FULL_MOON_DAY, chiSquare, chiSquareP, correlationP, lunarBins, monthBins,
   pearson, weekdayBins,
   type Bin, type Correlation,
 } from "./correlate";
@@ -558,6 +558,8 @@ async function boot() {
                           copy.correlations.probablyBin)].join("\n\n"),
          ].join("\n\n"), {
       p: asPercent(weekdayOut.p),
+      noBin: fill(copy.correlations.noBin,
+                  { p: asPercent(weekdayOut.p), subject: "the day of the week" }),
       threshold: `M${BIN_MAGNITUDE}+`, from: FIRST_YEAR,
       raw: raw.toLocaleString(), count: kept,
       bin: busiest.full,
@@ -567,7 +569,6 @@ async function boot() {
     fill(copy.correlations.weekdaySubtitle, { since }), legend, binFlip(weekday)));
 
   const month = monthBins(times);
-  const monthStray = outsideBand(month);
   const ranked = [...month].sort((a, b) => Math.abs(b.deviation) - Math.abs(a.deviation));
   const gap = Math.abs(month.indexOf(ranked[0]) - month.indexOf(ranked[1]));
   const word = (d: number) => (d >= 0 ? "more" : "fewer");
@@ -576,12 +577,7 @@ async function boot() {
   built.push(panel(copy.correlations.monthQuestion,
     plainVerdict(monthOut.key),
     [
-      fill(copy.correlations.monthIntro, {
-        count: kept,
-        inside: monthStray.count === 0
-          ? copy.correlations.monthAllInside
-          : fill(copy.correlations.monthSomeOutside, { n: monthStray.count }),
-      }),
+      fill(copy.correlations.monthIntro, { count: kept }),
       // December and January are adjacent too, hence the wrap.
       fill(gap === 1 || gap === 11
         ? copy.correlations.monthPairAdjacent
@@ -592,7 +588,9 @@ async function boot() {
         dir2: word(ranked[1].deviation),
       }),
       monthOut.key === "no"
-        ? copy.correlations.monthExplain
+        ? fill(copy.correlations.noBin,
+               { p: asPercent(monthOut.p), subject: "the month" })
+          + "\n\n" + copy.correlations.monthExplain
         : [copy.correlations.monthFlipped,
            ...closing(monthOut.key, copy.correlations.maybeBin,
                       copy.correlations.probablyBin)]
@@ -608,24 +606,20 @@ async function boot() {
   // picked after an eight-bin version came out messy. At daily resolution the
   // predicted two humps are simply absent, which is the honest answer.
   const moon = lunarBins(times);
-  const moonStray = outsideBand(moon);
-  const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   const moonOut = binOutcome(moon);
   headline.push(moonOut.key);
   built.push(panel(copy.correlations.moonQuestion, plainVerdict(moonOut.key),
     fill([copy.correlations.moonOpen,
           moonOut.key === "no"
-            ? copy.correlations.moonTail
+            ? fill(copy.correlations.moonTail, {
+                noBin: fill(copy.correlations.noBin,
+                            { p: asPercent(moonOut.p), subject: "the lunar day" }),
+              })
             : [copy.correlations.moonFlipped,
                ...closing(moonOut.key, copy.correlations.maybeBin,
                           copy.correlations.probablyBin)].join("\n\n"),
           copy.correlations.moonRest].join("\n\n"), {
-      article: TIDES_ARTICLE, count: kept, p: moonOut.p,
-      allBut: moonStray.count === 0
-        ? copy.correlations.moonAllInside
-        : fill(copy.correlations.moonAllBut, {
-            n: moonStray.count < words.length ? words[moonStray.count] : moonStray.count,
-          }),
+      article: TIDES_ARTICLE, count: kept, p: asPercent(moonOut.p),
     }),
     (w) => binChart(moon, w, {
       ticks: ["1", "5", "10", "15", "20", "25", "30"],
@@ -755,7 +749,17 @@ async function boot() {
   // computed would be the same fault the panels just had. If any of the four
   // has stopped saying no, the page stops saying it too and leaves the sentence
   // below to speak for itself.
-  el.answer.innerHTML = headline.every((k) => k === "no") ? copy.correlations.answer : "";
+  // The page's own answer, and the one place the multiple-comparisons point
+  // actually bites: one panel crossing out of five is roughly what five tests
+  // at a 5% cutoff produce on their own.
+  const flagged = headline.filter((k) => k !== "no").length;
+  el.answer.innerHTML = flagged === 0 ? copy.correlations.answer : "";
+  if (flagged > 0) {
+    el.answerDetail.textContent = fill(copy.correlations.detailFlagged, {
+      n: flagged, has: flagged === 1 ? "has" : "have",
+      tests: TESTS, anyFlag: ANY_FLAG,
+    });
+  }
   el.panels.replaceChildren(...built);
   for (const fn of redraw) fn();
 

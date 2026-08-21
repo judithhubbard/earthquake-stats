@@ -250,7 +250,13 @@ export const copy = {
      =================================================================== */
   correlations: {
     answer: "<strong>No.</strong>",
-    detail: "We checked. The data below updates as the USGS catalog does, and every answer on this page is computed from it rather than hard-coded.",
+    detail: "We checked. The data below updates as the USGS catalog does, and every answer on "
+      + "this page is computed from it rather than hard-coded.",
+    detailFlagged:
+      "We checked. {n} of the {tests} questions below {has} crossed the 5% line. That is not a " +
+      "discovery: with {tests} tests at that cutoff, the odds of at least one crossing by " +
+      "chance alone are about {anyFlag}%. The data below updates as the USGS catalog does, and " +
+      "every answer on this page is computed from it rather than hard-coded.",
 
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
@@ -273,6 +279,14 @@ export const copy = {
 
     /* Shown when a test passes its threshold. Passing at the 5% level is not a
        finding, and this is the sentence that says so. */
+    /* The no-state sentence. It used to report the +/-2 sigma band, which is a
+       different test from the chi-square driving the verdict -- and the two can
+       disagree, since a pooled statistic can flag while every bin sits inside
+       the band. Quoting p keeps one test in the prose and distinguishes 58%
+       from 8%, which a bare "No." does not. */
+    noBin:
+      "A spread this uneven turns up {p}% of the time when {subject} makes no difference, so " +
+      "there is nothing here that needs explaining.",
     maybeBin:
       "The data do show a pattern. Does a pattern mean a cause? If earthquakes occur at " +
       "random, we would expect to see a spread like this {p}% of the time. So this is not a " +
@@ -359,8 +373,8 @@ export const copy = {
     weekdayTail:
       "More earthquakes occur on {bin}s, at {percent}% above the average. So, are {bin}s " +
       "earthquake days? No — with seven days, one of them is always the busiest, and {percent}% " +
-      "is the sort of margin that produces. On the plot, the gray shows ±2 standard deviations " +
-      "— i.e., where we expect 95.45% to fall.",
+      "is the sort of margin that produces. {noBin} On the plot, the gray shows ±2 standard " +
+      "deviations — i.e., where we expect 95.45% to fall.",
     weekdayFlipped:
       "More earthquakes occur on {bin}s, at {percent}% above the average — but with seven days, " +
       "one of them is always the busiest, and the test below does not ask about {bin}s in " +
@@ -378,14 +392,8 @@ export const copy = {
        the two largest deviations are adjacent months, so there is a fallback. */
     monthIntro:
       "We classified the same {count} independent earthquakes by the month each one occurred " +
-      "in. {inside} Here we show the rate of earthquakes per day within the month, since months " +
-      "have different numbers of days.",
-    monthAllInside:
-      "All months fall within ±2 standard deviations — i.e., where we expect 95.45% of the data " +
-      "to fall if it is random.",
-    monthSomeOutside:
-      "{n} of the 12 months fall outside ±2 standard deviations — the range where we expect " +
-      "95.45% of the data to fall if it is random.",
+      "in. Here we show the rate of earthquakes per day within the month, since months have " +
+      "different numbers of days.",
     monthPairAdjacent:
       "The largest deviation is {bin1}, which has {pct1}% {dir1} earthquakes than average. That " +
       "might sound suspicious, but it sits right next to the second-largest deviation ({bin2}), " +
@@ -417,8 +425,6 @@ export const copy = {
     monthSubtitle: "Month of the year · {since}",
 
     moonQuestion: "Does the moon set off earthquakes?",
-    /* {allBut} is filled from the data, so the count cannot go stale, and the
-       link is built from one URL held in correlations.ts. */
     /* Split three ways: the setup, the part that depends on the answer, and the
        two paragraphs that follow whatever it is. Duplicating the last two to
        make a second whole string would have meant editing both forever. */
@@ -428,9 +434,7 @@ export const copy = {
       "same {count} earthquakes, classified by the lunar day on which each occurred. This chart " +
       "tests the question as it is usually asked: does the count depend on the phase of the " +
       "moon?",
-    moonTail:
-      "{allBut} the data points fall within ±2 standard deviations — i.e., where we expect " +
-      "95.45% of the data to fall if it is random.",
+    moonTail: "{noBin}",
     moonRest:
       "As with many things, it is possible to make this question much more complicated — " +
       "looking at different types of stresses, different types of faults, different regions on " +
@@ -446,8 +450,6 @@ export const copy = {
       "up {p}% of the time when the lunar day makes no difference." +
       "\n\nThis chart cannot say whether that unevenness has the shape a tidal explanation " +
       "would predict. That is a separate question and a different test.",
-    moonAllInside: "All of",
-    moonAllBut: "All but {n} of",
     moonSubtitle: "Day of the lunar cycle · {since}",
     moonNewMoon: "new moon",
     moonFullMoon: "full moon",
