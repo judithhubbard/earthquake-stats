@@ -365,9 +365,7 @@ export const copy = {
       "\n\n**Is the rate changing?** A straight line is fitted through the yearly counts of " +
       "four fixed series — M6+ and M7+, each with aftershocks left in and taken out — and " +
       "each slope is tested against no slope at all. Four rather than one, because the answer " +
-      "depends on which you pick: their p-values currently run from 7% to 85%. Counts only, " +
-      "because on moment every series rises about 25% per decade and all of that is 2004, " +
-      "2010 and 2011 falling in the second half of the record." +
+      "depends on which you pick: their p-values currently run from 7% to 85%." +
 
       "\n\n**The four are combined by shuffling.** The textbook correction assumes the four " +
       "tests are independent, and these are nested: every M7+ earthquake is also an M6+ " +
