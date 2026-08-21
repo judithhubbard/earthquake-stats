@@ -29,6 +29,7 @@ interface Context { generated: string; temperature?: Series; sunspots?: Series;
 const el = {
   answer: document.getElementById("answer")!,
   answerDetail: document.getElementById("answer-detail")!,
+  answerTests: document.getElementById("answer-tests")!,
   answerTable: document.getElementById("answer-table")!,
   panels: document.getElementById("panels")!,
   sources: document.getElementById("sources")!,
@@ -408,7 +409,60 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
  * grades on. The nested-series problem that rules Sidak out for the trend
  * section on the front page does not arise here.
  */
-function writePageAnswer(tests: { p: number; subject: string }[]) {
+/**
+ * Every question's own p-value and its own answer, in the order the panels
+ * appear below.
+ *
+ * The combined number beside this one is the right way to read the page as a
+ * whole, and the wrong way to answer a reader who came for exactly one of these
+ * five. Someone who wants to know about sunspots is not helped by being told
+ * that nothing among five questions stands out; they want the sunspot row.
+ */
+function writeTestTable(tests: { p: number; label: string }[]): HTMLElement {
+  const c = copy.correlations;
+  const box = document.createElement("div");
+  box.className = "correlate-flip answer-tests-box";
+
+  const title = document.createElement("p");
+  title.className = "flip-title";
+  title.textContent = c.pageTestsTitle;
+
+  const list = document.createElement("ol");
+  list.className = "flip-rows";
+  const template = "minmax(0, 1fr) minmax(0, 5rem) minmax(0, 5rem)";
+
+  const row = (cells: string[], cls: string) => {
+    const li = document.createElement("li");
+    li.className = cls;
+    li.style.gridTemplateColumns = template;
+    cells.forEach((text, i) => {
+      const cell = document.createElement("span");
+      cell.className = i === 0 ? "flip-when" : i === 1 ? "flip-when flip-num" : "flip-says";
+      cell.textContent = text;
+      li.append(cell);
+    });
+    return li;
+  };
+
+  list.append(row([c.pageColQuestion, c.pageColOwnP, c.flipColAnswer], "flip-head"));
+  for (const t of tests) {
+    const key = outcomeFor(t.p);
+    list.append(row([
+      t.label,
+      `${asPercent(t.p)}%`,
+      key === "probably" ? c.verdictProbably : key === "maybe" ? c.verdictMaybe : c.verdictNo,
+    ], key === "no" ? "" : "is-current"));
+  }
+
+  const note = document.createElement("p");
+  note.className = "flip-note";
+  note.textContent = c.pageTestsNote;
+
+  box.append(title, list, note);
+  return box;
+}
+
+function writePageAnswer(tests: { p: number; subject: string; label: string }[]) {
   const c = copy.correlations;
   const closest = tests.reduce((a, b) => (b.p < a.p ? b : a));
   const corrected = 1 - (1 - closest.p) ** tests.length;
@@ -423,9 +477,11 @@ function writePageAnswer(tests: { p: number; subject: string }[]) {
         corrected: asPercent(corrected),
       });
 
+  el.answerTests.replaceChildren(writeTestTable(tests));
+
   // One deciding column. The smallest of the five is still reported -- in the
-  // help text and under its own panel -- where it cannot be mistaken for the
-  // number the answer rests on.
+  // table beside this one, in the help text, and under its own panel -- where
+  // it cannot be mistaken for the number the answer rests on.
   el.answerTable.replaceChildren(flipTable(
     [{ label: c.pageColCombined,
        help: { label: c.pageHelp,
@@ -442,6 +498,7 @@ function writePageAnswer(tests: { p: number; subject: string }[]) {
     ],
     key === "probably" ? 0 : key === "maybe" ? 1 : 2,
     [fill(c.flipNow, { value: `${asPercent(corrected)}%` }), null],
+    c.pageCombinedTitle,
   ));
 }
 
@@ -538,7 +595,7 @@ async function boot() {
   // one has no statistic and answers a different question.
   // Each entry is one test's p-value and what it is a test of, so the page can
   // both grade itself and name whichever question is closest.
-  const headline: { p: number; subject: string }[] = [];
+  const headline: { p: number; subject: string; label: string }[] = [];
   el.answerDetail.textContent = copy.correlations.detail;
 
   const legend: LegendKey[] = [
@@ -556,7 +613,8 @@ async function boot() {
   const weekday = weekdayBins(times);
   const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
   const weekdayOut = binOutcome(weekday);
-  headline.push({ p: weekdayOut.p, subject: copy.correlations.weekdaySubject });
+  headline.push({ p: weekdayOut.p, subject: copy.correlations.weekdaySubject,
+                  label: copy.correlations.weekdayLabel });
   built.push(panel(copy.correlations.weekdayQuestion,
     plainVerdict(weekdayOut.key),
     fill([copy.correlations.weekdayIntro,
@@ -582,7 +640,8 @@ async function boot() {
   const gap = Math.abs(month.indexOf(ranked[0]) - month.indexOf(ranked[1]));
   const word = (d: number) => (d >= 0 ? "more" : "fewer");
   const monthOut = binOutcome(month);
-  headline.push({ p: monthOut.p, subject: copy.correlations.monthSubject });
+  headline.push({ p: monthOut.p, subject: copy.correlations.monthSubject,
+                  label: copy.correlations.monthLabel });
   built.push(panel(copy.correlations.monthQuestion,
     plainVerdict(monthOut.key),
     [
@@ -616,7 +675,8 @@ async function boot() {
   // predicted two humps are simply absent, which is the honest answer.
   const moon = lunarBins(times);
   const moonOut = binOutcome(moon);
-  headline.push({ p: moonOut.p, subject: copy.correlations.moonSubject });
+  headline.push({ p: moonOut.p, subject: copy.correlations.moonSubject,
+                  label: copy.correlations.moonLabel });
   built.push(panel(copy.correlations.moonQuestion, plainVerdict(moonOut.key),
     fill([copy.correlations.moonOpen,
           moonOut.key === "no"
@@ -642,7 +702,8 @@ async function boot() {
     const points = seriesPoints(context.temperature, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
     headline.push({ p: c ? correlationP(c.r, c.n) : 1,
-                    subject: copy.correlations.climateSubject });
+                    subject: copy.correlations.climateSubject,
+                    label: copy.correlations.climateLabel });
     // Whether the panel has anything to explain, on the same rule as its verdict.
     const cUp = copy.correlations.climateUp;
     const cDown = copy.correlations.climateDown;
@@ -680,7 +741,8 @@ async function boot() {
     const points = seriesPoints(context.sunspots, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
     headline.push({ p: c ? correlationP(c.r, c.n) : 1,
-                    subject: copy.correlations.solarSubject });
+                    subject: copy.correlations.solarSubject,
+                    label: copy.correlations.solarLabel });
     const sUp = copy.correlations.solarUp;
     const sDown = copy.correlations.solarDown;
     built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c, sUp, sDown),

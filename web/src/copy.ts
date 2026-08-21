@@ -435,6 +435,18 @@ export const copy = {
       "this strong turns up {corrected}% of the time when none is real. That is worth " +
       "explaining, and it is still not a cause. The data below updates as the USGS catalog " +
       "does, and every answer on this page is computed from it rather than hard-coded.",
+    /* The per-question table, left of the combined one. Someone who came for
+       one of these five wants that one answered, not averaged into the other
+       four: the combined number is the right way to read the page as a whole
+       and the wrong way to answer "do sunspots cause earthquakes". */
+    pageTestsTitle: "Each question, answered on its own:",
+    pageColQuestion: "The question",
+    pageColOwnP: "Its p-value",
+    pageTestsNote:
+      "Each row is graded on its own p-value, at the same 1% and 5% lines. The table beside " +
+      "this one asks a different question — whether anything on the page stands out once you " +
+      "allow for having asked five times — and it is the one the answer at the top is based on.",
+    pageCombinedTitle: "And the page as a whole, allowing for five questions:",
     pageColCombined: "Combined p-value for the five tests",
     pageHelp: "how is this calculated?",
     pageHelpBody:
@@ -560,6 +572,7 @@ export const copy = {
     flipNow: "Right now: {value}",
 
     weekdaySubject: "the day of the week",
+    weekdayLabel: "Day of the week",
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     /* The first paragraph is the method and holds whatever the answer is; the
        rest depends on it, so the two are separate strings. */
@@ -585,6 +598,7 @@ export const copy = {
     weekdaySubtitle: "Day of the week · {since}",
 
     monthSubject: "the month of the year",
+    monthLabel: "Month of the year",
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
     /* Values are filled from the data. The "right next to" line only holds while
        the two largest deviations are adjacent months, so there is a fallback. */
@@ -623,6 +637,7 @@ export const copy = {
     monthSubtitle: "Month of the year · {since}",
 
     moonSubject: "the lunar cycle",
+    moonLabel: "Lunar cycle",
     moonQuestion: "Does the moon set off earthquakes?",
     /* Split three ways: the setup, the part that depends on the answer, and the
        two paragraphs that follow whatever it is. Duplicating the last two to
@@ -654,6 +669,7 @@ export const copy = {
     moonFullMoon: "full moon",
 
     climateSubject: "global temperature",
+    climateLabel: "Global temperature",
     climateQuestion: "Is climate change affecting earthquakes?",
     climateOpen:
       "Some people have suggested that climate change might cause earthquakes to become more " +
@@ -690,6 +706,7 @@ export const copy = {
     climateAxis: "Global temperature (°C above 1951–1980)",
 
     solarSubject: "solar activity",
+    solarLabel: "Solar activity",
     solarQuestion: "Does solar activity affect earthquakes?",
     solarExplain:
       "There is a popular hypothesis that solar activity causes earthquakes. We checked, just to " +
