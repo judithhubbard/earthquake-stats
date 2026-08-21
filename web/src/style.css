@@ -722,10 +722,44 @@ main {
   white-space: pre-line;
 }
 
-#trend-chart { min-height: 240px; margin-bottom: 0.4rem; }
-
 #trend-table .correlate-flip { border-top: 0; padding-top: 0; }
 #trend-table .flip-title { display: none; }
+
+/* Two across. All four are always drawn -- the grid is the argument, so it
+   never collapses to "the interesting one". Below 620px they stack, which is
+   still all four, just in one column. */
+.trend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1.75rem;
+  margin: 1.5rem 0 1.1rem;
+}
+
+@media (max-width: 620px) {
+  .trend-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.trend-panel { margin: 0; min-width: 0; }
+
+.trend-panel-title {
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.trend-panel-chart { min-height: 150px; overflow-x: auto; }
+
+.trend-panel-stat {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-overlap { margin-bottom: 0; }
 
 /* Loud on purpose. If this shows, the numbers below it are not to be trusted,
    and a quiet note at the bottom would be worse than useless. */

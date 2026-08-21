@@ -4,7 +4,7 @@ import { renderAnnualChart, renderChart, renderDistribution, renderTrend, readTh
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
   dayIndex, empiricalBand, equivalentMagnitude, rollingWindowBand, trend, verdict,
-  type AnnualCount, type Measure, type Trend, type YearCurves,
+  type Measure, type Trend, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
 import { copy, fill } from "./copy";
@@ -169,9 +169,9 @@ const el = {
   trendQuestion: document.getElementById("trend-question")!,
   trendVerdict: document.getElementById("trend-verdict")!,
   trendBody: document.getElementById("trend-body")!,
-  trendSubtitle: document.getElementById("trend-subtitle")!,
-  trendChart: document.getElementById("trend-chart")!,
   trendTable: document.getElementById("trend-table")!,
+  trendGrid: document.getElementById("trend-grid")!,
+  trendOverlap: document.getElementById("trend-overlap")!,
   techTitle: document.getElementById("tech-title")!,
   techBody: document.getElementById("tech-body")!,
 };
@@ -854,6 +854,17 @@ async function writeLatest(minMag: number) {
 /**
  * Is the rate changing?
  *
+ * Four fixed series, always all four: M6+ and M7+, each with aftershocks left
+ * in and taken out. The toggles above do not touch this section, on purpose.
+ * There are more than eight ways to slice this catalogue and their p-values run
+ * from 0.07 to 0.85, so a reader handed the toggles will find the 0.07 and
+ * stop. Showing the whole set and correcting for the number of looks is the
+ * only honest way to put this question on a page anyone can click through.
+ *
+ * Counts only. Every moment series slopes up at about 25% per decade and all of
+ * it is 2004, 2010 and 2011 landing in the second half of the record: a claim
+ * about whether a great earthquake happened, not about the rate of earthquakes.
+ *
  * Graded on the same three rungs as the correlations page, from the same kind
  * of p-value, and it never prints a bare slope. A slope invites "four percent a
  * decade, so twenty percent over fifty years" from a series whose fitted rise
@@ -864,18 +875,69 @@ function signedPct(v: number): string {
   return `${v >= 0 ? "+" : "\u2212"}${Math.abs(v).toFixed(1)}%`;
 }
 
-function writeTrend(counts: AnnualCount[], refYears: number[], minMag: number,
-                    kind: string, theme: ReturnType<typeof readTheme>, width: number) {
-  const refSet = new Set(refYears);
-  const points = counts.filter((c) => refSet.has(c.year))
-                       .map((c) => ({ year: c.year, value: c.count }));
-  const t = trend(points);
-  if (!t) { el.trendQuestion.textContent = ""; return; }
+const TREND_SERIES = [
+  { threshold: MIN_MAGNITUDE, mainshocksOnly: false },
+  { threshold: MIN_MAGNITUDE, mainshocksOnly: true },
+  { threshold: MAJOR_MAGNITUDE, mainshocksOnly: false },
+  { threshold: MAJOR_MAGNITUDE, mainshocksOnly: true },
+];
 
-  const pct = (v: number) => (100 * v) / t.mean;
-  const key = t.p < 0.01 ? "probably" : t.p < 0.05 ? "maybe" : "no";
-  const rise = (t.perDecade * (t.years - 1)) / 10;
+interface TrendPanel {
+  title: string;
+  axis: string;
+  points: { year: number; value: number }[];
+  fit: Trend;
+}
+
+/**
+ * Whole-year totals for one series, on the calendar, ignoring every toggle.
+ *
+ * Deliberately not derived from the annual chart's numbers: those follow the
+ * measure, the magnitude, the decluster switch and the rolling-window shift,
+ * which is exactly the dependence this section exists to remove.
+ */
+function trendPoints(tier: Tier, threshold: number, mainshocksOnly: boolean,
+                     currentYear: number): { year: number; value: number }[] {
+  const curves = cumulativeByYear(tier, threshold, REFERENCE_START, mainshocksOnly, "count", 0);
+  return curves.years
+    .filter((y) => y >= REFERENCE_START && y < currentYear)
+    .map((y) => ({ year: y, value: curves.curves.get(y)![DAYS - 1] }));
+}
+
+async function writeTrend(currentYear: number, theme: ReturnType<typeof readTheme>,
+                          width: number) {
   const c = copy.home;
+  let tier: Tier;
+  try {
+    // Always the M6 tier, whatever is selected above: it holds every M7+ event
+    // too, so both thresholds come from one load, and the store caches it.
+    tier = await store.load(MIN_MAGNITUDE);
+  } catch {
+    el.trendQuestion.textContent = "";
+    return;
+  }
+
+  const panels: TrendPanel[] = [];
+  for (const spec of TREND_SERIES) {
+    const points = trendPoints(tier, spec.threshold, spec.mainshocksOnly, currentYear);
+    const fit = trend(points);
+    if (!fit) continue;
+    const threshold = magLabel(spec.threshold);
+    panels.push({
+      title: fill(spec.mainshocksOnly ? c.trendPanelMainshocks : c.trendPanelAll, { threshold }),
+      axis: fill(c.trendPanelAxis, { threshold }),
+      points, fit,
+    });
+  }
+  if (!panels.length) { el.trendQuestion.textContent = ""; return; }
+
+  const outcome = (p: number) => (p < 0.01 ? "probably" : p < 0.05 ? "maybe" : "no");
+  const steepest = panels.reduce((a, b) => (b.fit.p < a.fit.p ? b : a));
+  // Sidak over the four looks. The series are nested, so this over-corrects --
+  // said out loud in trendOverlap rather than left for the reader to notice.
+  const corrected = 1 - (1 - steepest.fit.p) ** panels.length;
+  const key = outcome(steepest.fit.p);
+  const pct = (n: number) => (100 * n).toFixed(0);
 
   el.trendQuestion.textContent = c.trendQuestion;
   el.trendVerdict.textContent = key === "probably" ? copy.correlations.verdictProbably
@@ -883,54 +945,86 @@ function writeTrend(counts: AnnualCount[], refYears: number[], minMag: number,
                               : copy.correlations.verdictNo;
 
   el.trendBody.textContent = fill(c.trendIntro, {
-    rise: Math.abs(rise).toFixed(1), kind, years: t.years,
-    ratio: (Math.abs(rise) / t.scatter).toFixed(2),
-    // Signed, so a range spanning zero reads as one: "-1.0% to +5.3%".
-    low: signedPct(pct(t.perDecade - t.margin)),
-    high: signedPct(pct(t.perDecade + t.margin)),
+    threshold: magLabel(MIN_MAGNITUDE), major: magLabel(MAJOR_MAGNITUDE),
   }) + "\n\n" + fill(
     key === "probably" ? c.trendProbably : key === "maybe" ? c.trendMaybe : c.trendNo,
-    { p: (100 * t.p).toFixed(0) });
+    { subject: steepest.title, p: pct(steepest.fit.p), corrected: pct(corrected) });
 
-  el.trendSubtitle.textContent = fill(c.trendSubtitle, {
-    threshold: magLabel(minMag), kind, from: t.first, to: t.last,
+  el.trendOverlap.textContent = fill(c.trendOverlap, {
+    threshold: magLabel(MIN_MAGNITUDE), major: magLabel(MAJOR_MAGNITUDE),
   });
+
+  const cc = copy.correlations;
   el.trendTable.replaceChildren(flipTable(
-    [{ label: c.trendColSlope },
-     { label: c.trendColP,
-       help: { label: c.trendHelp, body: fill(c.trendHelpBody, { years: t.years }) } },
-     { label: copy.correlations.flipColAnswer }],
+    [{ label: c.trendColSmallest,
+       help: { label: c.trendHelpSmallest,
+               body: fill(c.trendHelpSmallestBody, {
+                 years: steepest.fit.years, p: pct(steepest.fit.p),
+                 subject: steepest.title,
+               }) } },
+     { label: c.trendColCorrected,
+       help: { label: c.trendHelp,
+               body: fill(c.trendHelpBody, {
+                 p: pct(steepest.fit.p), corrected: pct(corrected),
+               }) } },
+     { label: cc.flipColAnswer }],
     [
-      [c.trendAboveZero, copy.correlations.flipPStrong, copy.correlations.verdictProbably],
-      [c.trendAboveZero, copy.correlations.flipPWeak, copy.correlations.verdictMaybe],
-      [c.trendSpanZero, copy.correlations.flipPNone, copy.correlations.verdictNo],
+      [cc.flipPStrong, c.trendCorrectedBelow, cc.verdictProbably],
+      [cc.flipPWeak, c.trendCorrectedAbove, cc.verdictMaybe],
+      [cc.flipPNone, c.trendCorrectedNone, cc.verdictNo],
     ],
     key === "probably" ? 0 : key === "maybe" ? 1 : 2,
-    [fill(copy.correlations.flipNow, {
-       value: `${signedPct(pct(t.perDecade - t.margin))} to `
-            + `${signedPct(pct(t.perDecade + t.margin))} per decade`,
-     }),
-     fill(copy.correlations.flipNow, { value: `${(100 * t.p).toFixed(0)}%` }), null],
+    [fill(cc.flipNow, { value: `${pct(steepest.fit.p)}%` }),
+     fill(cc.flipNow, { value: `${pct(corrected)}%` }), null],
   ));
 
-  el.trendChart.replaceChildren(renderTrendChart(t, points, theme, width));
+  // Two across, so each panel gets about half the section width less the gap.
+  const panelWidth = Math.max(240, Math.floor((width - 28) / 2));
+  el.trendGrid.replaceChildren(...panels.map((panel) => {
+    const box = document.createElement("figure");
+    box.className = "trend-panel";
+
+    const title = document.createElement("figcaption");
+    title.className = "trend-panel-title";
+    title.textContent = panel.title;
+
+    const host = document.createElement("div");
+    host.className = "trend-panel-chart";
+    host.append(renderTrendChart(panel, theme, panelWidth));
+
+    const stat = document.createElement("p");
+    stat.className = "trend-panel-stat";
+    const share = (v: number) => (100 * v) / panel.fit.mean;
+    stat.textContent = fill(c.trendPanelStat, {
+      low: signedPct(share(panel.fit.perDecade - panel.fit.margin)),
+      high: signedPct(share(panel.fit.perDecade + panel.fit.margin)),
+      p: pct(panel.fit.p),
+      verdict: outcome(panel.fit.p) === "probably" ? cc.verdictProbably
+             : outcome(panel.fit.p) === "maybe" ? cc.verdictMaybe : cc.verdictNo,
+    });
+
+    box.append(title, host, stat);
+    return box;
+  }));
 }
 
 /** The fitted line and its 95% band, as marks. */
-function renderTrendChart(t: Trend, points: { year: number; value: number }[],
-                          theme: ReturnType<typeof readTheme>, width: number) {
+function renderTrendChart(panel: TrendPanel, theme: ReturnType<typeof readTheme>,
+                          width: number) {
+  const t = panel.fit;
   const mid = (t.first + t.last) / 2;
   const at = (year: number) => t.mean + (t.perDecade / 10) * (year - mid);
   const halfAt = (year: number) => (t.margin / 10) * Math.abs(year - mid);
-  const band = points.map((p) => ({
+  const band = panel.points.map((p) => ({
     year: p.year, lo: at(p.year) - halfAt(p.year), hi: at(p.year) + halfAt(p.year),
   }));
   return renderTrend({
-    points,
+    points: panel.points,
     line: [{ year: t.first, value: at(t.first) }, { year: t.last, value: at(t.last) }],
     band, theme, width,
-    yLabel: fill(copy.home.axisAnnualCount, { threshold: magLabel(state.minMag) }),
-    wholeNumbers: state.measure === "count",
+    yLabel: panel.axis,
+    wholeNumbers: true,
+    compact: true,
   });
 }
 
@@ -1109,7 +1203,7 @@ async function update() {
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
-    writeTrend(counts, refYears, minMag, kind, theme, width);
+    void writeTrend(currentYear, theme, width);
 
     const mapEvents = highlightedEvents(tier, minMag, highlights, shift);
     buildMapLegend(highlights);

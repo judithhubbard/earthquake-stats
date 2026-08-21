@@ -127,6 +127,13 @@ export interface TrendOptions {
   width: number;
   yLabel: string;
   wholeNumbers?: boolean;
+  /**
+   * Four of these sit side by side in a grid, at roughly half the width of a
+   * full-width chart. Left at its usual proportions each one would come out
+   * taller than it is wide, so the small version gets its own geometry rather
+   * than a scaled-down copy of the large one.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -138,15 +145,27 @@ export interface TrendOptions {
  * what it is.
  */
 export function renderTrend(opts: TrendOptions): SVGSVGElement | HTMLElement {
-  const { points, line, band, theme, width } = opts;
+  const { points, line, band, theme, width, compact = false } = opts;
   return Plot.plot({
     width,
-    height: Math.max(240, Math.min(320, width * 0.36)),
-    marginLeft: 62, marginRight: 18, marginBottom: 38, marginTop: 18,
-    style: { background: "transparent", color: theme.text, fontSize: "12px" },
-    x: { label: null, tickFormat: "d", ticks: 6, tickSize: 0, tickPadding: 7 },
+    height: compact
+      ? Math.max(150, Math.min(200, width * 0.52))
+      : Math.max(240, Math.min(320, width * 0.36)),
+    marginLeft: compact ? 44 : 62,
+    marginRight: compact ? 10 : 18,
+    marginBottom: compact ? 28 : 38,
+    marginTop: compact ? 10 : 18,
+    style: {
+      background: "transparent", color: theme.text,
+      fontSize: compact ? "11px" : "12px",
+    },
+    x: {
+      label: null, tickFormat: "d", ticks: compact ? 4 : 6,
+      tickSize: 0, tickPadding: compact ? 5 : 7,
+    },
     y: {
-      label: opts.yLabel, labelAnchor: "center", labelOffset: 46, grid: true,
+      label: opts.yLabel, labelAnchor: "center", labelOffset: compact ? 32 : 46,
+      grid: true, ticks: compact ? 4 : undefined,
       labelArrow: null, zero: true,
       tickFormat: opts.wholeNumbers
         ? (d: number) => (Number.isInteger(d) ? d.toLocaleString() : "")
@@ -159,7 +178,7 @@ export function renderTrend(opts: TrendOptions): SVGSVGElement | HTMLElement {
       }),
       Plot.line(line, { x: "year", y: "value", stroke: theme.median, strokeWidth: 2 }),
       Plot.dot(points, {
-        x: "year", y: "value", r: 3.2,
+        x: "year", y: "value", r: compact ? 2.4 : 3.2,
         fill: theme.series[0], fillOpacity: 0.8,
         stroke: theme.surface, strokeWidth: 0.8,
       }),

@@ -171,41 +171,84 @@ export const copy = {
     yearsSome: "{n} years",
     yearsCount: "{n} of {max}",
 
-    /* The trend section under the annual chart. It reports an interval and
-       never a bare slope: a slope invites "5% a decade, so 20% over forty
-       years" from data that cannot tell the line from flat. */
+    /* The trend section under the annual chart.
+
+       Four fixed series, always all four, never responding to the toggles
+       above. There are more than eight ways to slice this catalogue and their
+       p-values run from 0.07 to 0.85; a reader given the toggles will find the
+       0.07 and stop. Showing the whole set, and charging for the search with a
+       multiple-comparison correction, is the only honest way to answer the
+       question on a page anyone can click through.
+
+       Count only. Every moment series slopes upward at about 25% per decade,
+       and all of that is 2004, 2010 and 2011 falling in the second half of the
+       record. That is a statement about whether a great earthquake happened,
+       not about the rate of earthquakes, and this section asks the latter.
+
+       It reports an interval and never a bare slope: a slope invites "5% a
+       decade, so 20% over forty years" from data that cannot tell the line
+       from flat. */
     trendQuestion: "Is the rate of earthquakes changing?",
-    trendSubtitle: "{threshold} {kind} per year, {from}–{to}, with the best straight line through them",
     trendIntro:
-      "We fitted a straight line through the yearly counts above and asked whether its slope " +
-      "can be told apart from no slope at all." +
-      "\n\nThe line rises by {rise} {kind} across the whole {years} years — {ratio} times what " +
-      "the count varies by from one year to the next. The data are consistent with anywhere " +
-      "between {low} and {high} per decade, a range that includes no change at all.",
+      "We fit a straight line through the yearly counts for four different series — {threshold} " +
+      "and {major}, each with aftershocks left in and taken out — and ask whether any of the " +
+      "four slopes can be told apart from no slope at all." +
+      "\n\nAll four are below, always, whatever is selected above. Which series you look at " +
+      "changes the answer, so choosing one after seeing the answers would not be a finding.",
     trendNo:
-      "So the answer is no: there is no trend here that can be distinguished from the ordinary " +
-      "year-to-year scatter.",
+      "So the answer is no. The steepest of the four is {subject}, where a slope that steep " +
+      "turns up {p}% of the time in counts with no trend in them — and across four series, " +
+      "at least one does that {corrected}% of the time.",
     trendMaybe:
-      "That is enough to notice. A slope this steep, or steeper, turns up {p}% of the time in " +
-      "counts with no trend in them — worth watching rather than announcing.",
+      "That is enough to notice. The steepest of the four is {subject}, where a slope that " +
+      "steep turns up {p}% of the time in counts with no trend in them. But across four " +
+      "series, at least one reaches that level {corrected}% of the time by chance alone — " +
+      "worth watching rather than announcing.",
     trendProbably:
-      "A slope this steep, or steeper, turns up only {p}% of the time in counts with no trend " +
-      "in them. That is a real change in the rate at this magnitude and this setting, which is " +
-      "not the same as a change in the Earth.",
-    trendColSlope: "Slope",
-    trendColP: "p-value",
-    trendSpanZero: "range includes zero",
-    trendAboveZero: "range excludes zero",
-    trendHelp: "what is this testing?",
+      "The steepest of the four is {subject}, where a slope that steep turns up only {p}% of " +
+      "the time in counts with no trend in them, and even across four series that happens " +
+      "just {corrected}% of the time. That is a real change in the rate at this magnitude and " +
+      "this setting, which is not the same as a change in the Earth.",
+    /* Said out loud rather than buried. The four series are nested, so Sidak's
+       independence assumption does not hold. It fails in the safe direction,
+       and saying which direction is the point. */
+    trendOverlap:
+      "The four series overlap: every {major} earthquake is also an {threshold} earthquake, and " +
+      "every mainshock is also an earthquake. So these are not four independent looks at the " +
+      "data, and the correction above, which assumes they are, is harsher than it needs to be " +
+      "rather than more forgiving.",
+
+    trendPanelAll: "{threshold}, all earthquakes",
+    trendPanelMainshocks: "{threshold}, mainshocks only",
+    trendPanelAxis: "{threshold} per year",
+    trendPanelStat: "{low} to {high} per decade · p = {p}% · {verdict}",
+
+    trendColSmallest: "Smallest p-value of the four",
+    trendColCorrected: "Corrected for asking four",
+    trendCorrectedBelow: "below 5%",
+    trendCorrectedAbove: "above 5%",
+    trendCorrectedNone: "—",
+    trendHelpSmallest: "what is this testing?",
+    trendHelpSmallestBody:
+      "A straight line is fitted through the {years} yearly counts of each series, and the test " +
+      "asks how often counts with no trend in them would produce a slope at least that steep. " +
+      "The smallest of the four p-values is {p}%, from {subject}." +
+      "\n\nThe range under each chart is where that series' true slope lies with 95% " +
+      "confidence. When it includes zero, no change is one of the possibilities the data allow " +
+      "— which is why this shows the range rather than the single number in the middle of it. " +
+      "That number on its own invites arithmetic the data cannot support." +
+      "\n\nA straight line is also an assumption. It would not detect a rate that rose and " +
+      "then fell, or a step change.",
+    trendHelp: "why is this different from the number beside it?",
     trendHelpBody:
-      "A straight line is fitted through the {years} yearly counts, and the test asks how often " +
-      "counts with no trend in them would produce a slope at least this steep." +
-      "\n\nThe range shown is where the true slope lies with 95% confidence. When it includes " +
-      "zero, no change is one of the possibilities the data allow — which is why this page shows " +
-      "the range rather than the single number in the middle of it. That number on its own " +
-      "invites arithmetic the data cannot support." +
-      "\n\nA straight line is also an assumption. It would not detect a rate that rose and then " +
-      "fell, or a step change.",
+      "Four series are tested, so there are four chances for one of them to look unusual. If " +
+      "all four were flat, the chance that at least one would still produce a p-value as small " +
+      "as {p}% is {corrected}%." +
+      "\n\nThis is what separates the two answers above zero. A slope below 1% on its own " +
+      "stays under 5% once the four looks are paid for, so it survives. A slope between 1% and " +
+      "5% does not, which is why that rung says maybe rather than yes. Reporting the smallest " +
+      "of four p-values as though it were the only test is how a flat record gets announced as " +
+      "a trend.",
 
     /* ===============================================================
        THE TECHNICAL SUMMARY, front page. Plain and direct: what the
