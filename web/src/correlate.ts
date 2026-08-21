@@ -76,19 +76,39 @@ export function weekdayBins(times: Float64Array | number[]): Bin[] {
  * about 10% that is pure calendar. The expectation is weighted by how many days
  * each month actually contributed across the years in the data.
  */
+/**
+ * Months are unequal, so the expectation is weighted by how long each one ran.
+ *
+ * By the days observed, not by whole calendar years. The catalog stops partway
+ * through the current year, and crediting that year with all twelve months gave
+ * September to December a full month of expectation against data that does not
+ * reach them yet. The shortfall read as a real autumn deficit: on times drawn
+ * uniformly at random -- no month pattern by construction -- the statistic came
+ * out at 15.5 against a df of 11, which is p = 16% where the honest answer is
+ * about 42%. Every incomplete year at either end has the same effect.
+ *
+ * Overlapping each calendar month with the window the events actually cover
+ * counts every earthquake and expects exactly the time behind it.
+ */
 export function monthBins(times: Float64Array | number[]): Bin[] {
   const counts = new Array(12).fill(0);
   const days = new Array(12).fill(0);
-  const years = new Set<number>();
+  let first = Infinity;
+  let last = -Infinity;
 
   for (const t of times) {
-    const date = new Date(t);
-    counts[date.getUTCMonth()] += 1;
-    years.add(date.getUTCFullYear());
+    counts[new Date(t).getUTCMonth()] += 1;
+    if (t < first) first = t;
+    if (t > last) last = t;
   }
-  for (const year of years) {
+  if (!Number.isFinite(first)) return toBins(counts, MONTHS, new Array(12).fill(1), MONTHS_FULL);
+
+  for (let year = new Date(first).getUTCFullYear();
+       year <= new Date(last).getUTCFullYear(); year++) {
     for (let m = 0; m < 12; m++) {
-      days[m] += (Date.UTC(year, m + 1, 1) - Date.UTC(year, m, 1)) / 86_400_000;
+      const from = Math.max(first, Date.UTC(year, m, 1));
+      const to = Math.min(last, Date.UTC(year, m + 1, 1));
+      if (to > from) days[m] += (to - from) / 86_400_000;
     }
   }
   return toBins(counts, MONTHS, days, MONTHS_FULL);
