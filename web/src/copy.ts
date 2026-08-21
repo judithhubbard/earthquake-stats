@@ -379,7 +379,7 @@ export const copy = {
     monthIntro:
       "We classified the same {count} independent earthquakes by the month each one occurred " +
       "in. {inside} Here we show the rate of earthquakes per day within the month, since months " +
-      "have different days.",
+      "have different numbers of days.",
     monthAllInside:
       "All months fall within ±2 standard deviations — i.e., where we expect 95.45% of the data " +
       "to fall if it is random.",
@@ -389,12 +389,13 @@ export const copy = {
     monthPairAdjacent:
       "The largest deviation is {bin1}, which has {pct1}% {dir1} earthquakes than average. That " +
       "might sound suspicious, but it sits right next to the second-largest deviation ({bin2}), " +
-      "with {pct2}% {dir2} earthquakes than average! There is nothing to see here.",
+      "with {pct2}% {dir2} earthquakes than average!",
     monthPairApart:
       "The largest deviation is {bin1}, which has {pct1}% {dir1} earthquakes than average, and " +
-      "the second-largest ({bin2}) runs {pct2}% {dir2}. There is nothing to see here.",
+      "the second-largest ({bin2}) runs {pct2}% {dir2}.",
     monthExplain:
-      "Here, month is a proxy for weather. If weather had a noticeable impact on earthquake " +
+      "There is nothing to see here. Month is a proxy for weather, and if weather had a " +
+      "noticeable impact on earthquake " +
       "rates, we would see something here, because we see different weather during different " +
       "months. But we don't. It's easy to see why: earthquakes typically start ten kilometers " +
       "or more underground, where the small stresses caused by weather patterns have essentially " +
@@ -406,7 +407,7 @@ export const copy = {
       "Here, month is a proxy for weather. If weather had a noticeable impact on earthquake " +
       "rates, we would see something here, because we see different weather during different " +
       "months. Right now we do see something: a spread like this turns up {p}% of the time when " +
-      "the month makes no difference." +
+      "the month makes no difference. Month is a proxy for weather here." +
       "\n\nThat is worth a look, but it is not yet a reason to think weather drives " +
       "earthquakes. Earthquakes typically start ten kilometers or more underground, where the " +
       "small stresses caused by weather patterns have essentially no impact." +

@@ -356,6 +356,17 @@ function binOutcome(bins: Bin[]): Outcome {
 }
 
 /** "Probably." / "Maybe." / "No." -- the whole ladder. */
+/**
+ * The closing paragraph belonging to an outcome, or nothing at all for a "no".
+ *
+ * Probably and Maybe would otherwise share one, because the prose branches on
+ * no-versus-not-no while the verdict has three rungs -- so a panel could say
+ * "Probably." above a paragraph calling itself "not a full answer".
+ */
+function closing(key: Outcome["key"], maybe: string, probably: string): string[] {
+  return key === "no" ? [] : [key === "probably" ? probably : maybe];
+}
+
 function plainVerdict(key: Outcome["key"]): string {
   const c = copy.correlations;
   return key === "probably" ? c.verdictProbably
@@ -542,7 +553,9 @@ async function boot() {
     fill([copy.correlations.weekdayIntro,
           weekdayOut.key === "no"
             ? copy.correlations.weekdayTail
-            : [copy.correlations.weekdayFlipped, copy.correlations.maybeBin].join("\n\n"),
+            : [copy.correlations.weekdayFlipped,
+               ...closing(weekdayOut.key, copy.correlations.maybeBin,
+                          copy.correlations.probablyBin)].join("\n\n"),
          ].join("\n\n"), {
       p: asPercent(weekdayOut.p),
       threshold: `M${BIN_MAGNITUDE}+`, from: FIRST_YEAR,
@@ -580,8 +593,10 @@ async function boot() {
       }),
       monthOut.key === "no"
         ? copy.correlations.monthExplain
-        : [fill(copy.correlations.monthFlipped, { p: asPercent(monthOut.p) }),
-           fill(copy.correlations.maybeBin, { p: asPercent(monthOut.p) })].join("\n\n"),
+        : [copy.correlations.monthFlipped,
+           ...closing(monthOut.key, copy.correlations.maybeBin,
+                      copy.correlations.probablyBin)]
+            .map((t) => fill(t, { p: asPercent(monthOut.p) })).join("\n\n"),
     ].join("\n\n"),
     (w) => binChart(month, w), undefined,
     fill(copy.correlations.monthSubtitle, { since }), legend, binFlip(month)));
@@ -601,7 +616,9 @@ async function boot() {
     fill([copy.correlations.moonOpen,
           moonOut.key === "no"
             ? copy.correlations.moonTail
-            : [copy.correlations.moonFlipped, copy.correlations.maybeBin].join("\n\n"),
+            : [copy.correlations.moonFlipped,
+               ...closing(moonOut.key, copy.correlations.maybeBin,
+                          copy.correlations.probablyBin)].join("\n\n"),
           copy.correlations.moonRest].join("\n\n"), {
       article: TIDES_ARTICLE, count: kept, p: moonOut.p,
       allBut: moonStray.count === 0
@@ -623,16 +640,19 @@ async function boot() {
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
     headline.push(c ? outcomeFor(correlationP(c.r, c.n)) : "no");
     // Whether the panel has anything to explain, on the same rule as its verdict.
-    const flagged = c !== null && outcomeFor(correlationP(c.r, c.n)) !== "no";
     const cUp = copy.correlations.climateUp;
     const cDown = copy.correlations.climateDown;
     built.push(panel(copy.correlations.climateQuestion, scatterVerdict(c, cUp, cDown),
-      fill([flagged ? copy.correlations.climateOpenFlipped
-                    : copy.correlations.climateOpen,
+      fill([outcomeFor(correlationP(c!.r, c!.n)) !== "no"
+              ? copy.correlations.climateOpenFlipped
+              : copy.correlations.climateOpen,
             copy.correlations.climateMiddle,
-            flagged ? copy.correlations.climateCloseFlipped
-                    : copy.correlations.climateCloseNo,
-            ...(flagged ? [copy.correlations.maybeScatter] : []),
+            outcomeFor(correlationP(c!.r, c!.n)) !== "no"
+              ? copy.correlations.climateCloseFlipped
+              : copy.correlations.climateCloseNo,
+            ...closing(c ? outcomeFor(correlationP(c.r, c.n)) : "no",
+                       copy.correlations.maybeScatter,
+                       copy.correlations.probablyScatter),
            ].join("\n\n"), {
         threshold: `M${MIN_MAGNITUDE}+`, p: asPercent(correlationP(c!.r, c!.n)),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
@@ -656,12 +676,13 @@ async function boot() {
     const points = seriesPoints(context.sunspots, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
     headline.push(c ? outcomeFor(correlationP(c.r, c.n)) : "no");
-    const flagged = c !== null && outcomeFor(correlationP(c.r, c.n)) !== "no";
     const sUp = copy.correlations.solarUp;
     const sDown = copy.correlations.solarDown;
     built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c, sUp, sDown),
       fill([copy.correlations.solarExplain,
-            ...(flagged ? [copy.correlations.maybeScatter] : []),
+            ...closing(c ? outcomeFor(correlationP(c.r, c.n)) : "no",
+                       copy.correlations.maybeScatter,
+                       copy.correlations.probablyScatter),
            ].join("\n\n"), {
         threshold: `M${MIN_MAGNITUDE}+`, p: asPercent(correlationP(c!.r, c!.n)),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
