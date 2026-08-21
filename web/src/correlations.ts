@@ -437,7 +437,7 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
     ],
     current,
     [fill(t.flipNow, { value: c.r.toFixed(2) }),
-     fill(t.flipNowEither, { value: `${asPercent(p)}%` }), null],
+     fill(t.flipNow, { value: `${asPercent(p)}%` }), null],
   );
 }
 

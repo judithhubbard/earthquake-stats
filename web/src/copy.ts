@@ -348,10 +348,6 @@ export const copy = {
     flipRDown: "negative",
     flipRAny: "—",
     flipNow: "Right now: {value}",
-    /* The correlation test has two tails, so its p covers a relationship in
-       either direction. In a table whose rows are signed, a bare percentage
-       looks like it must belong to one of them. */
-    flipNowEither: "Right now: {value}, either direction",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     /* The first paragraph is the method and holds whatever the answer is; the
