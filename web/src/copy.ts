@@ -283,36 +283,33 @@ export const copy = {
     flipHelp: "what is chi-square?",
     flipHelpR: "what is a correlation coefficient?",
     flipHelpRBody:
-      "The correlation coefficient is one number for how closely two things move together." +
-      "\n\nIt runs from −1 to +1. At 0 there is no relationship at all: knowing one value " +
-      "tells you nothing about the other. Near +1 the two rise and fall together; near −1 one " +
-      "rises as the other falls. Real measurements land somewhere in between." +
-      "\n\nThe threshold is where closer-together-than-chance begins. Take {years} pairs of " +
-      "unrelated numbers and a correlation stronger than ±{critical} turns up only 5% of the " +
-      "time, so anything weaker than that is the kind of coincidence {years} unrelated numbers " +
-      "produce on their own." +
-      "\n\nUnlike the chi-square threshold, this one moves. It is set by how many years there " +
-      "are, and it tightens as they accumulate: ±{critical} at {years} years, about ±0.23 at " +
-      "75. More data makes a weaker relationship detectable." +
-      "\n\nIt only measures a straight-line relationship, and it says nothing about which way " +
-      "any influence would run.",
+      "The correlation coefficient is one way to assess whether two quantities move together, " +
+      "or vary independently." +
+      "\n\nIt runs from −1 to +1. At 0, knowing one value tells you nothing about the other. " +
+      "Near +1, the two rise and fall together. Near −1, one rises as the other falls." +
+      "\n\nThe threshold in the rows below is the value that {years} pairs of unrelated " +
+      "numbers exceed only 5% of the time. A correlation weaker than that is the size " +
+      "unrelated quantities produce on their own." +
+      "\n\nThis threshold does move, unlike the chi-square one. It is set by how many years " +
+      "there are, and tightens as they accumulate: ±{critical} at {years} years, about ±0.23 " +
+      "at seventy-five. More data makes a weaker relationship detectable." +
+      "\n\nIt measures straight-line relationships only, and says nothing about which " +
+      "quantity would be influencing which.",
     flipHelpBody:
-      "Chi-square is one number for how uneven the {bins} bars above are." +
-      "\n\nIf there were no pattern to find, the bars would sit level apart from random " +
-      "wobble — no set of real measurements ever comes out exactly equal. Chi-square is small " +
-      "when the unevenness looks like that wobble, and grows as the bars depart from level." +
-      "\n\nThe threshold is where more-uneven-than-luck begins. Random data exceeds it only " +
-      "5% of the time, so a value below it means the unevenness is the kind that turns up by " +
-      "chance." +
-      "\n\nWorth knowing: the threshold does not get stricter as the data grows. With " +
-      "{total} earthquakes, a difference of two or three percent is enough to pass it. That is " +
-      "why this page also asks whether a difference is big enough to matter, and not only " +
-      "whether it can be detected." +
-      "\n\nFor that it uses a standard measure of how large a difference is, rather than how " +
-      "detectable — Cramér's V, which counts anything below 0.1 as negligible. These bars are " +
-      "at {v}. They would have to be roughly {multiple} times more uneven than they are to " +
-      "count as big enough to matter." +
-      "\n\nThe threshold itself never moves: it is set by the number of bars alone, so more " +
+      "Chi-square is one way to assess whether the wobble above is random, or reflects a real " +
+      "pattern." +
+      "\n\nEach bar is compared with the count it would hold if there were no pattern at all. " +
+      "Those differences are combined into a single number. The larger the differences, the " +
+      "larger the number." +
+      "\n\nWhat counts as large depends on how many bars there are. The threshold in the rows " +
+      "below is the value that purely random data exceeds only 5% of the time. Below it, the " +
+      "differences are the size chance produces. Above it, they are not." +
+      "\n\nPassing that test means a difference is detectable, not that it is large. With " +
+      "{total} earthquakes, a difference of two or three percent is enough. So the answer also " +
+      "depends on the size of the difference, measured by Cramér's V, which treats anything " +
+      "below 0.1 as negligible. These bars are at {v} — they would have to be about {multiple} " +
+      "times more uneven to count." +
+      "\n\nThe threshold never moves. It is set by the number of bars alone, so more " +
       "earthquakes will not change it. Only the chi-square moves.",
     flipBinBelow: "chi-square below {critical}",
     flipBinNegligible: "above {critical}, but the difference is tiny",
