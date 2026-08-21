@@ -366,7 +366,7 @@ function binFlip(bins: Bin[]): HTMLElement {
   const c = copy.correlations;
   return flipTable(
     [{ label: c.flipColP,
-       help: { label: c.flipHelp, body: c.flipHelpBody } },
+       help: { label: c.flipHelp, body: fill(c.flipHelpBody, { p: asPercent(p) }) } },
      { label: c.flipColSize, help: { label: c.flipHelpV, body: c.flipHelpVBody } },
      { label: c.flipColAnswer }],
     [
@@ -403,7 +403,9 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
     [{ label: t.flipColR,
        help: { label: t.flipHelpR, body: t.flipHelpRBody } },
      { label: t.flipColP,
-       help: { label: t.flipHelpRP, body: fill(t.flipHelpRPBody, { years: c.n }) } },
+       help: { label: t.flipHelpRP,
+               body: fill(t.flipHelpRPBody,
+                          { years: c.n, p: asPercent(correlationP(c.r, c.n)) }) } },
      { label: t.flipColAnswer }],
     [
       [fill(t.flipScatterAbove, { critical }), t.flipPBelow, up],

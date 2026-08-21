@@ -291,16 +291,13 @@ export const copy = {
     flipTitle: "This answer is calculated, not hard-coded:",
     flipHelp: "what is a p-value?",
     flipHelpBody:
-      "The p-value is how often data with no pattern in it would produce a spread at least as " +
-      "uneven as the one above." +
-      "\n\nAt 30%, three datasets in ten would look at least this uneven by chance alone, so " +
-      "there is nothing here that needs explaining. At 1%, one in a hundred would, which is " +
-      "harder to put down to chance." +
-      "\n\nIt is not the probability that there is no pattern, and it says nothing about how " +
-      "large a pattern is. On a large enough dataset a difference of a fraction of a percent " +
-      "will produce a very small p-value, which is why the column beside it exists." +
-      "\n\nThe 5% line is a convention rather than a discovery. Chance alone crosses it one " +
-      "time in twenty.",
+      "The p-value tells you how often a randomly distributed dataset will produce a spread at " +
+      "least as uneven as the one above. At the current p-value of {p}%, we expect that {p} out " +
+      "of 100 randomly distributed datasets will look at least this uneven by chance." +
+      "\n\nPeople usually use a cutoff of 5% to identify a statistically significant result. " +
+      "That does not mean there is a 5% chance the data are random: it means that if they were " +
+      "random, we would wrongly call them significant one time in twenty. At a 1% cutoff, one " +
+      "time in a hundred.",
     flipHelpV: "what is Cramér's V?",
     flipHelpVBody:
       "Cramér's V measures how large the unevenness is, rather than how confidently it can be " +
@@ -322,14 +319,14 @@ export const copy = {
       "quantity would be influencing which.",
     flipHelpRP: "what is a p-value?",
     flipHelpRPBody:
-      "The p-value is how often {years} pairs of unrelated numbers would produce a correlation " +
-      "at least this strong, in either direction." +
-      "\n\nAt 30%, three sets in ten would come out at least this correlated by chance alone, " +
-      "so there is nothing here that needs explaining. At 1%, one in a hundred would." +
-      "\n\nIt is not the probability that the two are unrelated, and it says nothing about how " +
-      "strong the relationship is. The correlation itself, beside it, is the measure of that." +
-      "\n\nThe 5% line is a convention rather than a discovery. Chance alone crosses it one " +
-      "time in twenty.",
+      "The p-value tells you how often {years} pairs of unrelated numbers will produce a " +
+      "correlation at least as strong as the one above, in either direction. At the current " +
+      "p-value of {p}%, we expect that {p} out of 100 unrelated datasets will look at least " +
+      "this correlated by chance." +
+      "\n\nPeople usually use a cutoff of 5% to identify a statistically significant result. " +
+      "That does not mean there is a 5% chance the two are unrelated: it means that if they " +
+      "were unrelated, we would wrongly call them significant one time in twenty. At a 1% " +
+      "cutoff, one time in a hundred.",
     /* Column headings, then the conditions in each. A row is one combination
        of them, and the values underneath sit in the column they are compared
        against -- classifying a difference as negligible while never showing
