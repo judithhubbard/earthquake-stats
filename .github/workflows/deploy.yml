@@ -46,6 +46,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      refresh: ${{ steps.refresh.outcome }}
     steps:
       - uses: actions/checkout@v4
 
@@ -160,8 +162,19 @@ jobs:
             python3 pipeline/decluster.py
             python3 pipeline/build.py
           fi
-          echo "M6+ homogenised share: $(share)%"
-          if [ "$(share)" -lt 90 ]; then
+          # Captured first, and checked. Calling share() inside the test meant a
+          # raise -- a truncated meta.json, or no M6 tier at all -- printed
+          # nothing, so the test read [ "" -lt 90 ], which exits 2 with
+          # "integer expression expected". A non-zero exit in an if condition
+          # does not trip set -e, so the guard was skipped and the run
+          # published: it failed open against exactly the malformed catalog it
+          # exists to catch.
+          SHARE="$(share)" || { echo "::error::Could not read the homogenised share."; exit 1; }
+          case "$SHARE" in
+            ''|*[!0-9]*) echo "::error::Homogenised share unreadable: '$SHARE'"; exit 1 ;;
+          esac
+          echo "M6+ homogenised share: $SHARE%"
+          if [ "$SHARE" -lt 90 ]; then
             echo "::error::Mw homogenisation still missing; not publishing this catalog."
             exit 1
           fi
@@ -192,6 +205,16 @@ jobs:
         run: |
           echo "::warning::Pipeline failed. Deploying the catalog committed in the repo."
           git checkout -- web/public/data
+          AGE=$(python3 - <<'PY'
+          import json, datetime
+          m = json.load(open("web/public/data/meta.json"))
+          built = datetime.datetime.fromisoformat(m["generated"])
+          now = datetime.datetime.now(datetime.timezone.utc)
+          print(int((now - built).total_seconds() // 86400))
+          PY
+          )
+          echo "::warning::Committed catalog is ${AGE} days old."
+          echo "fallback_age=${AGE}" >> "$GITHUB_ENV"
 
       # The harvested Mw values are the one piece of state that cannot be
       # rebuilt from a ComCat download -- they come from a separate 145 MB
@@ -262,3 +285,22 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # A failed pipeline used to leave the run green. continue-on-error sets the
+  # step's conclusion to success, so the deliberate "not publishing this
+  # catalog" exit above was invisible: no red run, and no email for a
+  # scheduled failure. The site would serve the committed fallback, ageing
+  # silently, while every run reported success.
+  #
+  # This runs after the deploy rather than before it, so the fallback still
+  # ships -- a USGS outage must not block a code change from reaching the
+  # site, which is what continue-on-error is for -- and the run still ends
+  # red so somebody hears about it.
+  alert:
+    needs: [build, deploy]
+    if: always() && needs.build.outputs.refresh == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "::error::The catalog pipeline failed. The site was deployed from the catalog committed in the repo, which does not advance until a run succeeds."
+          exit 1

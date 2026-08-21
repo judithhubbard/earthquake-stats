@@ -120,7 +120,8 @@ export const copy = {
        tests the same claim, so the question is what they say together, not
        whether any one of them crosses a line. */
     spreadAggregate:
-      "{year} is in the {percentile} percentile: on average, {p}% of years are busier.",
+      "{year} is in the {percentile} percentile: pooling every way of counting, {p}% of " +
+      "years score higher.",
     aggregateShareMore: "of years scored higher",
     aggregateCurrent: "{year}",
     aggregateCaption: "z-score for every year since {from}",
@@ -144,8 +145,8 @@ export const copy = {
       "\n\nThe result is Z = {z}, or p = {p}%.",
     spreadNote:
       "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
-      "percentile, which is why the answer at the top depends on which one you are looking " +
-      "at. The setting selected below is marked. The last-365-days column is not in the " +
+      "percentile, which is why the answer at the top is not read off any one of them. The " +
+      "setting selected below is marked. The last-365-days column is not in the " +
       "combined figure: its window ends today rather than on 31 December, so it is not a year " +
       "and cannot be ranked against past ones alongside the rest.",
 
@@ -363,8 +364,8 @@ export const copy = {
       "earthquakes a user selects, they can land at different percentiles. For instance, this " +
       "year the selected earthquakes can yield anywhere from the {spreadLow} to the " +
       "{spreadHigh} percentile. " +
-      "The answer at the top is based on aggregate statistics, derived from the combined " +
-      "selection options below." +
+      "The answer at the top pools the {waysWord} calendar-year ways of counting from the " +
+      "table higher up the page." +
 
       "\n\n**How the aggregate statistics work.** Each way of counting ranks this year " +
       "against every year since {from}, which gives {waysWord} p-values. Stouffer's method " +
@@ -375,7 +376,7 @@ export const copy = {
       "last-365-days combinations are left out: a window ending today is not a year, so it " +
       "cannot be ranked against past years." +
 
-      "\n\n**Dealing with dependent variables.** The usual divisor assumes the tests are " +
+      "\n\n**The tests are not independent.** The usual divisor assumes the tests are " +
       "independent. They are not: a year busy in M6+ is usually busy in M7+, " +
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
       "from its largest earthquakes. Measured against the record, the {waysWord} different " +
@@ -744,8 +745,10 @@ export const copy = {
       "instead of {binThreshold}? Earthquake networks have improved over time, so we can detect " +
       "earthquakes now that we could not detect in the 1970s. Because we're looking at " +
       "year-over-year trends here, those kinds of changes in detectability could look like real " +
-      "signal. Fortunately, networks have been good enough since {from} to detect all global " +
-      "{threshold} earthquakes." +
+      "signal. Networks have been good enough since {from} that {threshold} counts can be " +
+      "compared decade to decade, though the earliest years are the weakest part of that " +
+      "claim: counts rise through the 1970s and 1980s as the global network and routine Mw " +
+      "determination matured, then flatten." +
       "\n\nAs before, we remove aftershocks, so our initial catalog of {tierRaw} decreases to " +
       "{tierCount}, which is plenty for this analysis.",
     climateOpenFlipped:
