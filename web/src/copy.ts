@@ -193,8 +193,12 @@ export const copy = {
       "We fit a straight line through the yearly counts for four different series — {threshold} " +
       "and {major}, each with aftershocks left in and taken out — and ask whether any of the " +
       "four slopes can be told apart from no slope at all." +
-      "\n\nAll four are below, always, whatever is selected above. Which series you look at " +
-      "changes the answer, so choosing one after seeing the answers would not be a finding.",
+      "\n\nIt is tempting to pick and choose \u2014 find the correlation that works, discard " +
+      "the rest. That is a common statistical trap known as p-hacking: choosing the test after " +
+      "you look at the results. Here, we first calculate the p-value for each test, which tells " +
+      "us how unusual that specific correlation is. Then, we calculate the combined probability " +
+      "for all four tests, correcting for the fact that we asked the question in four different " +
+      "ways. This last number is the one you should look at.",
     trendNo:
       "So the answer is no. The steepest of the four is {subject}, where a slope that steep " +
       "turns up {p}% of the time in counts with no trend in them — and across four series, " +
