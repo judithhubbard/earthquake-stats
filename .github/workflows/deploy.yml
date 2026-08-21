@@ -128,17 +128,20 @@ jobs:
 
           # The homogenised share is the canary, and it repairs rather than warns.
           #
-          # M6+ runs at 99.5% on Mw when the harvest has been done. It fell to
+          # M6+ runs at 99.5% on Mw once the harvest has been done. It fell to
           # 2.9% on 19 August 2026, when a cache-key change missed, the backfill
           # branch rebuilt the mirror from scratch, and the routine harvest only
-          # covered the last two years. Everything before that reverted to
-          # ComCat's preferred magnitude, which switches from Ms/mb to Mw around
-          # 1984 -- knocking a quarter of the M6+ events out of the 1970s and
-          # biasing every comparison since. The deploy published it anyway.
+          # covered the last two years. Everything earlier reverted to ComCat's
+          # preferred magnitude, which switches from Ms/mb to Mw around 1984 --
+          # knocking a quarter of the M6+ events out of the 1970s and biasing
+          # every comparison since. The deploy published it without complaint.
           share() {
-            python3 -c "import json;m=json.load(open('web/public/data/meta.json'));\
-t=[x for x in m['tiers'] if x['threshold']==6][0];\
-print(int(100*t.get('homogenised',0)/max(1,t['count'])))"
+            python3 - <<'PY'
+          import json
+          m = json.load(open("web/public/data/meta.json"))
+          t = [x for x in m["tiers"] if x["threshold"] == 6][0]
+          print(int(100 * t.get("homogenised", 0) / max(1, t["count"])))
+          PY
           }
           if [ "$(share)" -lt 90 ]; then
             echo "::warning::M6+ is only $(share)% on Mw; harvesting the whole record."
@@ -151,17 +154,8 @@ print(int(100*t.get('homogenised',0)/max(1,t['count'])))"
           if [ "$(share)" -lt 90 ]; then
             echo "::error::Mw homogenisation still missing; not publishing this catalog."
             exit 1
-          fi'
-import json, sys
-meta = json.load(open("web/public/data/meta.json"))
-for tier in meta["tiers"]:
-    if tier["threshold"] != 6:
-        continue
-    share = 100 * tier.get("homogenised", 0) / max(1, tier["count"])
-    print(f"M6+ homogenised share: {share:.1f}%")
-    if share < 1:
-        sys.exit("Mw homogenisation is missing; refusing to publish this catalog.")
-CHECK
+          fi
+
 
           # Global temperature, sunspots and the Oklahoma record. All three are
           # monthly at best and this is 116s of the run, so it goes daily. A
