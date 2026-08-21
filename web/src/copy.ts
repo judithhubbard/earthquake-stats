@@ -437,11 +437,10 @@ export const copy = {
       "that has shown up not just in popular culture, but research papers. Here, we show those " +
       "same {count} earthquakes, classified by the lunar day on which each occurred. This chart " +
       "tests the question as it is usually asked: does the count depend on the phase of the " +
-      "moon? If it did, the simplest expectation is two peaks, at new and full moon, when the " +
-      "sun and moon pull together.",
+      "moon?",
     moonTail:
-      "That pattern does not show up. Instead, {allBut} the data points fall within ±2 standard " +
-      "deviations — i.e., where we expect 95.45% of the data to fall if it is random.",
+      "{allBut} the data points fall within ±2 standard deviations — i.e., where we expect " +
+      "95.45% of the data to fall if it is random.",
     moonRest:
       "As with many things, it is possible to make this question much more complicated — " +
       "looking at different types of stresses, different types of faults, different regions on " +
@@ -453,13 +452,12 @@ export const copy = {
       "<a href=\"{article}\" data-track=\"substack-tides\" target=\"_blank\" " +
       "rel=\"noopener noreferrer\">did not hold up</a>.",
     moonFlipped:
-      "That pattern is not what shows up, but the counts are more uneven than chance " +
-      "comfortably explains: a spread like this turns up {p}% of the time when the lunar day " +
-      "makes no difference." +
-      "\n\nWhether that unevenness has the shape the tidal argument predicts is a separate " +
-      "question, and one this chart cannot settle on its own.",
-    moonAllInside: "all of",
-    moonAllBut: "all but {n} of",
+      "The counts are more uneven than chance comfortably explains: a spread like this turns " +
+      "up {p}% of the time when the lunar day makes no difference." +
+      "\n\nThis chart cannot say whether that unevenness has the shape a tidal explanation " +
+      "would predict. That is a separate question and a different test.",
+    moonAllInside: "All of",
+    moonAllBut: "All but {n} of",
     moonSubtitle: "Day of the lunar cycle · {since}",
     moonNewMoon: "new moon",
     moonFullMoon: "full moon",
