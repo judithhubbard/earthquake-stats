@@ -294,16 +294,20 @@ roughly a tenth. This is a second reason no trend line is drawn.
 projections, magnitude tiers) deleted working, tested code with no way back.
 `git init` before the next round of changes.
 
-## The aftershocks page (disabled)
+## The aftershocks page (removed)
 
-`/aftershocks.html` — "can earthquakes cause earthquakes?" — is built but **not
-published**: it has no entry in `vite.config.ts` and nothing links to it, so it
-is absent from `dist/` and 404s on the live site.
+`/aftershocks.html` — "can earthquakes cause earthquakes?" — was built but never
+published: no entry in `vite.config.ts`, nothing linking to it, so it was absent
+from `dist/` and 404'd on the live site, while `pipeline/sequences.py` was never
+run by the workflow and its `sequences.json` sat frozen at whatever was last
+committed. Half-alive, and drifting further every month.
 
-Everything needed to revive it is still here: `web/aftershocks.html`,
-`web/src/aftershocks.ts`, the `aftershocks` block in `web/src/copy.ts`, and
-`pipeline/sequences.py`. Add the entry back to `vite.config.ts` and re-add a
-link to switch it on.
+It was deleted rather than left to rot. Everything is recoverable from git
+history: `web/aftershocks.html`, `web/src/aftershocks.ts`, the `aftershocks`
+block in `web/src/copy.ts`, `pipeline/sequences.py` and
+`web/public/data/sequences.json`. Reviving it means restoring those, adding the
+entry to `vite.config.ts`, linking to it, and putting the pipeline step in the
+workflow behind a daily gate.
 
 ## The correlations page
 

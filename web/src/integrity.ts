@@ -20,8 +20,16 @@ import type { Meta } from "./catalog";
 /** M6+ sits at 99.5% when the harvest has run. Anything under this is broken. */
 const MIN_HOMOGENISED = 0.9;
 
-/** A catalog older than this is not being rebuilt; it publishes every 15 min. */
-const MAX_AGE_DAYS = 3;
+/**
+ * A catalog older than this is not being rebuilt; it publishes every 15 min.
+ *
+ * Six hours, not the three days this used to allow. The browser reads the USGS
+ * one-day feed itself, which reaches back exactly 24 hours, so between the feed
+ * running out and a three-day banner there was a 48-hour window where events
+ * were in neither the catalog nor the feed and the page said nothing. Six hours
+ * is already twenty-four missed rebuilds.
+ */
+const MAX_AGE_HOURS = 6;
 
 export function checkCatalog(meta: Meta, now = Date.now()): string | null {
   const tier = meta.tiers.find((t) => t.threshold === 6);
@@ -34,10 +42,23 @@ export function checkCatalog(meta: Meta, now = Date.now()): string | null {
       + "cannot be compared. The numbers on this page are wrong until the catalog rebuilds.";
   }
 
-  const age = (now - Date.parse(meta.generated)) / 86_400_000;
-  if (age > MAX_AGE_DAYS) {
-    return `The catalog was last rebuilt ${Math.round(age)} days ago, and should rebuild `
-      + "every fifteen minutes. Recent earthquakes may be missing.";
+  // Date.parse returning NaN made every comparison false, which switched the
+  // staleness check off altogether -- the one failure a malformed stamp is most
+  // likely to accompany.
+  const built = Date.parse(meta.generated);
+  if (!Number.isFinite(built)) {
+    return "The catalog does not say when it was built, so there is no way to tell whether "
+      + "the earthquakes below are current.";
+  }
+
+  const hours = (now - built) / 3_600_000;
+  if (hours > MAX_AGE_HOURS) {
+    const age = hours < 48
+      ? `${Math.round(hours)} hours`
+      : `${Math.round(hours / 24)} days`;
+    return `The catalog was last rebuilt ${age} ago, and should rebuild every fifteen `
+      + "minutes. Earthquakes since then are missing from the counts and charts below, so "
+      + "this year's totals are too low.";
   }
   return null;
 }

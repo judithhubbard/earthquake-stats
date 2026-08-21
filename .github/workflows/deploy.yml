@@ -200,21 +200,69 @@ jobs:
             mark mirror
           fi
 
-      - name: Fall back to the committed catalog
+      # What to publish when the pipeline could not build a catalog.
+      #
+      # This used to be `git checkout -- web/public/data`, which restores the
+      # copy committed in the repo -- and nothing ever recommits that, so it was
+      # whatever someone last added by hand. On 21 August 2026 it was six days
+      # old and ageing without bound. A pipeline failure therefore did not leave
+      # the live site alone: it actively rolled its data back, and the further
+      # the committed copy fell behind, the bigger the rollback.
+      #
+      # Committing the built catalog on a timer was the obvious fix and is the
+      # wrong one. It is 1.5 MB a snapshot, and the tiers are struct-of-arrays,
+      # so appending one event shifts every later offset and the whole file
+      # changes -- it does not delta. Daily commits would add a few hundred MB a
+      # year to a 9 MB repository.
+      #
+      # So the fallback is the catalog already live, fetched from the site
+      # itself. That is the most recent one that passed the canary, which is
+      # exactly what should stay up. The committed copy remains the last resort,
+      # and the thing `npm run dev` uses.
+      - name: Fall back to the published catalog
         if: steps.refresh.outcome == 'failure'
         run: |
-          echo "::warning::Pipeline failed. Deploying the catalog committed in the repo."
+          echo "::warning::Pipeline failed. Falling back rather than publishing a new catalog."
           git checkout -- web/public/data
+
+          SITE=""
+          if [[ -f web/public/CNAME ]]; then SITE="https://$(cat web/public/CNAME)"; fi
+
+          if [[ -n "$SITE" ]] && curl -fsS --max-time 30 "$SITE/data/meta.json" -o /tmp/meta.json; then
+            FILES=$(python3 -c "
+import json
+m = json.load(open('/tmp/meta.json'))
+names = ['meta.json', 'context.json', 'posts.json']
+for t in m.get('tiers', []):
+    names.append(t['name'] + '.bin')
+    if t.get('hasDetail'):
+        names.append(t['name'] + '.detail.json')
+print(' '.join(names))
+")
+            OK=1
+            for f in $FILES; do
+              curl -fsS --max-time 60 "$SITE/data/$f" -o "web/public/data/$f.new" || { OK=0; break; }
+            done
+            if [[ "$OK" == "1" ]]; then
+              for f in $FILES; do mv "web/public/data/$f.new" "web/public/data/$f"; done
+              echo "::notice::Using the catalog currently published at $SITE."
+            else
+              rm -f web/public/data/*.new
+              echo "::warning::Could not fetch the published catalog; using the committed copy."
+            fi
+          else
+            echo "::warning::No published catalog reachable; using the committed copy."
+          fi
+
           AGE=$(python3 - <<'PY'
           import json, datetime
           m = json.load(open("web/public/data/meta.json"))
           built = datetime.datetime.fromisoformat(m["generated"])
           now = datetime.datetime.now(datetime.timezone.utc)
-          print(int((now - built).total_seconds() // 86400))
+          print(int((now - built).total_seconds() // 3600))
           PY
           )
-          echo "::warning::Committed catalog is ${AGE} days old."
-          echo "fallback_age=${AGE}" >> "$GITHUB_ENV"
+          echo "::warning::Publishing a catalog ${AGE} hours old."
 
       # The harvested Mw values are the one piece of state that cannot be
       # rebuilt from a ComCat download -- they come from a separate 145 MB

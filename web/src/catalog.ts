@@ -186,6 +186,10 @@ export class CatalogStore {
         return res.json();
       });
       this.details.set(info.name, pending);
+      // Evicted if it fails. A cached rejection is permanent: every later call
+      // gets the same stored failure, so one dropped connection broke an open
+      // tab for as long as it stayed open, through 1,440 retries a day.
+      pending.catch(() => this.details.delete(info.name));
     }
     return pending;
   }
@@ -215,6 +219,8 @@ export class CatalogStore {
     if (!pending) {
       pending = loadTier(info, this.meta.encoding, this.base, this.meta);
       this.cache.set(info.name, pending);
+      // See loadDetail: a rejection must not become the cached answer.
+      pending.catch(() => this.cache.delete(info.name));
     }
     return pending;
   }

@@ -13,6 +13,13 @@ import { correlationP } from "./correlate";
 export const DAYS = 365;
 
 /**
+ * How much of a typical year must have elapsed before "on this pace" means
+ * anything. Ten events: below that the ratio is small integers over small
+ * integers and the answer swings by hundreds.
+ */
+const PROJECTION_FLOOR = 10;
+
+/**
  * The default threshold, and the one the correlations page always uses.
  *
  * M6+ globally is the level at which ComCat is complete and comparable across
@@ -231,7 +238,18 @@ export function annualCounts(curves: YearCurves, majorCurves: YearCurves,
     const count = curve[at];
     // Scale the reference year-end total by how this year is tracking, rather
     // than extrapolating linearly -- it respects whatever seasonality exists.
-    const projected = medianToDate > 0 ? medianTotal * (count / medianToDate) : count;
+    //
+    // Only once there is enough of the year to scale against. The median M6+
+    // count by 2 January is 1, so three earthquakes in two days projected to
+    // 423 against a typical 141 -- and the annual chart takes its y-axis from
+    // the projection, so every historical bar shrank to a third of its height
+    // to make room for a number produced by a ratio of small integers. Below
+    // the floor there is no projection: `projected` is the count so far, which
+    // is what the M7+ views have always done, where medianToDate is 0 for
+    // months and no dashed extension is drawn.
+    const projected = medianToDate >= PROJECTION_FLOOR
+      ? medianTotal * (count / medianToDate)
+      : count;
     return { year, count, major, partial: true, projected: Math.max(count, projected) };
   });
 }

@@ -64,7 +64,17 @@ const EVENT_LIST_LIMIT = 250;
 /** Colour slots available to highlighted years; index 0 is the current year. */
 const MAX_HIGHLIGHTS = 5;
 
-const LIVE_FEED = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+/**
+ * The M4.5+ day feed, not all_day.
+ *
+ * A strict superset of what this page reads -- the thresholds offered are M6+
+ * and M7+, and pollLive filters to those -- at 20 KB against 225 KB. With a
+ * poll every 60 seconds and cache: "no-store" forcing a real request, all_day
+ * pulled roughly 324 MB a day from USGS per open tab to extract a handful of
+ * events. If a threshold below M4.5 is ever offered, this has to go back.
+ */
+const LIVE_FEED =
+  "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson";
 const LIVE_INTERVAL_MS = 60_000;
 
 interface State {
@@ -487,7 +497,16 @@ async function pollLive(afterMs: number) {
     const res = await fetch(LIVE_FEED, { cache: "no-store" });
     if (!res.ok) return;
     const json = await res.json();
-    liveEvents = (json.features ?? [])
+    const features = json.features ?? [];
+    // USGS serves a short or empty summary while it regenerates one. Replacing
+    // the list wholesale on such a response deleted the recent earthquakes from
+    // the counts, the map and the largest list -- a 200 that says nothing is
+    // not evidence that the earthquakes stopped. The non-OK and throw paths
+    // already keep the previous array; this makes the successful-but-empty path
+    // behave the same. A genuinely quiet day shrinks the feed gradually, not to
+    // a fraction of what it held a minute ago.
+    if (liveEvents.length && features.length < liveEvents.length / 2) return;
+    liveEvents = features
       .filter((f: any) => f?.properties?.type === "earthquake"
         && typeof f.properties.mag === "number"
         && f.properties.time > afterMs)
@@ -517,8 +536,18 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
   for (const event of liveEvents) {
     if (event.mag < minMag || event.time <= cutoff) continue;
     const { year, day } = dayIndex(event.time, shift);
-    const curve = curves.curves.get(year);
-    if (!curve) continue;
+    // Created on demand. cumulativeByYear only makes a year's bucket once the
+    // catalog holds an event in it, so on 1 January -- before the pipeline has
+    // picked up the first one -- a live earthquake had no bucket and was
+    // dropped from the counts, while the map and the largest-events list drew
+    // it anyway. The page named an M7 and said none had occurred.
+    let curve = curves.curves.get(year);
+    if (!curve) {
+      curve = new Float64Array(DAYS);
+      curves.curves.set(year, curve);
+      if (!curves.years.includes(year)) curves.years.push(year);
+      curves.years.sort((a, b) => a - b);
+    }
     // Whatever the curve is accumulating. cumulativeByYear adds seismicMoment
     // on the moment views, so adding 1 here made every live earthquake worth
     // the same as an M7.27 -- and moment supplies two of the six pooled tests,
@@ -1823,6 +1852,13 @@ async function refreshCatalog() {
     store = new CatalogStore(meta);
     el.generated.textContent = fill(copy.home.generated,
       { when: new Date(meta.generated).toUTCString() });
+    // Re-checked against the new catalog. checkCatalog ran once at boot, so a
+    // tab left open through a bad rebuild kept drawing it unwarned -- and a
+    // banner raised for a bad catalog never cleared once a good one replaced
+    // it. Both directions now follow the catalog on the page.
+    document.querySelector("main > .integrity")?.remove();
+    const problem = checkCatalog(meta);
+    if (problem) showProblem(problem);
   } catch {
     // Keep serving what we have; the next tick tries again.
   }

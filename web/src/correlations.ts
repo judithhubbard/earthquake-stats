@@ -627,9 +627,22 @@ async function boot() {
   if (above) techValues.mwShare = above;
   if (binned) techValues.binMwShare = binned;
   techValues.from = FIRST_YEAR;
-  const [fine, coarse] = await Promise.all([
-    store.load(BIN_MAGNITUDE), store.load(MIN_MAGNITUDE),
-  ]);
+  // Inside a try of its own. This sat outside the one above, so a 503 on the
+  // 1 MB m5.bin, a byte-length mismatch, or a missing tier rejected boot()
+  // unhandled: the page kept its static skeleton, with an empty answer, empty
+  // panels and no message -- while errorLoad, written for exactly this, went
+  // unused.
+  let fine: Tier;
+  let coarse: Tier;
+  try {
+    [fine, coarse] = await Promise.all([
+      store.load(BIN_MAGNITUDE), store.load(MIN_MAGNITUDE),
+    ]);
+  } catch (err) {
+    el.answer.textContent = copy.correlations.errorLoad;
+    el.answerDetail.textContent = (err as Error).message;
+    return;
+  }
 
   theme = readTheme(document.body);
   const { times, raw } = mainshockTimes(fine, BIN_MAGNITUDE, FIRST_YEAR);
