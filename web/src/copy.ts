@@ -317,115 +317,96 @@ export const copy = {
     techTitle: "Technical summary",
     techBody:
       "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
-      "pulled through the FDSN event service. Quarry blasts, explosions and other non-tectonic " +
-      "events are excluded. The catalog is re-fetched every 15 minutes; earthquakes from the " +
-      "last 24 hours are read live in your browser from the USGS one-day feed, so they appear " +
-      "before the next rebuild." +
+      "pulled through the FDSN event service. Quarry blasts, explosions and other " +
+      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes, and the " +
+      "last 24 hours are read live in your browser from the USGS one-day feed, so new " +
+      "earthquakes appear before the next rebuild." +
 
-      "\n\n**Magnitudes are converted to Mw where possible.** ComCat's preferred magnitude is " +
-      "not the same kind of number throughout the record. Before about 1984 it is usually mb or " +
-      "Ms; after that it is usually moment magnitude. Those scales do not agree, so counting " +
-      "everything above M6 on the preferred magnitude compares different things in different " +
-      "decades. We therefore take the moment magnitude wherever one has been published — " +
-      "preferring W-phase, then GCMT centroid, then body-wave, then any other Mw — and fall " +
-      "back to the preferred magnitude only when no Mw exists. About 99.5% of M6+ events carry " +
-      "an Mw. Without this the 1970s lose roughly a quarter of their M6+ earthquakes and every " +
+      "\n\n**Magnitudes are converted to Mw.** ComCat's preferred magnitude is not the same " +
+      "kind of number throughout the record: usually mb or Ms before about 1984, moment " +
+      "magnitude after. Those scales disagree, so counting on the preferred magnitude " +
+      "compares different things in different decades. We take the moment magnitude wherever " +
+      "one has been published — W-phase first, then GCMT centroid, then body-wave, then any " +
+      "other Mw — and fall back only where none exists. About 99.5% of M6+ events carry an " +
+      "Mw. Without this the 1970s lose roughly a quarter of their M6+ earthquakes and every " +
       "later year looks busier by comparison." +
 
-      "\n\n**Aftershocks can be removed.** A large earthquake is followed by many smaller ones " +
-      "nearby, so a year containing one great earthquake can look like a busy year. The " +
-      "Mainshocks only setting removes them using Gardner-Knopoff windows, with the distance " +
-      "widened to twice the Wells and Coppersmith rupture length for large events — 40 km at " +
-      "M5, 159 km at M8. Windows run forward in time only: an earthquake is removed if a larger " +
-      "one preceded it inside the window, never if a larger one followed. Symmetric windows " +
-      "would strip events from the end of the catalog, which is the part being asked about." +
+      "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
+      "hundreds of smaller ones with it. Mainshocks only removes them, using Gardner-Knopoff " +
+      "windows with the distance widened to twice the Wells and Coppersmith rupture length: " +
+      "40 km at M5, 159 km at M8. The windows run forward in time only, so an earthquake is " +
+      "removed if a larger one came before it and never if a larger one followed. Symmetric " +
+      "windows would strip events from the end of the catalog, which is the part being asked " +
+      "about." +
 
-      "\n\n**The reference period starts in 1976.** That is when the Global CMT catalog begins, " +
-      "so it is the earliest date from which moment magnitudes are broadly available." +
+      "\n\n**The record starts in 1976,** when the Global CMT catalog begins — the earliest " +
+      "date from which moment magnitudes are broadly available. Only M6+ and M7+ are offered: " +
+      "below M6, how many earthquakes a year contains depends partly on how many seismometers " +
+      "were running that year, so counts cannot be compared across decades." +
 
-      "\n\n**Only M6+ and M7+ are offered.** Below M6 the number of earthquakes in the catalog " +
-      "for a given year depends partly on how many seismometers were running that year, so " +
-      "counts cannot be compared across decades." +
-
-      "\n\n**Moment.** The Count setting treats every earthquake as one. The Moment setting " +
-      "weights each by the energy released, using the standard relation between moment " +
-      "magnitude and scalar moment. On that setting the axis is labelled with the magnitude of " +
-      "the single earthquake that would release the same total, because raw moment spans a " +
-      "factor of a hundred across the record and is unreadable." +
+      "\n\n**Moment.** Count treats every earthquake as one. Moment weights each by the " +
+      "energy it released. On that setting the axis is labelled with the magnitude of the " +
+      "single earthquake that would release the same total, because raw moment spans a factor " +
+      "of a hundred across the record and is unreadable." +
 
       "\n\n**The shaded ranges.** The default shows where the middle 50% and middle 90% of " +
-      "previous years fell on each date. The ±2σ setting shows the mean plus and minus two " +
-      "standard deviations instead, measured over every window of that length anywhere in the " +
-      "record rather than over calendar years. Taken year by year, one enormous event enters " +
-      "the calculation on its own anniversary, and the band visibly steps on 11 March, the date " +
-      "of the 2011 Tohoku earthquake." +
+      "past years fell on each date. The ±2σ setting uses the mean plus and minus two " +
+      "standard deviations, measured over every 365-day window in the record rather than over " +
+      "calendar years: taken year by year, one enormous event enters the calculation on its " +
+      "own anniversary, and the band visibly steps on 11 March, the date of the 2011 Tohoku " +
+      "earthquake." +
 
-      "\n\n**The answer at the top does not depend on the settings.** The controls reach " +
-      "twelve combinations — two magnitude thresholds, aftershocks in or out on the count " +
-      "views, earthquakes counted or weighted by moment, this year so far or the last 365 " +
-      "days — and this year currently lands anywhere from the 41st percentile to the 92nd " +
-      "across them. An answer read off whichever one happened to be selected could be changed " +
-      "by clicking, so the answer is computed from all of them at once. Everything below the " +
-      "answer still follows the controls, and says which setting it is showing. The " +
-      "last-365-days combinations are left out of the calculation: a window ending today is " +
-      "not a year, so it cannot be ranked against past years alongside the rest. They stay in " +
-      "the table, where each column is read on its own terms." +
+      "\n\n**The answer at the top ignores the settings.** The controls reach twelve " +
+      "combinations, and this year lands anywhere from the 41st percentile to the 92nd across " +
+      "them. An answer read off whichever one was selected could be changed by clicking, so " +
+      "the answer pools all of them. Everything below it still follows the controls, and says " +
+      "which setting it is showing." +
 
-      "\n\n**The six are pooled with Stouffer's method, corrected for how much they " +
-      "overlap.** Each way of counting ranks this year against every year since 1976, which " +
-      "gives six p-values. Stouffer's method turns each into a standard score, adds them, and " +
-      "divides by how much that sum could vary by chance. The usual divisor assumes the six " +
-      "tests are independent, and they are not: a year busy in M6+ is usually busy in M7+, " +
+      "\n\n**How the pooling works.** Each way of counting ranks this year against every " +
+      "year since 1976, which gives six p-values. Stouffer's method turns each into a " +
+      "z-score, adds them, and divides by how much that sum could vary by chance. The " +
+      "last-365-days combinations are left out: a window ending today is not a year, so it " +
+      "cannot be ranked against past years. They stay in the table, where each column is read " +
+      "on its own terms." +
+
+      "\n\n**The six overlap, and the arithmetic allows for it.** The usual divisor assumes " +
+      "the tests are independent. They are not: a year busy in M6+ is usually busy in M7+, " +
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
-      "from its largest earthquakes whichever threshold is set. Measured against the past " +
-      "years the six are worth about 1.7 independent tests, and that is what the divisor uses " +
-      "— Strube's correction, with the correlations taken from the record rather than " +
-      "assumed. Treating them as six separate tests would make a busy year look far more " +
-      "unusual than it is." +
+      "from its largest earthquakes. Measured against the record, the six are worth about 1.7 " +
+      "independent tests, and that is the divisor used — Strube's correction, with the " +
+      "correlations taken from the data rather than assumed. Treating them as six would make " +
+      "a busy year look far more unusual than it is." +
 
-      "\n\nThis is pooling, not a correction for asking six questions, and the difference " +
-      "matters. Every way of counting tests the same claim, so what is wanted is what they " +
-      "say together. The trend section below asks something else — whether any one of four " +
-      "series shows a trend, once you have paid for looking four times — and needs a " +
-      "different tool for it." +
+      "\n\n**Pooling is not a correction for asking six questions.** Every way of counting " +
+      "tests the same claim, so what matters is what they say together. The trend section " +
+      "asks something different — whether any one of four series shows a trend, once you have " +
+      "paid for four looks — and needs a different tool for it." +
 
-      "\n\n**The histogram beside the answer** shows that combined score for every year " +
-      "since 1976, with this year marked. It is drawn on the score rather than on the " +
-      "percentile because percentiles are flat by construction — fifty years spread five or " +
-      "six to every tenth of the range — while the score behind them has a middle and two " +
-      "tails. The axis is the score itself, with a note beside the chart saying what a z-score " +
-      "is. The smaller " +
-      "histogram in the corner of the first chart is the same idea for the one setting the " +
-      "controls are on." +
+      "\n\n**The histograms.** The one beside the answer shows the pooled z-score of every " +
+      "year since 1976, with this year marked. It is drawn on the score rather than on the " +
+      "percentile because percentiles are flat by construction, while the score has a middle " +
+      "and two tails. The smaller one in the corner of the first chart is the same idea for " +
+      "the single setting the controls are on." +
 
-      "\n\n**Whether the rate is changing is tested four ways at once.** A straight line is " +
-      "fitted through the yearly counts of four fixed series — M6+ and M7+, each with " +
-      "aftershocks left in and taken out — and each fit is tested for whether its slope can be " +
-      "told apart from no slope. Four series rather than one, because the answer depends on " +
-      "which you pick: at the moment their p-values run from 7% to 85%, and a series chosen " +
-      "after seeing that spread would not be evidence of anything. The four ignore the settings " +
-      "above them for the same reason. Counts only: on moment every series slopes up by about " +
-      "25% per decade, and all of that is the 2004, 2010 and 2011 great earthquakes falling in " +
-      "the second half of the record, which is a fact about those three earthquakes rather than " +
-      "about the rate." +
+      "\n\n**Is the rate changing?** A straight line is fitted through the yearly counts of " +
+      "four fixed series — M6+ and M7+, each with aftershocks left in and taken out — and " +
+      "each slope is tested against no slope at all. Four rather than one, because the answer " +
+      "depends on which you pick: their p-values currently run from 7% to 85%. Counts only, " +
+      "because on moment every series rises about 25% per decade and all of that is 2004, " +
+      "2010 and 2011 falling in the second half of the record." +
 
-      "\n\n**The four are combined by shuffling, not by formula.** The usual correction for " +
-      "asking four questions, 1 - (1 - p)⁴, assumes the four tests are independent. These are " +
-      "not: every M7+ earthquake is also an M6+ earthquake, every mainshock is also an " +
-      "earthquake, and the four yearly count series correlate with each other between 0.11 and " +
-      "0.80. So the combination is measured instead. The year labels are shuffled into a random " +
-      "order — the same order applied to all four series at once, which is what keeps the " +
-      "overlap between them intact — the four lines are refitted, and the steepest of them is " +
-      "recorded; 100,000 shuffles give the distribution of the steepest slope when none of the " +
-      "four is trending. The formula would say 25% where this says 21%. The answer is graded " +
-      "on the measured number. Shuffling assumes that, with no trend, one year is " +
-      "interchangeable with another, which an aftershock sequence running across New Year " +
-      "slightly breaks." +
+      "\n\n**The four are combined by shuffling.** The textbook correction assumes the four " +
+      "tests are independent, and these are nested: every M7+ earthquake is also an M6+ " +
+      "earthquake, and the four yearly counts correlate between 0.11 and 0.80. So the year " +
+      "labels are shuffled instead — the same shuffle across all four at once, which keeps " +
+      "the overlap intact — the lines refitted, and the steepest recorded. A hundred thousand " +
+      "shuffles give the distribution of the steepest slope when none of the four is " +
+      "trending. The formula would say 25% where this says 21%." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
       "their consequences, and the two are only loosely related: where an earthquake happens, " +
-      "how deep it is, what the ground is made of and what people have built on it matter more " +
-      "to the outcome than the magnitude does.",
+      "how deep it is, what the ground is made of and what people have built on it matter " +
+      "more to the outcome than the magnitude does.",
 
     /* Footer and failures. */
     latest: "latest {threshold}: {when}, M{mag} {place}",
