@@ -191,16 +191,7 @@ export const copy = {
     trendProbably:
       "A slope this steep, or steeper, turns up only {p}% of the time in counts with no trend " +
       "in them. That is a real change in the rate at this magnitude and this setting, which is " +
-      "not the same as a change in the Earth: see below.",
-    trendCaveats:
-      "Two things change this answer, and both are settings you can see above." +
-      "\n\nAftershocks. Left in, the counts drift upward, because a single great earthquake " +
-      "brings hundreds of events with it and those cluster in particular years. Taken out, the " +
-      "drift goes away. The rate of earthquake sequences and the rate of earthquakes are " +
-      "different questions." +
-      "\n\nWhere the record starts. Fitting from {from} is flat. Fitting from 1990 slopes " +
-      "downward. Neither is significant, but a start year chosen after seeing the answer would " +
-      "make either one look like a finding. This uses the whole record, always.",
+      "not the same as a change in the Earth.",
     trendColSlope: "Slope",
     trendColP: "p-value",
     trendSpanZero: "range includes zero",

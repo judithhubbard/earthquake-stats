@@ -172,7 +172,6 @@ const el = {
   trendSubtitle: document.getElementById("trend-subtitle")!,
   trendChart: document.getElementById("trend-chart")!,
   trendTable: document.getElementById("trend-table")!,
-  trendCaveats: document.getElementById("trend-caveats")!,
   techTitle: document.getElementById("tech-title")!,
   techBody: document.getElementById("tech-body")!,
 };
@@ -896,8 +895,6 @@ function writeTrend(counts: AnnualCount[], refYears: number[], minMag: number,
   el.trendSubtitle.textContent = fill(c.trendSubtitle, {
     threshold: magLabel(minMag), kind, from: t.first, to: t.last,
   });
-  el.trendCaveats.textContent = fill(c.trendCaveats, { from: t.first });
-
   el.trendTable.replaceChildren(flipTable(
     [{ label: c.trendColSlope },
      { label: c.trendColP,
