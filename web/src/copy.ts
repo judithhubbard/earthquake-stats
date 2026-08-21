@@ -853,12 +853,9 @@ export const copy = {
       "\n\n**How the answers are decided.** The first three panels test whether the counts " +
       "differ across the cycle more than chance allows, using a chi-square goodness-of-fit " +
       "test. The last two test whether two annual series move together, using a Pearson " +
-      "correlation." +
-
-      "\n\n**How a panel is graded.** Both tests produce a p-value: how often data with no " +
-      "pattern in it would give a result at least this strong. Below 1% the answer is " +
-      "Probably, between 1% and 5% Maybe, above 5% No. Each panel is graded on its own " +
-      "p-value; the page as a whole is graded on the combined one." +
+      "correlation. Both produce a p-value: how often data with no pattern in it would give a " +
+      "result at least this strong. Each panel is graded on its own p-value; the page as a " +
+      "whole is graded on the combined one." +
 
       "\n\n**Correcting for {testsWord} questions.** Each panel is tested at a 5% cutoff, so " +
       "across {testsWord} the chance that at least one crosses by luck alone is about " +
