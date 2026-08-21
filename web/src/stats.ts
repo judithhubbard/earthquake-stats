@@ -392,10 +392,9 @@ export function trend(counts: { year: number; value: number }[]): Trend | null {
  * The obvious formula is Sidak -- 1 - (1 - p)^k for k tests -- but it assumes
  * the tests are independent, and these are not: every M7+ earthquake is also an
  * M6+ earthquake and every mainshock is also an earthquake, so the four yearly
- * count series correlate with each other between 0.11 and 0.80. Sidak therefore
- * over-states the correction. On the current catalogue it says 25% where the
- * answer is 20%, which is the difference between three effective tests and
- * four.
+ * count series correlate with each other. Sidak therefore over-states the
+ * correction, by roughly the difference between three effective tests and
+ * four. The page computes both numbers and prints them side by side.
  *
  * So the joint distribution is measured rather than assumed. The year labels
  * are shuffled -- the SAME shuffle applied to every series at once, which is

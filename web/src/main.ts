@@ -529,10 +529,10 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
  *
  * The controls above reach twelve combinations -- two magnitudes, aftershocks
  * in or out on the count views, count or moment, this year or the last 365
- * days -- and this year currently lands anywhere from the 39th percentile to
- * the 92nd across them. A reader who wants an unusual year can find one by
- * clicking, and a reader who does not know that will take whichever slice
- * happens to load as the whole story.
+ * days -- and the percentile this year lands on differs widely across them.
+ * The range is measured and quoted on the page. A reader who wants an unusual
+ * year can find one by clicking, and a reader who does not know that will take
+ * whichever slice happens to load as the whole story.
  *
  * The controls stay, unlike on the trend section, where the four series were
  * fixed. The difference is what is being claimed. The trend section asserts
@@ -752,6 +752,36 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
   return { rows, aggregate, years: shared.length - 1 };
 }
 
+/**
+ * Every number the technical summary quotes, collected as it is computed.
+ *
+ * The summary used to state them as text -- "the 41st to the 92nd percentile",
+ * "25% where this says 21%" -- and they drifted from the code that produces
+ * them: the copy said 41st while the comment beside the figure said 39th, and
+ * both were written by hand at different times. They are interpolated now, so
+ * a number on the page is the number the page computed.
+ *
+ * Filled from two places, the spread table and the trend section, neither of
+ * which knows about the other, so writeTech runs after both.
+ */
+const techValues: Record<string, string | number> = {};
+
+/**
+ * The summary, with whatever numbers are known.
+ *
+ * A paragraph still holding an unresolved placeholder is dropped rather than
+ * printed with braces in it. That only happens when the section that computes
+ * the value bailed out -- too few years for a trend, say -- in which case the
+ * paragraph describes something the page is not showing.
+ */
+function writeTech() {
+  const body = fill(copy.home.techBody, techValues)
+    .split("\n\n")
+    .filter((para) => !/\{\w+\}/.test(para))
+    .join("\n\n");
+  renderTech(copy.home.techTitle, body, el.techTitle, el.techBody);
+}
+
 function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number) {
   const { rows, aggregate } = spread;
   if (rows.length < 2) { el.spread.hidden = true; return; }
@@ -759,14 +789,18 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
 
   const c = copy.home;
   const all = rows.flatMap((r) => r.cells.map((cell) => cell.percentile));
+  techValues.spreadLow = ordinal(Math.min(...all));
+  techValues.spreadHigh = ordinal(Math.max(...all));
   el.spreadNote.textContent = fill(c.spreadNote, {
     ways: all.length,
-    low: ordinal(Math.min(...all)),
-    high: ordinal(Math.max(...all)),
+    low: techValues.spreadLow,
+    high: techValues.spreadHigh,
   });
   el.spreadAggregate.replaceChildren();
   if (aggregate) {
     const pct = (v: number) => (v >= 0.1 ? (100 * v).toFixed(0) : (100 * v).toFixed(1));
+    techValues.ways = aggregate.tests;
+    techValues.effective = aggregate.effective.toFixed(1);
     el.spreadAggregate.append(fill(c.spreadAggregate, {
       year: yearLabel(currentYear),
       percentile: ordinal(100 * (1 - aggregate.p)),
@@ -1274,8 +1308,9 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
   const outcome = (p: number) => (p < 0.01 ? "probably" : p < 0.05 ? "maybe" : "no");
   const steepest = panels.reduce((a, b) => (b.fit.p < a.fit.p ? b : a));
   // Measured, not assumed. Sidak would be 1 - (1 - p)^4, but the four series
-  // are nested and correlate between 0.11 and 0.80, so that formula over-states
-  // the correction -- 25% where the answer is 20%. See combinedTrendP.
+  // are nested and correlate with each other, so that formula over-states the
+  // correction. Both numbers are quoted in the technical summary, computed
+  // rather than written down. See combinedTrendP.
   const corrected = combinedFor(panels);
   if (corrected === null) { el.trendQuestion.textContent = ""; return; }
   // Graded on the combined number, not the smallest. Reporting the best of
@@ -1284,6 +1319,16 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
   // one that has paid for the four looks.
   const key = outcome(corrected);
   const pct = (n: number) => (100 * n).toFixed(0);
+
+  // What the technical summary quotes about this section. Sidak is computed
+  // here rather than stated so the comparison stays honest: it is the formula
+  // this page declines to use, on the same steepest slope the shuffles judge.
+  const ps = panels.map((p) => p.fit.p);
+  techValues.trendLow = pct(Math.min(...ps));
+  techValues.trendHigh = pct(Math.max(...ps));
+  techValues.sidak = pct(1 - Math.pow(1 - steepest.fit.p, panels.length));
+  techValues.joint = pct(corrected);
+  techValues.shuffles = TREND_PERMUTATIONS.toLocaleString();
 
   el.trendQuestion.textContent = c.trendQuestion;
   el.trendVerdict.textContent = key === "probably" ? copy.correlations.verdictProbably
@@ -1297,6 +1342,10 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
     { subject: steepest.title, p: pct(steepest.fit.p), corrected: pct(corrected) });
 
   const corr = correlationRange(panels.map((p) => p.points.map((d) => d.value)));
+  if (corr) {
+    techValues.corrMin = corr.min.toFixed(2);
+    techValues.corrMax = corr.max.toFixed(2);
+  }
   el.trendOverlap.textContent = fill(c.trendOverlap, {
     threshold: magLabel(MIN_MAGNITUDE), major: magLabel(MAJOR_MAGNITUDE),
     minCorr: corr ? corr.min.toFixed(2) : "—",
@@ -1389,6 +1438,15 @@ async function update() {
       { message: (err as Error).message })));
     return;
   }
+
+  // Counted by the pipeline and carried in meta.json, so the figure the page
+  // quotes is the one the catalogue actually has. See build.py, which prints
+  // the same ratio when it emits the tier.
+  const base = store.tierFor(MIN_MAGNITUDE);
+  techValues.mwShare = base.count
+    ? (100 * base.homogenised / base.count).toFixed(1) : "0";
+  techValues.threshold = magLabel(MIN_MAGNITUDE);
+  techValues.from = REFERENCE_START;
 
   const shift = calendarShift();
   const { year: currentYear } = dayIndex(Date.now(), shift);
@@ -1558,7 +1616,9 @@ async function update() {
     }));
 
     writeSpread(spread, currentYear);
-    void writeTrend(currentYear, theme, width);
+    // finally, not then: a trend section that bails still leaves the summary
+    // to be written, minus the paragraphs about the part that bailed.
+    void writeTrend(currentYear, theme, width).finally(writeTech);
 
     const mapEvents = highlightedEvents(tier, minMag, highlights, shift);
     buildMapLegend(highlights);
@@ -1785,6 +1845,5 @@ async function boot() {
   }, LIVE_INTERVAL_MS);
 }
 
-renderTech(copy.home.techTitle, copy.home.techBody, el.techTitle, el.techBody);
 startAnalytics();
 void boot();

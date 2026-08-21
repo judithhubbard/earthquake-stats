@@ -319,7 +319,7 @@ export const copy = {
       "of magnitudes for some earthquakes. Here, we replace those alternative magnitudes with " +
       "Mw where we can, to make earthquakes comparable across years. We use W-phase first, " +
       "then GCMT centroid, then body-wave, then any other Mw — and fall back only where none " +
-      "exists. About 99.5% of M6+ events carry an Mw." +
+      "exists. About {mwShare}% of {threshold} events carry an Mw." +
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
       "hundreds of smaller ones with it. **Mainshocks only** removes them, using " +
@@ -345,12 +345,14 @@ export const copy = {
 
       "\n\n**The answer at the top ignores the user selections.** Depending on what " +
       "earthquakes a user selects, they can land at different percentiles. For instance, this " +
-      "year the selected earthquakes can yield anywhere from the 41st to the 92nd percentile. " +
+      "year the selected earthquakes can yield anywhere from the {spreadLow} to the " +
+      "{spreadHigh} percentile. " +
       "The answer at the top is based on aggregate statistics, derived from the combined " +
       "selection options below." +
 
       "\n\n**How the aggregate statistics work.** Each way of counting ranks this year " +
-      "against every year since 1976, which gives six p-values. Stouffer's method turns each " +
+      "against every year since {from}, which gives {ways} p-values. Stouffer's method turns " +
+      "each " +
       "into a " +
       "z-score, adds them, and divides by how much that sum could vary by chance. The " +
       "last-365-days combinations are left out: a window ending today is not a year, so it " +
@@ -359,29 +361,30 @@ export const copy = {
       "\n\n**Dealing with dependent variables.** The usual divisor assumes the tests are " +
       "independent. They are not: a year busy in M6+ is usually busy in M7+, " +
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
-      "from its largest earthquakes. Measured against the record, the six different dependent " +
-      "tests are worth about 1.7 independent tests. That is the divisor used: Strube's " +
+      "from its largest earthquakes. Measured against the record, the {ways} different " +
+      "dependent tests are worth about {effective} independent tests. That is the divisor " +
+      "used: Strube's " +
       "correction, with the correlations taken from the data rather than assumed." +
 
       "\n\n**Is the rate changing?** A straight line is fitted by least squares through the " +
       "yearly counts of four fixed series — M6+ and M7+, each with aftershocks left in and " +
       "taken out — and each slope is tested against no slope at all with a t-test. Four " +
       "rather than one, because the answer depends on which you pick: their p-values " +
-      "currently run from 7% to 85%." +
+      "currently run from {trendLow}% to {trendHigh}%." +
 
       "\n\n**The four are combined by a permutation test.** The textbook correction, " +
       "Šidák's formula, assumes the four tests are independent, and these are nested: every " +
       "M7+ earthquake is also an M6+ earthquake, and the four yearly counts correlate between " +
-      "0.11 and 0.80. So the year labels are shuffled instead — the same shuffle across all " +
+      "{corrMin} and {corrMax}. So the year labels are shuffled instead — the same shuffle " +
+      "across all " +
       "four at once, which keeps the overlap intact — the lines refitted, and the steepest " +
-      "recorded. A hundred thousand shuffles give the distribution of the steepest slope when " +
+      "recorded. {shuffles} shuffles give the distribution of the steepest slope when " +
       "none of the four is trending. This is the Westfall-Young max-T procedure, evaluated by " +
-      "Monte Carlo. Šidák would say 25% where this says 21%." +
+      "Monte Carlo. Šidák would say {sidak}% where this says {joint}%." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
-      "their consequences, and the two are only loosely related: where an earthquake happens, " +
-      "how deep it is, what the ground is made of and what people have built on it matter " +
-      "more to the outcome than the magnitude does.",
+      "their consequences. The two are related, but loosely: a M7 on the mid-Atlantic ridge " +
+      "will have no human effects, while a M7 below Los Angeles will cause widespread damage.",
 
     /* Footer and failures. */
     latest: "latest {threshold}: {when}, M{mag} {place}",
