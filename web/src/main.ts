@@ -620,9 +620,7 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
   caption.append(
     fill(copy.home.aggregateCaption, { from: first, ways: a.tests }),
     " ",
-    hint(copy.home.aggregateHelp, fill(copy.home.aggregateHelpBody, {
-      ways: a.tests, year: yearLabel(currentYear), z: a.z.toFixed(2),
-    })),
+    hint(copy.home.aggregateHelp, fill(copy.home.aggregateHelpBody, { ways: a.tests })),
   );
   el.answerAggregate.replaceChildren(strip, caption);
 }

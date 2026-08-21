@@ -109,16 +109,13 @@ export const copy = {
     aggregateShareMore: "of years scored higher",
     aggregateCurrent: "{year}",
     aggregateCaption:
-      "z-score for every year since {from}, all {ways} ways of counting pooled into one",
+      "Combined z-score for every year since {from}",
     aggregateHelp: "what is a z-score?",
     aggregateHelpBody:
       "A z-score says how far a year sits from the middle, measured in units of the ordinary " +
       "year-to-year spread. Zero is an average year." +
-      "\n\nAbout one year in six comes in above +1, and about one in forty above +2. The " +
-      "same going down: one in six below −1, one in forty below −2." +
-      "\n\nThe score here is all {ways} ways of counting the year pooled into one number, " +
-      "which is why a year can score {z} without any single way of counting looking " +
-      "remarkable. {year} is at {z}.",
+      "\n\nThere are many ways to look at earthquake numbers; we show {ways} of them below. " +
+      "This z-score combines those {ways} into a single representative number.",
     spreadHelp: "how is this worked out?",
     spreadHelpBody:
       "Each way of counting asks how often a year since 1976 ran at least as busy as {year}. " +
@@ -321,36 +318,30 @@ export const copy = {
     techBody:
       "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
-      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes, and the " +
-      "last 24 hours are read live in your browser from the USGS one-day feed, so new " +
-      "earthquakes appear before the next rebuild." +
+      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes." +
 
-      "\n\n**Magnitudes are converted to Mw.** ComCat's preferred magnitude is not the same " +
-      "kind of number throughout the record: usually mb or Ms before about 1984, moment " +
-      "magnitude after. Those scales disagree, so counting on the preferred magnitude " +
-      "compares different things in different decades. We take the moment magnitude wherever " +
-      "one has been published — W-phase first, then GCMT centroid, then body-wave, then any " +
-      "other Mw — and fall back only where none exists. About 99.5% of M6+ events carry an " +
-      "Mw. Without this the 1970s lose roughly a quarter of their M6+ earthquakes and every " +
-      "later year looks busier by comparison." +
+      "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
+      "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +
+      "of magnitudes for some earthquakes. Here, we replace those alternative magnitudes with " +
+      "Mw where we can, to make earthquakes comparable across years. We use W-phase first, " +
+      "then GCMT centroid, then body-wave, then any other Mw — and fall back only where none " +
+      "exists. About 99.5% of M6+ events carry an Mw." +
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
-      "hundreds of smaller ones with it. Mainshocks only removes them, using Gardner-Knopoff " +
-      "windows with the distance widened to twice the Wells and Coppersmith rupture length: " +
-      "40 km at M5, 159 km at M8. The windows run forward in time only, so an earthquake is " +
-      "removed if a larger one came before it and never if a larger one followed. Symmetric " +
-      "windows would strip events from the end of the catalog, which is the part being asked " +
-      "about." +
+      "hundreds of smaller ones with it. **Mainshocks only** removes them, using " +
+      "Gardner-Knopoff windows with the distance widened to twice the Wells and Coppersmith " +
+      "rupture length: 40 km at M5, 159 km at M8. The windows run forward in time only, so " +
+      "an earthquake is removed if a larger one came before it and never if a larger one " +
+      "followed." +
 
       "\n\n**The record starts in 1976,** when the Global CMT catalog begins — the earliest " +
       "date from which moment magnitudes are broadly available. Only M6+ and M7+ are offered: " +
       "below M6, how many earthquakes a year contains depends partly on how many seismometers " +
       "were running that year, so counts cannot be compared across decades." +
 
-      "\n\n**Moment.** Count treats every earthquake as one. Moment weights each by the " +
-      "energy it released. On that setting the axis is labelled with the magnitude of the " +
-      "single earthquake that would release the same total, because raw moment spans a factor " +
-      "of a hundred across the record and is unreadable." +
+      "\n\n**Moment/Count.** Count treats every earthquake as one. Moment weights each by the " +
+      "energy it released. We convert moment into an equivalent “earthquake magnitude”, " +
+      "because otherwise moment spans multiple orders of magnitude." +
 
       "\n\n**The shaded ranges.** The default shows where the middle 50% and middle 90% of " +
       "past years fell on each date. The ±2σ setting uses the mean plus and minus two " +
