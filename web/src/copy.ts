@@ -881,8 +881,11 @@ export const copy = {
 
       "\n\n**Day of the lunar cycle.** A chi-square goodness-of-fit test over {lunarDays} " +
       "bins, on {lunarDf} degrees of freedom. The bins are mean synodic phase — a cycle of " +
-      "{synodic} days measured from a fixed new moon — so day 1 holds the new moon and day " +
-      "{fullMoonDay} the full moon." +
+      "{synodic} days measured from a fixed new moon — and they are centred on the syzygies " +
+      "rather than starting at them, so day 1 straddles the new moon and day {fullMoonDay} " +
+      "the full moon. Where the bin edges fall does not change what an even distribution " +
+      "looks like. It changes what an uneven one looks like: an edge at either syzygy would " +
+      "cut an excess there in half, and that is the one shape this panel is looking for." +
 
       "\n\n**Temperature and sunspots.** Both compare a yearly series against the annual " +
       "count of {threshold} earthquakes, using a Pearson correlation, with the p-value taken " +
