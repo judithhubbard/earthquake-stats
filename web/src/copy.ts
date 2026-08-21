@@ -351,6 +351,43 @@ export const copy = {
       "the calculation on its own anniversary, and the band visibly steps on 11 March, the date " +
       "of the 2011 Tohoku earthquake." +
 
+      "\n\n**The answer at the top does not depend on the settings.** The controls reach " +
+      "twelve combinations — two magnitude thresholds, aftershocks in or out on the count " +
+      "views, earthquakes counted or weighted by moment, this year so far or the last 365 " +
+      "days — and this year currently lands anywhere from the 41st percentile to the 92nd " +
+      "across them. An answer read off whichever one happened to be selected could be changed " +
+      "by clicking, so the answer is computed from all of them at once. Everything below the " +
+      "answer still follows the controls, and says which setting it is showing. The " +
+      "last-365-days combinations are left out of the calculation: a window ending today is " +
+      "not a year, so it cannot be ranked against past years alongside the rest. They stay in " +
+      "the table, where each column is read on its own terms." +
+
+      "\n\n**The six are pooled with Stouffer's method, corrected for how much they " +
+      "overlap.** Each way of counting ranks this year against every year since 1976, which " +
+      "gives six p-values. Stouffer's method turns each into a standard score, adds them, and " +
+      "divides by how much that sum could vary by chance. The usual divisor assumes the six " +
+      "tests are independent, and they are not: a year busy in M6+ is usually busy in M7+, " +
+      "and by moment the two are almost the same number, because a year's moment comes mostly " +
+      "from its largest earthquakes whichever threshold is set. Measured against the past " +
+      "years the six are worth about 1.7 independent tests, and that is what the divisor uses " +
+      "— Strube's correction, with the correlations taken from the record rather than " +
+      "assumed. Treating them as six separate tests would make a busy year look far more " +
+      "unusual than it is." +
+
+      "\n\nThis is pooling, not a correction for asking six questions, and the difference " +
+      "matters. Every way of counting tests the same claim, so what is wanted is what they " +
+      "say together. The trend section below asks something else — whether any one of four " +
+      "series shows a trend, once you have paid for looking four times — and needs a " +
+      "different tool for it." +
+
+      "\n\n**The histogram beside the answer** shows that combined score for every year " +
+      "since 1976, with this year marked. It is drawn on the score rather than on the " +
+      "percentile because percentiles are flat by construction — fifty years spread five or " +
+      "six to every tenth of the range — while the score behind them has a middle and two " +
+      "tails. The axis is labelled with the percentile each score corresponds to. The smaller " +
+      "histogram in the corner of the first chart is the same idea for the one setting the " +
+      "controls are on." +
+
       "\n\n**Whether the rate is changing is tested four ways at once.** A straight line is " +
       "fitted through the yearly counts of four fixed series — M6+ and M7+, each with " +
       "aftershocks left in and taken out — and each fit is tested for whether its slope can be " +
