@@ -131,8 +131,8 @@ export const copy = {
       "This z-score combines those {waysWord} into a single representative number.",
     spreadNote:
       "These individual metrics each tell us something about how many earthquakes there have " +
-      "been. The number at the top combines these {waysWord} statistics into an overall " +
-      "assessment.",
+      "been in {year}. The number at the top combines the {waysWord} in the “{column}” " +
+      "column into an overall assessment.",
 
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",

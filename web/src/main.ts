@@ -825,7 +825,12 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
   // what the answer at the top combines, and the last-365-days column is not
   // in it. The technical summary is where that exclusion is explained.
   el.spreadNote.textContent = fill(c.spreadNote, {
+    year: yearLabel(currentYear),
     waysWord: numberWord(aggregate ? aggregate.tests : all.length),
+    // Named from the column header itself, so the sentence cannot drift from
+    // the table. Every cell is this year, so the year alone does not say which
+    // six of the twelve are pooled -- the column does.
+    column: c.spreadCalendar,
   });
   el.spreadAggregate.replaceChildren();
   if (aggregate) {
