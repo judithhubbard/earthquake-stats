@@ -390,11 +390,29 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
  * any panel crossed, while its own tooltip explained that one crossing out of
  * five is roughly what chance produces.
  */
+/**
+ * The page's own answer, from the five tests below it.
+ *
+ * Graded on the combined number, not the smallest of the five. Reporting the
+ * best of five tests as though it were the only one is what makes a page like
+ * this untrustworthy.
+ *
+ * Sidak's 1 - (1 - p)^5 is only valid when the five are independent, which was
+ * measured rather than assumed. Weekday, month and lunar day are three clocks
+ * that do not divide into one another -- 7 days, 365.25 days and 29.53 days --
+ * so over fifty years an earthquake's position on one carries no information
+ * about its position on the others. The two yearly comparisons do share a count
+ * series, so they were tested as a pair by permuting the year labels: the
+ * correlation between their statistics came out at +0.01, and the combined
+ * p-value agrees with Sidak to four decimal places at every rung the page
+ * grades on. The nested-series problem that rules Sidak out for the trend
+ * section on the front page does not arise here.
+ */
 function writePageAnswer(tests: { p: number; subject: string }[]) {
   const c = copy.correlations;
   const closest = tests.reduce((a, b) => (b.p < a.p ? b : a));
   const corrected = 1 - (1 - closest.p) ** tests.length;
-  const key = outcomeFor(closest.p);
+  const key = outcomeFor(corrected);
 
   el.answer.innerHTML = key === "probably" ? c.answerProbably
                       : key === "maybe" ? c.answerMaybe
@@ -405,23 +423,25 @@ function writePageAnswer(tests: { p: number; subject: string }[]) {
         corrected: asPercent(corrected),
       });
 
+  // One deciding column. The smallest of the five is still reported -- in the
+  // help text and under its own panel -- where it cannot be mistaken for the
+  // number the answer rests on.
   el.answerTable.replaceChildren(flipTable(
-    [{ label: c.pageColSmallest,
-       help: { label: c.pageHelpSmallest,
-               body: fill(c.pageHelpSmallestBody,
-                          { subject: closest.subject, p: asPercent(closest.p) }) } },
-     { label: c.pageColCorrected,
+    [{ label: c.pageColCombined,
        help: { label: c.pageHelp,
-               body: fill(c.pageHelpBody, { tests: tests.length, anyFlag: ANY_FLAG }) } },
+               body: fill(c.pageHelpBody, {
+                 tests: tests.length, anyFlag: ANY_FLAG,
+                 subject: closest.subject, p: asPercent(closest.p),
+                 corrected: asPercent(corrected),
+               }) } },
      { label: c.flipColAnswer }],
     [
-      [c.flipPStrong, c.pageCorrectedBelow, c.verdictProbably],
-      [c.flipPWeak, c.pageCorrectedAbove, c.verdictMaybe],
-      [c.flipPNone, c.pageCorrectedNone, c.verdictNo],
+      [c.flipPStrong, c.verdictProbably],
+      [c.flipPWeak, c.verdictMaybe],
+      [c.flipPNone, c.verdictNo],
     ],
     key === "probably" ? 0 : key === "maybe" ? 1 : 2,
-    [fill(c.flipNow, { value: `${asPercent(closest.p)}%` }),
-     fill(c.flipNow, { value: `${asPercent(corrected)}%` }), null],
+    [fill(c.flipNow, { value: `${asPercent(corrected)}%` }), null],
   ));
 }
 

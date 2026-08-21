@@ -307,6 +307,30 @@ export const copy = {
       "the calculation on its own anniversary, and the band visibly steps on 11 March, the date " +
       "of the 2011 Tohoku earthquake." +
 
+      "\n\n**Whether the rate is changing is tested four ways at once.** A straight line is " +
+      "fitted through the yearly counts of four fixed series — M6+ and M7+, each with " +
+      "aftershocks left in and taken out — and each fit is tested for whether its slope can be " +
+      "told apart from no slope. Four series rather than one, because the answer depends on " +
+      "which you pick: at the moment their p-values run from 7% to 85%, and a series chosen " +
+      "after seeing that spread would not be evidence of anything. The four ignore the settings " +
+      "above them for the same reason. Counts only: on moment every series slopes up by about " +
+      "25% per decade, and all of that is the 2004, 2010 and 2011 great earthquakes falling in " +
+      "the second half of the record, which is a fact about those three earthquakes rather than " +
+      "about the rate." +
+
+      "\n\n**The four are combined by shuffling, not by formula.** The usual correction for " +
+      "asking four questions, 1 - (1 - p)⁴, assumes the four tests are independent. These are " +
+      "not: every M7+ earthquake is also an M6+ earthquake, every mainshock is also an " +
+      "earthquake, and the four yearly count series correlate with each other between 0.11 and " +
+      "0.80. So the combination is measured instead. The year labels are shuffled into a random " +
+      "order — the same order applied to all four series at once, which is what keeps the " +
+      "overlap between them intact — the four lines are refitted, and the steepest of them is " +
+      "recorded; 100,000 shuffles give the distribution of the steepest slope when none of the " +
+      "four is trending. The formula would say 25% where this says 21%. The answer is graded " +
+      "on the measured number. Shuffling assumes that, with no trend, one year is " +
+      "interchangeable with another, which an aftershock sequence running across New Year " +
+      "slightly breaks." +
+
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
       "their consequences, and the two are only loosely related: where an earthquake happens, " +
       "how deep it is, what the ground is made of and what people have built on it matter more " +
@@ -401,37 +425,34 @@ export const copy = {
     answerMaybe: "<strong>Maybe.</strong>",
     answerProbably: "<strong>Probably.</strong>",
     detailMaybe:
-      "Right now the data show a possible statistical relationship with {subject}. But the " +
-      "chance that one answer out of these {tests} questions reaches that level at random is " +
-      "{corrected}%. The data below updates as the USGS catalog does, and every answer on this " +
-      "page is computed from it rather than hard-coded.",
+      "Right now the data show a possible statistical relationship with {subject}. Combined " +
+      "across all {tests} questions, a result at least this strong turns up {corrected}% of " +
+      "the time when none of them is real. The data below updates as the USGS catalog does, " +
+      "and every answer on this page is computed from it rather than hard-coded.",
     detailProbably:
       "Right now the data show a statistical relationship with {subject} strong enough to " +
-      "survive having asked {tests} questions: the chance of one answer reaching this level at " +
-      "random is {corrected}%. That is worth explaining, and it is still not a cause. The data " +
-      "below updates as the USGS catalog does, and every answer on this page is computed from " +
-      "it rather than hard-coded.",
-    pageColSmallest: "Smallest p-value of the five",
-    pageColCorrected: "Corrected for asking five",
-    pageCorrectedBelow: "below 5%",
-    pageCorrectedAbove: "above 5%",
-    pageCorrectedNone: "above 5%",
-    pageHelpSmallest: "which of the five?",
-    pageHelpSmallestBody:
-      "The five questions below are each tested at a 5% cutoff, and this is the smallest " +
-      "p-value among them — the one closest to crossing." +
-      "\n\nRight now that is {subject}, at {p}%." +
-      "\n\nA p-value is how often data with no pattern in it would produce a result at least " +
-      "this strong. It is not the probability that there is no pattern.",
-    pageHelp: "why correct it?",
+      "survive having asked {tests} questions: combined across all of them, a result at least " +
+      "this strong turns up {corrected}% of the time when none is real. That is worth " +
+      "explaining, and it is still not a cause. The data below updates as the USGS catalog " +
+      "does, and every answer on this page is computed from it rather than hard-coded.",
+    pageColCombined: "Combined p-value for the five tests",
+    pageHelp: "how is this calculated?",
     pageHelpBody:
-      "Each question below is tested on its own at a 5% cutoff. Ask five questions that way " +
-      "and the chance that at least one crosses by chance alone is not 5% but about {anyFlag}%." +
-      "\n\nSo the smallest of the five p-values is corrected for how many times we looked: the " +
-      "chance of seeing one at least that small somewhere among {tests} questions. That is the " +
-      "number this page answers on." +
-      "\n\nIt works out at the same lines: a corrected value below 5% means the smallest of " +
-      "the five was below about 1%.",
+      "Each question below gets its own p-value: how often data with no pattern in it would " +
+      "produce a result at least that strong. It is not the probability that there is no " +
+      "pattern. The smallest of the five right now is {p}%, from {subject}." +
+      "\n\nAsk five questions at a 5% cutoff and the chance that at least one crosses by " +
+      "chance alone is not 5% but about {anyFlag}%. So the five are combined into one number: " +
+      "if none of the five relationships were real, the chance of seeing a p-value at least as " +
+      "small as {p}% somewhere among them is {corrected}%. That combined number is what this " +
+      "page answers on." +
+      "\n\nCombining this way needs the five tests to be independent of each other, which was " +
+      "checked rather than assumed. Day of the week, month of the year and the lunar cycle are " +
+      "three clocks that do not divide into one another, so where an earthquake falls on one " +
+      "says nothing about where it falls on the others. The two yearly comparisons share a " +
+      "count of earthquakes, so they were tested together by shuffling the years: the " +
+      "correlation between them came out at 0.01. The combined number is the same to four " +
+      "decimal places either way.",
 
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
@@ -738,14 +759,28 @@ export const copy = {
       "differ across the cycle more than chance allows, using a chi-square goodness-of-fit " +
       "test. The last two test whether two annual series move together, using a Pearson " +
       "correlation. Both produce a p-value: how often data with no pattern in it would give a " +
-      "result at least this strong. Below 1% the page says Probably, between 1% and 5% Maybe, " +
-      "above 5% No. Nothing here is written in — change the data and the answers change." +
+      "result at least this strong. Below 1% the answer is Probably, between 1% and 5% Maybe, " +
+      "above 5% No. Each panel is graded on its own p-value; the page as a whole is graded on " +
+      "the combined one described below. Nothing here is written in — change the data and the " +
+      "answers change." +
 
       "\n\n**The page corrects for asking five questions.** Each panel is tested at a 5% " +
       "cutoff, so across five the chance that at least one crosses by luck alone is about 23%, " +
-      "not 5%. The answer at the top is based on the smallest of the five p-values corrected " +
-      "for how many times we looked, which is why one panel crossing 5% does not by itself " +
-      "change what the page says." +
+      "not 5%. The answer at the top is graded on the combined p-value for all five — the " +
+      "chance of seeing a result at least as strong as the strongest of them when none of the " +
+      "five is real — which is why one panel crossing 5% does not by itself change what the " +
+      "page says." +
+
+      "\n\n**The five tests were checked for independence before being combined.** The " +
+      "combination, 1 - (1 - p)⁵, is only valid if the five are independent, and on the front " +
+      "page the equivalent formula is not used because the series there are nested inside one " +
+      "another. Here they are not. Day of the week, month of the year and the lunar cycle are " +
+      "three clocks of 7, 365.25 and 29.53 days, none of which divides into another, so across " +
+      "fifty years an earthquake's position on one says nothing about its position on the " +
+      "others. The two yearly comparisons do share a count of earthquakes, so they were tested " +
+      "as a pair by shuffling the year labels 200,000 times: the correlation between their two " +
+      "statistics came out at 0.01, and the shuffled result agrees with the formula to four " +
+      "decimal places at every cutoff the page uses." +
 
       "\n\n**A p-value is not the probability that there is no pattern.** It is how often " +
       "chance alone would produce a result this strong. It also says nothing about size: with " +
