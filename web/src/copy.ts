@@ -277,10 +277,20 @@ export const copy = {
       "The data do show a pattern. Does a pattern mean a cause? If earthquakes occur at " +
       "random, we would expect to see a spread like this {p}% of the time. So this is not a " +
       "full answer, but it suggests the data are worth a deeper look.",
+    probablyBin:
+      "The data show a pattern that would be unusual by chance: if earthquakes occurred at " +
+      "random, a spread like this would turn up only {p}% of the time. That is worth " +
+      "explaining, but it is still not a cause. This chart can say the counts are uneven; it " +
+      "cannot say what makes them uneven, and one page of tests is not where that gets settled.",
     maybeScatter:
       "The data do show a correlation. Does correlation equal causation? If earthquakes occur " +
       "at random, we would expect to see a correlation like this {p}% of the time. So this is " +
       "not a full answer, but it suggests the data are worth a deeper look.",
+    probablyScatter:
+      "The data show a correlation that would be unusual by chance: unrelated numbers would " +
+      "produce one this strong only {p}% of the time. That is worth explaining, but it is " +
+      "still not causation. Two things moving together does not say which moves the other, or " +
+      "whether a third thing moves both.",
 
     /* What each test would have to read for the answer above it to change. The
        page says its answers are computed; these lines are that claim in a form
@@ -301,11 +311,7 @@ export const copy = {
       "time in a hundred." +
       "\n\nOne caution. This page tests {tests} questions, and the more questions you test, " +
       "the more likely one of them crosses the line by chance alone. At a 5% cutoff, the odds " +
-      "that at least one of {tests} does are about {anyFlag}%, not 5%." +
-      "\n\nChoosing which results to report after seeing them is called p-hacking. That is " +
-      "not what happens here — all {tests} are shown whatever they say — but the arithmetic " +
-      "still holds: one panel below 5% on a page of {tests} is close to what you should " +
-      "expect, not a discovery.",
+      "that at least one of {tests} does are about {anyFlag}%, not 5%.",
     flipHelpR: "what is a correlation coefficient?",
     flipHelpRBody:
       "The correlation coefficient is one way to assess whether two quantities move together, " +
@@ -326,11 +332,7 @@ export const copy = {
       "cutoff, one time in a hundred." +
       "\n\nOne caution. This page tests {tests} questions, and the more questions you test, " +
       "the more likely one of them crosses the line by chance alone. At a 5% cutoff, the odds " +
-      "that at least one of {tests} does are about {anyFlag}%, not 5%." +
-      "\n\nChoosing which results to report after seeing them is called p-hacking. That is " +
-      "not what happens here — all {tests} are shown whatever they say — but the arithmetic " +
-      "still holds: one panel below 5% on a page of {tests} is close to what you should " +
-      "expect, not a discovery.",
+      "that at least one of {tests} does are about {anyFlag}%, not 5%.",
     /* Column headings, then the conditions in each. A row is one combination
        of them, and the values underneath sit in the column they are compared
        against -- classifying a difference as negligible while never showing
@@ -475,11 +477,11 @@ export const copy = {
     climateCloseNo: "As expected, we see no change. {stat}",
     climateCloseFlipped: "That is not what we expected. {stat}",
     climateStatNull:
-      "The correlation coefficient over {years} years is {r}, well below the {critical} we " +
-      "would need for statistical significance at the 5% level.",
+      "The correlation coefficient over {years} years is {r} — a result that unrelated numbers " +
+      "produce {p}% of the time, well above the 5% cutoff.",
     climateStatSignificant:
-      "The correlation coefficient over {years} years is {r}, which exceeds the {critical} " +
-      "needed for statistical significance at the 5% level.",
+      "The correlation coefficient over {years} years is {r} — a result that unrelated numbers " +
+      "would produce only {p}% of the time.",
     climateUp: "more earthquakes in warmer years.",
     climateDown: "fewer earthquakes in warmer years.",
     climateAxis: "Global temperature (°C above 1951–1980)",
@@ -492,11 +494,11 @@ export const copy = {
     /* This one runs closer to the threshold than the climate panel, so the
        second version is not hypothetical. */
     solarStatNull:
-      "As expected, the correlation coefficient is {r}; it does not reach the {critical} needed " +
-      "for statistical significance at the 5% level.",
+      "As expected, the correlation coefficient is {r} — a result that unrelated numbers " +
+      "produce {p}% of the time, well above the 5% cutoff.",
     solarStatSignificant:
-      "The correlation coefficient is {r}, which reaches the {critical} needed for statistical " +
-      "significance at the 5% level.",
+      "The correlation coefficient is {r} — a result that unrelated numbers would produce only " +
+      "{p}% of the time.",
     solarUp: "more earthquakes in years with more sunspots.",
     solarDown: "fewer earthquakes in years with more sunspots.",
     solarAxis: "Sunspot number",

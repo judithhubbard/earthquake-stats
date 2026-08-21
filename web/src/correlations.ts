@@ -640,7 +640,7 @@ async function boot() {
         binThreshold: `M${BIN_MAGNITUDE}+`,
 
         stat: c === null ? "" : fill(
-          c.significant
+          outcomeFor(correlationP(c.r, c.n)) !== "no"
             ? copy.correlations.climateStatSignificant
             : copy.correlations.climateStatNull,
           { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2),
@@ -669,7 +669,7 @@ async function boot() {
         binThreshold: `M${BIN_MAGNITUDE}+`,
 
         stat: c === null ? "" : fill(
-          c.significant
+          outcomeFor(correlationP(c.r, c.n)) !== "no"
             ? copy.correlations.solarStatSignificant
             : copy.correlations.solarStatNull,
           { years: c.n, r: c.r.toFixed(2), critical: c.critical.toFixed(2),
