@@ -306,14 +306,24 @@ export const copy = {
       "\n\nThe threshold never moves. It is set by the number of bars alone, so more " +
       "earthquakes will not change it. Only the chi-square moves, as new earthquakes occur and " +
       "are added to the dataset.",
-    flipBinBelow: "chi-square below {critical}",
-    flipBinNegligible: "above {critical}, but the difference is tiny",
-    flipBinMeaningful: "above {critical}, and big enough to matter",
-    flipBinNow: "Right now: {statistic}",
-    flipScatterAbove: "correlation above +{critical}",
-    flipScatterWithin: "correlation between ±{critical}",
-    flipScatterBelow: "correlation below −{critical}",
-    flipScatterNow: "Right now: {r}",
+    /* Column headings, then the conditions in each. A row is one combination
+       of them, and the values underneath sit in the column they are compared
+       against -- classifying a difference as negligible while never showing
+       the number that decides it would be the sort of thing this page argues
+       against. */
+    flipColChi: "chi-square",
+    flipColSize: "size of the difference",
+    flipColR: "correlation",
+    flipColAnswer: "the answer",
+    flipBinAbove: "above {critical}",
+    flipBinBelow: "below {critical}",
+    flipVAbove: "{v} or more",
+    flipVBelow: "below {v}",
+    flipVAny: "—",
+    flipScatterAbove: "above +{critical}",
+    flipScatterWithin: "between ±{critical}",
+    flipScatterBelow: "below −{critical}",
+    flipNow: "Right now: {value}",
 
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     weekdayExplain:

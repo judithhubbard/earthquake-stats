@@ -261,16 +261,20 @@ function binVerdict(bins: Bin[]): string {
  * paraphrase, so the table cannot end up describing a rule the page does not
  * follow.
  */
-function flipTable(rows: { when: string; says: string }[],
-                   current: number, now: string,
+function flipTable(columns: string[], rows: string[][], current: number,
+                   now: (string | null)[],
                    help?: { label: string; body: string }): HTMLElement {
   const box = document.createElement("div");
   box.className = "correlate-flip";
+  // Column widths are set here rather than in the stylesheet because the two
+  // kinds of table have different numbers of them.
+  const template = columns
+    .map((_, i) => (i === columns.length - 1 ? "minmax(0, 1fr)" : "minmax(0, 11rem)"))
+    .join(" ");
 
   const title = document.createElement("p");
   title.className = "flip-title";
   title.textContent = copy.correlations.flipTitle;
-  // Same question-mark-in-a-ring the front page controls use.
   if (help) {
     const hint = document.createElement("span");
     hint.className = "hint";
@@ -290,65 +294,57 @@ function flipTable(rows: { when: string; says: string }[],
 
   const list = document.createElement("ol");
   list.className = "flip-rows";
-  rows.forEach((row, i) => {
+
+  const row = (cells: (string | null)[], cls: string) => {
     const li = document.createElement("li");
-    if (i === current) li.className = "is-current";
-    const when = document.createElement("span");
-    when.className = "flip-when";
-    when.textContent = row.when;
-    const says = document.createElement("span");
-    says.className = "flip-says";
-    says.textContent = row.says;
-    // Inline after the verdict rather than in a column of its own: a grid
-    // column sizes to the widest cell in it, so on the solar panel -- whose
-    // verdicts run to a full line -- a third column would have flung the
-    // reading back out to the right-hand edge.
-    if (i === current) {
-      const reading = document.createElement("em");
-      reading.className = "flip-now";
-      reading.textContent = now;
-      says.append(reading);
-    }
-    li.append(when, says);
-    list.append(li);
-  });
+    li.className = cls;
+    li.style.gridTemplateColumns = template;
+    cells.forEach((text, i) => {
+      const cell = document.createElement("span");
+      cell.className = i === cells.length - 1 ? "flip-says" : "flip-when";
+      cell.textContent = text ?? "";
+      li.append(cell);
+    });
+    return li;
+  };
+
+  list.append(row(columns, "flip-head"));
+  rows.forEach((cells, i) => list.append(row(cells, i === current ? "is-current" : "")));
+  // The readings sit in a row of their own, each under the threshold it is
+  // being compared against. Anywhere else and the reader has to work out which
+  // number goes with which column.
+  list.append(row(now, "flip-reading"));
+
   box.append(list);
   return box;
 }
+
+/** Cramer's V is negligible below this by convention, not by a choice made here. */
+const NEGLIGIBLE_V = 0.1;
 
 function binFlip(bins: Bin[]): HTMLElement {
   const test = chiSquare(bins);
   const n = bins.reduce((a, b) => a + b.count, 0);
   const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
   const critical = test.critical.toFixed(1);
-  // Largest chi-square at the top, like the scatter tables above run from the
-  // strongest positive correlation down, and like the answer scale on the
-  // front page. Strongest evidence first, everywhere.
-  const current = test.statistic <= test.critical ? 2 : v < 0.1 ? 1 : 0;
-  return flipTable([
-    { when: fill(copy.correlations.flipBinMeaningful, { critical }),
-      says: copy.correlations.verdictYes },
-    { when: fill(copy.correlations.flipBinNegligible, { critical }),
-      says: copy.correlations.verdictYesNegligible },
-    { when: fill(copy.correlations.flipBinBelow, { critical }),
-      says: copy.correlations.verdictNo },
-  ], current, fill(copy.correlations.flipBinNow, {
-    statistic: test.statistic.toFixed(1),
-  }), {
-    label: copy.correlations.flipHelp,
-    body: fill(copy.correlations.flipHelpBody, { bins: bins.length }),
-  });
+  const current = test.statistic <= test.critical ? 2 : v < NEGLIGIBLE_V ? 1 : 0;
+  const c = copy.correlations;
+  return flipTable(
+    [c.flipColChi, c.flipColSize, c.flipColAnswer],
+    [
+      [fill(c.flipBinAbove, { critical }), fill(c.flipVAbove, { v: NEGLIGIBLE_V }),
+       c.verdictYes],
+      [fill(c.flipBinAbove, { critical }), fill(c.flipVBelow, { v: NEGLIGIBLE_V }),
+       c.verdictYesNegligible],
+      [fill(c.flipBinBelow, { critical }), c.flipVAny, c.verdictNo],
+    ],
+    current,
+    [fill(c.flipNow, { value: test.statistic.toFixed(1) }),
+     fill(c.flipNow, { value: v.toFixed(3) }), null],
+    { label: c.flipHelp, body: fill(c.flipHelpBody, { bins: bins.length }) },
+  );
 }
 
-/** The same for a scatter panel, from the correlation against its 5% threshold. */
-/**
- * The affirmative names its direction.
- *
- * A plain "Yes." to "does solar activity trigger earthquakes" would be printed
- * by a significant *negative* correlation just as readily as a positive one --
- * a two-tailed test answering a one-directional question. Both directions are
- * real answers, they are just not the same answer.
- */
 function scatterVerdict(c: Correlation | null, up: string, down: string): string {
   if (!c) return copy.correlations.verdictNotEnough;
   if (!c.significant) return copy.correlations.verdictNo;
@@ -358,17 +354,20 @@ function scatterVerdict(c: Correlation | null, up: string, down: string): string
 function scatterFlip(c: Correlation | null, up: string, down: string): HTMLElement | undefined {
   if (!c) return undefined;
   const critical = c.critical.toFixed(2);
+  const t = copy.correlations;
   // Ordered like the number line it describes: positive, neither, negative.
   const current = !c.significant ? 1 : c.r > 0 ? 0 : 2;
-  return flipTable([
-    { when: fill(copy.correlations.flipScatterAbove, { critical }), says: up },
-    { when: fill(copy.correlations.flipScatterWithin, { critical }),
-      says: copy.correlations.verdictNo },
-    { when: fill(copy.correlations.flipScatterBelow, { critical }), says: down },
-  ], current, fill(copy.correlations.flipScatterNow, { r: c.r.toFixed(2) }), {
-    label: copy.correlations.flipHelpR,
-    body: fill(copy.correlations.flipHelpRBody, { years: c.n, critical }),
-  });
+  return flipTable(
+    [t.flipColR, t.flipColAnswer],
+    [
+      [fill(t.flipScatterAbove, { critical }), up],
+      [fill(t.flipScatterWithin, { critical }), t.verdictNo],
+      [fill(t.flipScatterBelow, { critical }), down],
+    ],
+    current,
+    [fill(t.flipNow, { value: c.r.toFixed(2) }), null],
+    { label: t.flipHelpR, body: fill(t.flipHelpRBody, { years: c.n, critical }) },
+  );
 }
 
 /* ---------------- build ---------------- */
