@@ -26,6 +26,7 @@ interface Context { generated: string; temperature?: Series; sunspots?: Series;
 const el = {
   answer: document.getElementById("answer")!,
   answerDetail: document.getElementById("answer-detail")!,
+  answerTable: document.getElementById("answer-table")!,
   panels: document.getElementById("panels")!,
   sources: document.getElementById("sources")!,
 };
@@ -444,6 +445,50 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
   );
 }
 
+/**
+ * The page's own answer, graded like a panel but on the corrected p-value.
+ *
+ * The smallest of the five decides which rung, after correcting for having
+ * asked five questions: 1 - (1 - p)^5, the chance of seeing one at least that
+ * small somewhere among them. The correction lands on the same 1% and 5% lines
+ * the panels use, since 1 - (1 - 0.0102)^5 is 0.05.
+ *
+ * Without it the page contradicted itself -- it blanked its headline whenever
+ * any panel crossed, while its own tooltip explained that one crossing out of
+ * five is roughly what chance produces.
+ */
+function writePageAnswer(tests: { p: number; subject: string }[]) {
+  const c = copy.correlations;
+  const closest = tests.reduce((a, b) => (b.p < a.p ? b : a));
+  const corrected = 1 - (1 - closest.p) ** tests.length;
+  const key = outcomeFor(closest.p);
+
+  el.answer.innerHTML = key === "probably" ? c.answerProbably
+                      : key === "maybe" ? c.answerMaybe
+                      : c.answer;
+  el.answerDetail.textContent = key === "no" ? c.detail
+    : fill(key === "probably" ? c.detailProbably : c.detailMaybe, {
+        subject: closest.subject, tests: tests.length,
+        corrected: asPercent(corrected),
+      });
+
+  el.answerTable.replaceChildren(flipTable(
+    [{ label: c.pageColSmallest },
+     { label: c.pageColCorrected,
+       help: { label: c.pageHelp,
+               body: fill(c.pageHelpBody, { tests: tests.length, anyFlag: ANY_FLAG }) } },
+     { label: c.flipColAnswer }],
+    [
+      [c.flipPStrong, c.pageCorrectedBelow, c.verdictProbably],
+      [c.flipPWeak, c.pageCorrectedAbove, c.verdictMaybe],
+      [c.flipPNone, c.pageCorrectedNone, c.verdictNo],
+    ],
+    key === "probably" ? 0 : key === "maybe" ? 1 : 2,
+    [fill(c.flipNow, { value: `${asPercent(closest.p)}%` }),
+     fill(c.flipNow, { value: `${asPercent(corrected)}%` }), null],
+  ));
+}
+
 /* ---------------- build ---------------- */
 
 function seriesPoints(series: Series, counts: Map<number, number>) {
@@ -532,7 +577,9 @@ async function boot() {
   // Set after the panels, once their outcomes are known -- see the end of boot.
   // Every panel that runs a test votes, which is all of them but Oklahoma: that
   // one has no statistic and answers a different question.
-  const headline: string[] = [];
+  // Each entry is one test's p-value and what it is a test of, so the page can
+  // both grade itself and name whichever question is closest.
+  const headline: { p: number; subject: string }[] = [];
   el.answerDetail.textContent = copy.correlations.detail;
 
   const legend: LegendKey[] = [
@@ -550,7 +597,7 @@ async function boot() {
   const weekday = weekdayBins(times);
   const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
   const weekdayOut = binOutcome(weekday);
-  headline.push(weekdayOut.key);
+  headline.push({ p: weekdayOut.p, subject: copy.correlations.weekdaySubject });
   built.push(panel(copy.correlations.weekdayQuestion,
     plainVerdict(weekdayOut.key),
     fill([copy.correlations.weekdayIntro,
@@ -576,7 +623,7 @@ async function boot() {
   const gap = Math.abs(month.indexOf(ranked[0]) - month.indexOf(ranked[1]));
   const word = (d: number) => (d >= 0 ? "more" : "fewer");
   const monthOut = binOutcome(month);
-  headline.push(monthOut.key);
+  headline.push({ p: monthOut.p, subject: copy.correlations.monthSubject });
   built.push(panel(copy.correlations.monthQuestion,
     plainVerdict(monthOut.key),
     [
@@ -610,7 +657,7 @@ async function boot() {
   // predicted two humps are simply absent, which is the honest answer.
   const moon = lunarBins(times);
   const moonOut = binOutcome(moon);
-  headline.push(moonOut.key);
+  headline.push({ p: moonOut.p, subject: copy.correlations.moonSubject });
   built.push(panel(copy.correlations.moonQuestion, plainVerdict(moonOut.key),
     fill([copy.correlations.moonOpen,
           moonOut.key === "no"
@@ -635,7 +682,8 @@ async function boot() {
   if (context.temperature) {
     const points = seriesPoints(context.temperature, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    headline.push(c ? outcomeFor(correlationP(c.r, c.n)) : "no");
+    headline.push({ p: c ? correlationP(c.r, c.n) : 1,
+                    subject: copy.correlations.climateSubject });
     // Whether the panel has anything to explain, on the same rule as its verdict.
     const cUp = copy.correlations.climateUp;
     const cDown = copy.correlations.climateDown;
@@ -672,7 +720,8 @@ async function boot() {
   if (context.sunspots) {
     const points = seriesPoints(context.sunspots, yearly);
     const c = pearson(points.map((p) => p.x), points.map((p) => p.y));
-    headline.push(c ? outcomeFor(correlationP(c.r, c.n)) : "no");
+    headline.push({ p: c ? correlationP(c.r, c.n) : 1,
+                    subject: copy.correlations.solarSubject });
     const sUp = copy.correlations.solarUp;
     const sDown = copy.correlations.solarDown;
     built.push(panel(copy.correlations.solarQuestion, scatterVerdict(c, sUp, sDown),
@@ -752,17 +801,7 @@ async function boot() {
   // computed would be the same fault the panels just had. If any of the four
   // has stopped saying no, the page stops saying it too and leaves the sentence
   // below to speak for itself.
-  // The page's own answer, and the one place the multiple-comparisons point
-  // actually bites: one panel crossing out of five is roughly what five tests
-  // at a 5% cutoff produce on their own.
-  const flagged = headline.filter((k) => k !== "no").length;
-  el.answer.innerHTML = flagged === 0 ? copy.correlations.answer : "";
-  if (flagged > 0) {
-    el.answerDetail.textContent = fill(copy.correlations.detailFlagged, {
-      n: flagged, has: flagged === 1 ? "has" : "have",
-      tests: TESTS, anyFlag: ANY_FLAG,
-    });
-  }
+  writePageAnswer(headline);
   el.panels.replaceChildren(...built);
   for (const fn of redraw) fn();
 

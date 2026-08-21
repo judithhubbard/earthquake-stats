@@ -252,11 +252,37 @@ export const copy = {
     answer: "<strong>No.</strong>",
     detail: "We checked. The data below updates as the USGS catalog does, and every answer on "
       + "this page is computed from it rather than hard-coded.",
-    detailFlagged:
-      "We checked. {n} of the {tests} questions below {has} crossed the 5% line. That is not a " +
-      "discovery: with {tests} tests at that cutoff, the odds of at least one crossing by " +
-      "chance alone are about {anyFlag}%. The data below updates as the USGS catalog does, and " +
-      "every answer on this page is computed from it rather than hard-coded.",
+    /* The page's own answer, on the same three rungs as the panels. The
+       smallest of the five p-values decides which, but only after correcting
+       for having asked five questions -- and the correction lands on the same
+       1% and 5% lines, since 1 - (1 - 0.0102)^5 is 5%. */
+    answerMaybe: "<strong>Maybe.</strong>",
+    answerProbably: "<strong>Probably.</strong>",
+    detailMaybe:
+      "Right now the data show a possible statistical relationship with {subject}. But the " +
+      "chance that one answer out of these {tests} questions reaches that level at random is " +
+      "{corrected}%. The data below updates as the USGS catalog does, and every answer on this " +
+      "page is computed from it rather than hard-coded.",
+    detailProbably:
+      "Right now the data show a statistical relationship with {subject} strong enough to " +
+      "survive having asked {tests} questions: the chance of one answer reaching this level at " +
+      "random is {corrected}%. That is worth explaining, and it is still not a cause. The data " +
+      "below updates as the USGS catalog does, and every answer on this page is computed from " +
+      "it rather than hard-coded.",
+    pageColSmallest: "Smallest of the five",
+    pageColCorrected: "Corrected for five",
+    pageCorrectedBelow: "below 5%",
+    pageCorrectedAbove: "above 5%",
+    pageCorrectedNone: "—",
+    pageHelp: "why correct it?",
+    pageHelpBody:
+      "Each question below is tested on its own at a 5% cutoff. Ask five questions that way " +
+      "and the chance that at least one crosses by chance alone is not 5% but about {anyFlag}%." +
+      "\n\nSo the smallest of the five p-values is corrected for how many times we looked: the " +
+      "chance of seeing one at least that small somewhere among {tests} questions. That is the " +
+      "number this page answers on." +
+      "\n\nIt works out at the same lines: a corrected value below 5% means the smallest of " +
+      "the five was below about 1%.",
 
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
@@ -363,6 +389,7 @@ export const copy = {
     flipRAny: "—",
     flipNow: "Right now: {value}",
 
+    weekdaySubject: "the day of the week",
     weekdayQuestion: "Do earthquakes prefer a day of the week?",
     /* The first paragraph is the method and holds whatever the answer is; the
        rest depends on it, so the two are separate strings. */
@@ -387,6 +414,7 @@ export const copy = {
       "them keep human schedules.",
     weekdaySubtitle: "Day of the week · {since}",
 
+    monthSubject: "the month of the year",
     monthQuestion: "Do earthquakes have a season? Is there such a thing as earthquake weather?",
     /* Values are filled from the data. The "right next to" line only holds while
        the two largest deviations are adjacent months, so there is a fallback. */
@@ -424,6 +452,7 @@ export const copy = {
       "like the South Asian monsoon.",
     monthSubtitle: "Month of the year · {since}",
 
+    moonSubject: "the lunar cycle",
     moonQuestion: "Does the moon set off earthquakes?",
     /* Split three ways: the setup, the part that depends on the answer, and the
        two paragraphs that follow whatever it is. Duplicating the last two to
@@ -454,6 +483,7 @@ export const copy = {
     moonNewMoon: "new moon",
     moonFullMoon: "full moon",
 
+    climateSubject: "global temperature",
     climateQuestion: "Is climate change affecting earthquakes?",
     climateOpen:
       "Some people have suggested that climate change might cause earthquakes to become more " +
@@ -489,6 +519,7 @@ export const copy = {
     climateDown: "fewer earthquakes in warmer years.",
     climateAxis: "Global temperature (°C above 1951–1980)",
 
+    solarSubject: "solar activity",
     solarQuestion: "Does solar activity affect earthquakes?",
     solarExplain:
       "There is a popular hypothesis that solar activity causes earthquakes. We checked, just to " +

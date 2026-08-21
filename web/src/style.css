@@ -753,6 +753,17 @@ footer p { margin: 0 0 0.4rem; }
 
 .correlate-chart { min-height: 210px; }
 
+/* The page's own table sits in the hero, above the panels, so it needs the
+   spacing of a block rather than a footnote. */
+#answer-table .correlate-flip {
+  margin: 1.1rem 0 0;
+  padding-top: 0;
+  border-top: 0;
+  max-width: 46rem;
+}
+
+#answer-table .flip-title { display: none; }
+
 /* The rungs of the verdict, with the one in force marked. Quiet: it is
    provenance for the answer above, not part of the argument. Laid out like the
    answer scale on the front page, because it says the same kind of thing. */
