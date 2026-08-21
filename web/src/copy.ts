@@ -76,9 +76,7 @@ export const copy = {
        what, and the answer changes with the controls. The second line is what
        is being counted, on the same setting the rest of the page is on. */
     stripShareMore: "of years had more\n{subject}",
-    stripShareLess: "of years had fewer\n{subject}",
     stripShareMoreMoment: "of years released more\nmoment",
-    stripShareLessMoment: "of years released less\nmoment",
 
     /* The spread strip under the answer. Every combination the controls above
        can reach, so the reader can see how much the answer depends on which
@@ -106,7 +104,6 @@ export const copy = {
     spreadAggregate:
       "{year} is in the {percentile} percentile: on average, {p}% of years are busier.",
     aggregateShareMore: "of years scored higher",
-    aggregateShareLess: "of years scored lower",
     aggregateCurrent: "{year}: {percentile}",
     aggregateCaption:
       "Every year since {from} on the combined score, {ways} ways of counting pooled into one",

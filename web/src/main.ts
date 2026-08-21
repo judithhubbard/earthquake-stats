@@ -608,8 +608,6 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
     share: {
       more: fill(copy.home.stripShare, { share: above }),
       moreLabel: copy.home.aggregateShareMore,
-      less: fill(copy.home.stripShare, { share: 100 - above }),
-      lessLabel: copy.home.aggregateShareLess,
     },
     currentLabel: fill(copy.home.aggregateCurrent, {
       year: yearLabel(currentYear), percentile: ordinal(100 * (1 - a.p)),
@@ -1488,12 +1486,6 @@ async function update() {
           moreLabel: moment
             ? copy.home.stripShareMoreMoment
             : fill(copy.home.stripShareMore,
-                   { subject: `${magLabel(minMag)} ${kind}` }),
-          less: fill(copy.home.stripShare,
-                     { share: Math.round(result.belowShare * 100) }),
-          lessLabel: moment
-            ? copy.home.stripShareLessMoment
-            : fill(copy.home.stripShareLess,
                    { subject: `${magLabel(minMag)} ${kind}` }),
         },
         currentLabel: moment

@@ -197,11 +197,14 @@ export interface DistributionOptions {
   peers: { year: number; value: number }[];
   value: number;
   /**
-   * Both sides of the split, as big-number-plus-caption. Which one gets drawn
-   * depends on where the rule lands: the block sits opposite it, so that when
-   * this year runs high the label is not stacked on top of its own marker.
+   * The share above this year, as big-number-plus-caption. Always the share
+   * above, never the share below: the sentence used to flip to "had fewer" and
+   * turn green once this year ran high, so the wording and the colour both
+   * changed at the moment the number became interesting, and a busy year was
+   * announced in the colour that means quiet everywhere else on the page. Only
+   * the block's position moves now, to keep it off its own marker.
    */
-  share: { more: string; moreLabel: string; less: string; lessLabel: string };
+  share: { more: string; moreLabel: string };
   currentLabel: string;
   /** Ticks are magnitudes on the moment view, plain numbers on the count view. */
   tickFormat?: (n: number) => string;
@@ -331,14 +334,13 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
         fontWeight: 650, fontSize: compact ? 11 : 12.5,
       }),
       Plot.text([{}], {
-        text: () => (flip ? opts.share.less : opts.share.more),
+        text: () => opts.share.more,
         frameAnchor: flip ? "top-left" : "top-right",
         dy: 4, dx: flip ? 2 : -2,
-        fill: flip ? theme.rangeInk : theme.up, fontWeight: 700,
-        fontSize: compact ? 19 : 25,
+        fill: theme.up, fontWeight: 700, fontSize: compact ? 19 : 25,
       }),
       Plot.text([{}], {
-        text: () => (flip ? opts.share.lessLabel : opts.share.moreLabel),
+        text: () => opts.share.moreLabel,
         frameAnchor: flip ? "top-left" : "top-right",
         dy: compact ? 20 : 26, dx: flip ? 2 : -2,
         fill: theme.muted, fontSize: compact ? 9.5 : 10.5,
