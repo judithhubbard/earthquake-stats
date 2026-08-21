@@ -843,11 +843,12 @@ export const copy = {
       "\n\n**The record starts in {from},** when the Global CMT catalog begins — the " +
       "earliest date from which moment magnitudes are broadly available." +
 
-      "\n\n**Two magnitude thresholds.** The first three panels compare days, months and " +
-      "lunar phases within the record, so a change in detection that affects the whole record " +
-      "cancels out. They use {binThreshold}, which gives four times the data. The last two " +
-      "compare one year against another, where a change in detection would look like a real " +
-      "trend, so they use {threshold}, which has been detected worldwide throughout." +
+      "\n\n**Two magnitude thresholds.** For the first three panels, we use {binThreshold}; " +
+      "for the last two, {threshold}. This difference is because for the first three panels, " +
+      "we stack the data by day of the week, month of the year, or day of the lunar cycle, so " +
+      "a change in detection level should cancel out. For the last two panels we're looking " +
+      "at data by year; we cut off earthquakes below M{minMag} so that a change in network " +
+      "quality won't skew the results." +
 
       "\n\n**How the answers are decided.** The first three panels test whether the counts " +
       "differ across the cycle more than chance allows, using a chi-square goodness-of-fit " +

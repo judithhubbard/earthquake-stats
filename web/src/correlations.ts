@@ -288,6 +288,7 @@ const P_WEAK = 0.05;
 const techValues: Record<string, string | number> = {
   tests: TESTS, testsWord: numberWord(TESTS), anyFlag: ANY_FLAG,
   threshold: `M${MIN_MAGNITUDE}+`, binThreshold: `M${BIN_MAGNITUDE}+`,
+  minMag: MIN_MAGNITUDE,
 };
 
 function writeTech() {
