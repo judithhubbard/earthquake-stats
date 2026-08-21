@@ -359,10 +359,9 @@ export const copy = {
       "\n\n**Dealing with dependent variables.** The usual divisor assumes the tests are " +
       "independent. They are not: a year busy in M6+ is usually busy in M7+, " +
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
-      "from its largest earthquakes. Measured against the record, the six are worth about 1.7 " +
-      "independent tests, and that is the divisor used — Strube's correction, with the " +
-      "correlations taken from the data rather than assumed. Treating them as six would make " +
-      "a busy year look far more unusual than it is." +
+      "from its largest earthquakes. Measured against the record, the six different dependent " +
+      "tests are worth about 1.7 independent tests. That is the divisor used: Strube's " +
+      "correction, with the correlations taken from the data rather than assumed." +
 
       "\n\n**Pooling is not a correction for asking six questions.** Every way of counting " +
       "tests the same claim, so what matters is what they say together. The trend section " +
