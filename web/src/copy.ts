@@ -124,9 +124,8 @@ export const copy = {
       "\n\nThat last step normally assumes the {ways} tests are independent. They are not. " +
       "A year busy in M6+ is usually busy in M7+, and by moment the two are almost the same " +
       "number, since a year's moment comes mostly from its largest earthquakes either way." +
-      "\n\nMeasured against the past years, the {ways} are worth about {effective} " +
-      "independent tests, and that is what the divisor uses. Treating them as {ways} separate " +
-      "tests would make this year look far more unusual than it is." +
+      "\n\nMeasured against the past years, the {ways} different dependent tests are worth " +
+      "about {effective} independent tests. That is the divisor used." +
       "\n\nThe result is Z = {z}, or p = {p}%.",
     spreadNote:
       "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
