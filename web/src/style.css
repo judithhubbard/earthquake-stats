@@ -707,11 +707,14 @@ main {
    treatment and nothing smaller is allowed to borrow it: subtitles, axis
    labels and panel captions all stay quiet and dark. The green is
    --range-ink, the same as the chart ranges and the map's land. */
+/* Child combinator on .trend, not descendant: the four panel titles inside it
+   are figcaptions too, and ".trend figcaption" outranks ".trend-panel-title",
+   which is how they came out big and green after being demoted. */
 .section-title,
 #chart-title,
 #annual-title,
 #map-title,
-.trend figcaption {
+.trend > figcaption {
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.25;
@@ -719,7 +722,7 @@ main {
   color: var(--range-ink);
 }
 
-.trend figcaption { margin-bottom: 0.45rem; }
+.trend > figcaption { margin-bottom: 0.45rem; }
 
 .section-title { margin: 0 0 0.6rem; }
 
