@@ -93,18 +93,30 @@ jobs:
           due() { [ ! -f "$STAMPS/$1" ] || [ $(( NOW - $(cat "$STAMPS/$1") )) -ge "$2" ]; }
           mark() { echo "$NOW" > "$STAMPS/$1"; }
 
+          FRESH=0
           if [ -f data/catalog.sqlite ]; then
             python3 pipeline/fetch.py
           else
             echo "::notice::No cached mirror; running a full backfill."
             python3 pipeline/fetch.py --backfill
+            FRESH=1
           fi
 
           # Moment tensors arrive over days to weeks, and ComCat's preferred
           # magnitude for a new large earthquake is already Mww within minutes --
           # which fetch.py picks up. This harvest is for the events where Mw is
           # not the preferred magnitude, which is a historical problem.
-          if due magnitudes 21600; then
+          # A rebuilt mirror has no Mw at all, and the routine harvest only
+          # covers the last two years -- so a cache miss would leave everything
+          # before that on ComCat's preferred magnitude, which switches from
+          # Ms/mb to Mw around 1984. That silently knocks about a quarter of the
+          # M6+ events out of the 1970s and biases every comparison since.
+          # It happened, on 19 August 2026, and nothing caught it.
+          if [ "$FRESH" = "1" ]; then
+            echo "::notice::Fresh mirror; harvesting Mw across the whole record."
+            python3 pipeline/magnitudes.py --start 1970
+            mark magnitudes
+          elif due magnitudes 21600; then
             python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
             mark magnitudes
           else
@@ -113,6 +125,43 @@ jobs:
 
           python3 pipeline/decluster.py
           python3 pipeline/build.py
+
+          # The homogenised share is the canary, and it repairs rather than warns.
+          #
+          # M6+ runs at 99.5% on Mw when the harvest has been done. It fell to
+          # 2.9% on 19 August 2026, when a cache-key change missed, the backfill
+          # branch rebuilt the mirror from scratch, and the routine harvest only
+          # covered the last two years. Everything before that reverted to
+          # ComCat's preferred magnitude, which switches from Ms/mb to Mw around
+          # 1984 -- knocking a quarter of the M6+ events out of the 1970s and
+          # biasing every comparison since. The deploy published it anyway.
+          share() {
+            python3 -c "import json;m=json.load(open('web/public/data/meta.json'));\
+t=[x for x in m['tiers'] if x['threshold']==6][0];\
+print(int(100*t.get('homogenised',0)/max(1,t['count'])))"
+          }
+          if [ "$(share)" -lt 90 ]; then
+            echo "::warning::M6+ is only $(share)% on Mw; harvesting the whole record."
+            python3 pipeline/magnitudes.py --start 1970
+            mark magnitudes
+            python3 pipeline/decluster.py
+            python3 pipeline/build.py
+          fi
+          echo "M6+ homogenised share: $(share)%"
+          if [ "$(share)" -lt 90 ]; then
+            echo "::error::Mw homogenisation still missing; not publishing this catalog."
+            exit 1
+          fi'
+import json, sys
+meta = json.load(open("web/public/data/meta.json"))
+for tier in meta["tiers"]:
+    if tier["threshold"] != 6:
+        continue
+    share = 100 * tier.get("homogenised", 0) / max(1, tier["count"])
+    print(f"M6+ homogenised share: {share:.1f}%")
+    if share < 1:
+        sys.exit("Mw homogenisation is missing; refusing to publish this catalog.")
+CHECK
 
           # Global temperature, sunspots and the Oklahoma record. All three are
           # monthly at best and this is 116s of the run, so it goes daily. A
