@@ -109,15 +109,91 @@ def harvest_year(year: int) -> list[tuple[float, str, str]]:
     return rows
 
 
+MW_FILE = ROOT / "pipeline" / "mw.csv"
+
+
+def export_mw(conn, path: Path) -> int:
+    """Write every harvested Mw to a file, sorted by id.
+
+    This is the durable copy. The values are not in the ComCat download -- they
+    come from a separate QuakeML harvest of about 145 MB -- and until now the
+    only place they existed was the SQLite mirror in CI's cache. When that cache
+    was invalidated on 19 August 2026 the mirror was rebuilt without them, every
+    event before 2025 fell back to its preferred magnitude, and the site served
+    a quarter fewer M6+ earthquakes in the 1970s for two days.
+
+    Sorted plain text on purpose: a harvest that finds four new tensors shows up
+    as four changed lines rather than an opaque blob.
+    """
+    rows = conn.execute(
+        "SELECT id, mw, mw_type FROM events WHERE mw IS NOT NULL ORDER BY id").fetchall()
+
+    # Never let a bad run shrink the file. The mirror is seeded from it before
+    # anything else happens, so a healthy export can only be the same size or
+    # larger; a big drop means the mirror is half-built or the seed did not
+    # take, and overwriting would throw away the only copy of the values.
+    existing = sum(1 for _ in path.open()) - 1 if path.exists() else 0
+    if existing and len(rows) < 0.95 * existing:
+        print(f"REFUSING to write {path}: mirror has {len(rows):,} Mw values, "
+              f"the file has {existing:,}. Leaving the file alone.")
+        return existing
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w") as fh:
+        fh.write("id,mw,mw_type\n")
+        for row in rows:
+            fh.write(f"{row['id']},{row['mw']},{row['mw_type']}\n")
+    return len(rows)
+
+
+def seed_mw(conn, path: Path) -> int:
+    """Load the stored Mw values into the mirror, skipping any it already has.
+
+    A rebuilt mirror gets its whole history back from this in a second, instead
+    of a full re-harvest. Only rows the mirror is missing are written, so a
+    seed never overwrites a fresher value the harvest has just fetched.
+    """
+    if not path.exists():
+        return 0
+    rows = []
+    with path.open() as fh:
+        header = fh.readline()
+        if not header.startswith("id,"):
+            raise SystemExit(f"{path} does not look like an Mw export")
+        for line in fh:
+            eid, mw, kind = line.rstrip("\n").split(",")
+            rows.append((float(mw), kind, eid))
+    before = conn.total_changes
+    conn.executemany(
+        "UPDATE events SET mw = ?, mw_type = ? WHERE id = ? AND mw IS NULL", rows)
+    conn.commit()
+    return conn.total_changes - before
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--db", default=str(DB_PATH))
     ap.add_argument("--start", type=int, default=CATALOG_START)
     ap.add_argument("--end", type=int, default=datetime.now(timezone.utc).year)
     ap.add_argument("--pause", type=float, default=1.0)
+    ap.add_argument("--file", default=str(MW_FILE),
+                    help="durable copy of the harvested Mw values")
+    ap.add_argument("--seed-only", action="store_true",
+                    help="load the file into the mirror and stop, without fetching")
     args = ap.parse_args()
 
     conn = store.connect(args.db)
+    path = Path(args.file)
+
+    seeded = seed_mw(conn, path)
+    if seeded:
+        print(f"Seeded {seeded:,} Mw values from {path.name}.", flush=True)
+    if args.seed_only:
+        held = conn.execute(
+            "SELECT COUNT(*) AS n FROM events WHERE mw IS NOT NULL").fetchone()["n"]
+        print(f"Mirror now holds {held:,} Mw values.")
+        return 0
+
     total = 0
 
     for year in range(args.start, args.end + 1):
@@ -140,6 +216,9 @@ def main() -> int:
 
     store.set_meta(conn, "magnitudes_at", datetime.now(timezone.utc).isoformat())
     conn.commit()
+
+    written = export_mw(conn, path)
+    print(f"Wrote {written:,} Mw values to {path}.")
 
     covered = conn.execute(
         "SELECT COUNT(*) AS n FROM events WHERE mw IS NOT NULL AND mag >= 5.5").fetchone()["n"]

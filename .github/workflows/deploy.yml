@@ -30,7 +30,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # write, not read: a harvest that finds new moment tensors commits them back
+  # to pipeline/mw.csv. A GITHUB_TOKEN push does not start another workflow run,
+  # so this cannot loop.
+  contents: write
   pages: write
   id-token: write
 
@@ -71,9 +74,6 @@ jobs:
       # continue-on-error so that a USGS outage cannot block a code change from
       # shipping. If any of this fails the next step puts the committed catalog
       # back, and the site deploys with data that is stale rather than broken.
-      # continue-on-error so that a USGS outage cannot block a code change from
-      # shipping. If any of this fails the next step puts the committed catalog
-      # back, and the site deploys with data that is stale rather than broken.
       #
       # Not everything runs every time. Measured on a real run: fetch 2s,
       # magnitudes 10s, decluster 18s, build 1s, context 116s. Only the first,
@@ -106,21 +106,28 @@ jobs:
           # magnitude for a new large earthquake is already Mww within minutes --
           # which fetch.py picks up. This harvest is for the events where Mw is
           # not the preferred magnitude, which is a historical problem.
-          # A rebuilt mirror has no Mw at all, and the routine harvest only
-          # covers the last two years -- so a cache miss would leave everything
-          # before that on ComCat's preferred magnitude, which switches from
-          # Ms/mb to Mw around 1984. That silently knocks about a quarter of the
-          # M6+ events out of the 1970s and biases every comparison since.
-          # It happened, on 19 August 2026, and nothing caught it.
+          # A rebuilt mirror has no Mw of its own, and the routine harvest only
+          # covers the last two years -- so before pipeline/mw.csv existed, a
+          # cache miss left everything earlier on ComCat's preferred magnitude,
+          # which switches from Ms/mb to Mw around 1984. That silently knocked
+          # about a quarter of the M6+ events out of the 1970s and biased every
+          # comparison since. It happened, on 19 August 2026, and nothing caught
+          # it.
+          #
+          # pipeline/mw.csv is the fix: 25,778 values in the repo, seeded into
+          # the mirror by magnitudes.py before it fetches anything. A rebuilt
+          # mirror gets the whole history back in a second, and then only has to
+          # chase the last two years like any other run. Seeding is unconditional
+          # and cheap, so a run that skips the harvest still gets it.
           if [ "$FRESH" = "1" ]; then
-            echo "::notice::Fresh mirror; harvesting Mw across the whole record."
-            python3 pipeline/magnitudes.py --start 1970
-            mark magnitudes
-          elif due magnitudes 21600; then
+            echo "::notice::Fresh mirror; seeding Mw from pipeline/mw.csv."
+          fi
+          if [ "$FRESH" = "1" ] || due magnitudes 21600; then
             python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
             mark magnitudes
           else
-            echo "Moment magnitudes harvested within the last 6h; skipping."
+            python3 pipeline/magnitudes.py --seed-only
+            echo "Moment magnitudes harvested within the last 6h; skipping the fetch."
           fi
 
           python3 pipeline/decluster.py
@@ -143,6 +150,9 @@ jobs:
           print(int(100 * t.get("homogenised", 0) / max(1, t["count"])))
           PY
           }
+          # If the seed and the two-year harvest between them still leave the
+          # record short, mw.csv is missing or stale -- re-harvest everything,
+          # which also rewrites the file for the commit step below.
           if [ "$(share)" -lt 90 ]; then
             echo "::warning::M6+ is only $(share)% on Mw; harvesting the whole record."
             python3 pipeline/magnitudes.py --start 1970
@@ -182,6 +192,28 @@ jobs:
         run: |
           echo "::warning::Pipeline failed. Deploying the catalog committed in the repo."
           git checkout -- web/public/data
+
+      # The harvested Mw values are the one piece of state that cannot be
+      # rebuilt from a ComCat download -- they come from a separate 145 MB
+      # QuakeML crawl. Keeping them only in the CI cache is what made the 19
+      # August regression possible, so they go in the repo. Sorted plain text:
+      # a harvest that finds four new tensors is a four-line diff.
+      - name: Commit any newly harvested magnitudes
+        if: steps.refresh.outcome == 'success'
+        continue-on-error: true
+        run: |
+          if git diff --quiet -- pipeline/mw.csv; then
+            echo "No new moment magnitudes."
+            exit 0
+          fi
+          git diff --numstat -- pipeline/mw.csv \
+            | awk '{print "  " $1 " added, " $2 " removed"}'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pipeline/mw.csv
+          git commit -m "Harvest moment magnitudes"
+          git pull --rebase --autostash
+          git push
 
       - name: Save catalog mirror
         if: steps.refresh.outcome == 'success' && steps.refresh.outputs.save == 'true'
