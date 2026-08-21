@@ -811,7 +811,7 @@ footer p { margin: 0 0 0.4rem; }
   font-weight: 500;
   white-space: nowrap;
   color: var(--text-secondary);
-  margin-left: 0.15rem;
+  margin-left: 1.4rem;
 }
 
 @media (max-width: 560px) {
