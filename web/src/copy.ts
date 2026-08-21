@@ -362,17 +362,6 @@ export const copy = {
       "tests are worth about 1.7 independent tests. That is the divisor used: Strube's " +
       "correction, with the correlations taken from the data rather than assumed." +
 
-      "\n\n**Pooling is not a correction for asking six questions.** Every way of counting " +
-      "tests the same claim, so what matters is what they say together. The trend section " +
-      "asks something different — whether any one of four series shows a trend, once you have " +
-      "paid for four looks — and needs a different tool for it." +
-
-      "\n\n**The histograms.** The one beside the answer shows the pooled z-score of every " +
-      "year since 1976, with this year marked. It is drawn on the score rather than on the " +
-      "percentile because percentiles are flat by construction, while the score has a middle " +
-      "and two tails. The smaller one in the corner of the first chart is the same idea for " +
-      "the single setting the controls are on." +
-
       "\n\n**Is the rate changing?** A straight line is fitted through the yearly counts of " +
       "four fixed series — M6+ and M7+, each with aftershocks left in and taken out — and " +
       "each slope is tested against no slope at all. Four rather than one, because the answer " +
