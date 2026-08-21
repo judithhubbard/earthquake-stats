@@ -17,3 +17,6 @@ web/public/data/*.gz
 .DS_Store
 *.pyc
 __pycache__/
+
+# Scratch arrays from null-distribution checks.
+*.npy
