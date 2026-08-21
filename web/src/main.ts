@@ -936,7 +936,11 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
   // Sidak over the four looks. The series are nested, so this over-corrects --
   // said out loud in trendOverlap rather than left for the reader to notice.
   const corrected = 1 - (1 - steepest.fit.p) ** panels.length;
-  const key = outcome(steepest.fit.p);
+  // Graded on the combined number, not the smallest. Reporting the best of
+  // four tests as though it were the only one is the whole failure mode this
+  // section was rebuilt to avoid, so the number that decides the answer is the
+  // one that has paid for the four looks.
+  const key = outcome(corrected);
   const pct = (n: number) => (100 * n).toFixed(0);
 
   el.trendQuestion.textContent = c.trendQuestion;
@@ -954,28 +958,26 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
     threshold: magLabel(MIN_MAGNITUDE), major: magLabel(MAJOR_MAGNITUDE),
   });
 
+  // One column, not two. The smallest p-value used to sit beside the combined
+  // one, which invited the reader to grade off whichever looked better; it is
+  // still reported, in the prose and under each panel, where it cannot be
+  // mistaken for the deciding number.
   const cc = copy.correlations;
   el.trendTable.replaceChildren(flipTable(
-    [{ label: c.trendColSmallest,
-       help: { label: c.trendHelpSmallest,
-               body: fill(c.trendHelpSmallestBody, {
-                 years: steepest.fit.years, p: pct(steepest.fit.p),
-                 subject: steepest.title,
-               }) } },
-     { label: c.trendColCorrected,
+    [{ label: c.trendColCombined,
        help: { label: c.trendHelp,
                body: fill(c.trendHelpBody, {
-                 p: pct(steepest.fit.p), corrected: pct(corrected),
+                 years: steepest.fit.years, p: pct(steepest.fit.p),
+                 subject: steepest.title, corrected: pct(corrected),
                }) } },
      { label: cc.flipColAnswer }],
     [
-      [cc.flipPStrong, c.trendCorrectedBelow, cc.verdictProbably],
-      [cc.flipPWeak, c.trendCorrectedAbove, cc.verdictMaybe],
-      [cc.flipPNone, c.trendCorrectedNone, cc.verdictNo],
+      [cc.flipPStrong, cc.verdictProbably],
+      [cc.flipPWeak, cc.verdictMaybe],
+      [cc.flipPNone, cc.verdictNo],
     ],
     key === "probably" ? 0 : key === "maybe" ? 1 : 2,
-    [fill(cc.flipNow, { value: `${pct(steepest.fit.p)}%` }),
-     fill(cc.flipNow, { value: `${pct(corrected)}%` }), null],
+    [fill(cc.flipNow, { value: `${pct(corrected)}%` }), null],
   ));
 
   // Two across, so each panel gets about half the section width less the gap.
@@ -999,8 +1001,6 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
       low: signedPct(share(panel.fit.perDecade - panel.fit.margin)),
       high: signedPct(share(panel.fit.perDecade + panel.fit.margin)),
       p: pct(panel.fit.p),
-      verdict: outcome(panel.fit.p) === "probably" ? cc.verdictProbably
-             : outcome(panel.fit.p) === "maybe" ? cc.verdictMaybe : cc.verdictNo,
     });
 
     box.append(title, host, stat);
