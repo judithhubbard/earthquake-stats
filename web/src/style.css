@@ -233,7 +233,13 @@ main {
   line-height: 1.35;
   color: var(--text-muted);
   text-align: center;
+  /* The tip under this caption resolves against the CAPTION, not against the
+     inline "?" — see .hint-tip. The caption is page-centred and full width, so
+     a tip centred in it lands on the page by construction, with no script. */
+  position: relative;
 }
+
+.answer-caption .hint { position: static; }
 
 @media (max-width: 820px) {
   .answer-detail { max-width: 420px; }
@@ -360,9 +366,16 @@ main {
   position: absolute;
   z-index: 30;
   top: calc(100% + 6px);
-  left: 0;
+  /* Anchored to the CENTRE of the "?" rather than its left edge. With left:0 the
+     box always opened rightwards, so under a centred caption it started mid-page
+     and ran off the right side; max-width capped how wide it got but never where
+     it began. --hint-nudge is set in hint() when a centred box would still cross
+     an edge (a "?" in a table cell near the margin), so the two together keep it
+     on the page at any width. */
+  left: 50%;
+  transform: translateX(calc(-50% + var(--hint-nudge, 0px)));
   width: 22rem;
-  max-width: 78vw;
+  max-width: min(22rem, calc(100vw - 1.5rem));
   padding: 0.7rem 0.8rem;
   background: var(--surface-1);
   border: 1px solid var(--border);

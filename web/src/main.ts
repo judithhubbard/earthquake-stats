@@ -654,6 +654,27 @@ function hint(label: string, body: string): HTMLElement {
     tip.append(line);
   }
   wrap.append(button, tip);
+
+  // The tip is centred on the "?" in CSS, which is right for a caption in the
+  // middle of the page. It is not enough on its own: a "?" close to either
+  // margin still puts half a 22rem box past the edge. So on open, measure and
+  // shift it back inside. Measuring happens in rAF because the tip is
+  // display:none until :hover matches, and a rect taken too early is all zeros.
+  const place = () => {
+    tip.style.setProperty("--hint-nudge", "0px");
+    requestAnimationFrame(() => {
+      const r = tip.getBoundingClientRect();
+      if (!r.width) return;
+      const margin = 8;
+      const over = r.right - (window.innerWidth - margin);
+      const under = margin - r.left;
+      const dx = over > 0 ? -over : under > 0 ? under : 0;
+      if (dx) tip.style.setProperty("--hint-nudge", `${Math.round(dx)}px`);
+    });
+  };
+  wrap.addEventListener("mouseenter", place);
+  wrap.addEventListener("focusin", place);
+
   return wrap;
 }
 
