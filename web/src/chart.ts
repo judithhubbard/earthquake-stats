@@ -208,14 +208,6 @@ export interface DistributionOptions {
   currentLabel: string;
   /** Ticks are magnitudes on the moment view, plain numbers on the count view. */
   tickFormat?: (n: number) => string;
-  /**
-   * Where to put the ticks, when the axis is in units nobody reads. The
-   * aggregate chart is drawn on the combined score, because that is the shape
-   * worth showing, but a reader has no feel for a score of 0.7 -- so its ticks
-   * are placed at the scores that mean the 5th, 25th, 50th, 75th and 95th
-   * percentile and labelled with those instead.
-   */
-  tickValues?: number[];
   /** Smaller, for the one tucked into the corner of the cumulative chart. */
   compact?: boolean;
   theme: Theme;
@@ -314,8 +306,7 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
       fontSize: compact ? "10px" : "11px",
     },
     x: {
-      label: null, tickSize: 0, tickPadding: compact ? 5 : 7,
-      ticks: opts.tickValues ?? (compact ? 3 : 4),
+      label: null, ticks: compact ? 3 : 4, tickSize: 0, tickPadding: compact ? 5 : 7,
       ...(opts.tickFormat ? { tickFormat: opts.tickFormat } : {}),
     },
     y: { axis: null, domain: [0, tallest * 1.35] },

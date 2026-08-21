@@ -106,7 +106,16 @@ export const copy = {
     aggregateShareMore: "of years scored higher",
     aggregateCurrent: "{year}",
     aggregateCaption:
-      "Every year since {from}, ranked with all {ways} ways of counting pooled into one",
+      "z-score for every year since {from}, all {ways} ways of counting pooled into one",
+    aggregateHelp: "what is a z-score?",
+    aggregateHelpBody:
+      "A z-score says how far a year sits from the middle, measured in units of the ordinary " +
+      "year-to-year spread. Zero is an average year." +
+      "\n\nAbout one year in six comes in above +1, and about one in forty above +2. The " +
+      "same going down: one in six below −1, one in forty below −2." +
+      "\n\nThe score here is all {ways} ways of counting the year pooled into one number, " +
+      "which is why a year can score {z} without any single way of counting looking " +
+      "remarkable. {year} is at {z}.",
     spreadHelp: "how is this worked out?",
     spreadHelpBody:
       "Each way of counting asks how often a year since 1976 ran at least as busy as {year}. " +
@@ -384,7 +393,8 @@ export const copy = {
       "since 1976, with this year marked. It is drawn on the score rather than on the " +
       "percentile because percentiles are flat by construction — fifty years spread five or " +
       "six to every tenth of the range — while the score behind them has a middle and two " +
-      "tails. The axis is labelled with the percentile each score corresponds to. The smaller " +
+      "tails. The axis is the score itself, with a note beside the chart saying what a z-score " +
+      "is. The smaller " +
       "histogram in the corner of the first chart is the same idea for the one setting the " +
       "controls are on." +
 
