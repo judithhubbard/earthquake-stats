@@ -129,28 +129,10 @@ export const copy = {
       "year-to-year spread. Zero is an average year." +
       "\n\nThere are many ways to look at earthquake numbers; we show {waysWord} of them below. " +
       "This z-score combines those {waysWord} into a single representative number.",
-    spreadHelp: "how is this worked out?",
-    spreadHelpBody:
-      "Each way of counting asks how often a year since 1976 ran at least as busy as {year}. " +
-      "That gives {waysWord} answers: {ranks}." +
-      "\n\nStouffer's method pools them into one. It turns each answer into a score, adds " +
-      "the scores, and divides by how much that sum could vary by chance." +
-      "\n\nThat last step normally assumes the {waysWord} tests are independent. They are not. " +
-      "A year busy in M6+ is usually busy in M7+, and by moment the two are almost the same " +
-      "number, since a year's moment comes mostly from its largest earthquakes either way." +
-      "\n\nMeasured against the past years, the {waysWord} different dependent tests are " +
-      "worth " +
-      "about {effective} independent tests. That is the divisor used." +
-      "\n\nThe result is Z = {z}. Every past year is scored the same way, and {year} comes " +
-      "out higher than {beaten} of the {peers} years before it." +
-      "\n\nThat ranking is a count, not a curve: with {peers} years to compare against, the " +
-      "answer moves one year at a time and cannot resolve finer.",
     spreadNote:
-      "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
-      "percentile, which is why the answer at the top is not read off any one of them. The " +
-      "setting selected below is marked. The last-365-days column is not in the " +
-      "combined figure: its window ends today rather than on 31 December, so it is not a year " +
-      "and cannot be ranked against past ones alongside the rest.",
+      "These individual metrics each tell us something about how many earthquakes there have " +
+      "been. The number at the top combines these {waysWord} statistics into an overall " +
+      "assessment.",
 
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",

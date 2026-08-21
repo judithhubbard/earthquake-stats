@@ -661,12 +661,6 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
   el.answerAggregate.replaceChildren(strip, caption);
 }
 
-/** "58th, 60th, 68th, 82nd and 92nd". */
-function listOf(parts: string[]): string {
-  if (parts.length < 2) return parts[0] ?? "";
-  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-}
-
 /** The page's question-mark tooltip, built as nodes rather than markup. */
 function hint(label: string, body: string): HTMLElement {
   const wrap = document.createElement("span");
@@ -827,28 +821,25 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
   const all = rows.flatMap((r) => r.cells.map((cell) => cell.percentile));
   techValues.spreadLow = ordinal(Math.min(...all));
   techValues.spreadHigh = ordinal(Math.max(...all));
+  // The pooled count, not the number of cells in the table: the note is about
+  // what the answer at the top combines, and the last-365-days column is not
+  // in it. The technical summary is where that exclusion is explained.
   el.spreadNote.textContent = fill(c.spreadNote, {
-    ways: all.length,
-    low: techValues.spreadLow,
-    high: techValues.spreadHigh,
+    waysWord: numberWord(aggregate ? aggregate.tests : all.length),
   });
   el.spreadAggregate.replaceChildren();
   if (aggregate) {
-    const pct = (v: number) => (v >= 0.1 ? (100 * v).toFixed(0) : (100 * v).toFixed(1));
     techValues.ways = aggregate.tests;
     techValues.waysWord = numberWord(aggregate.tests);
     techValues.effective = aggregate.effective.toFixed(1);
-    const beaten = aggregate.peers - aggregate.higher;
+    // No tooltip. It walked through Stouffer, the divisor and the ranking --
+    // all of which the technical summary now says, and says better -- while
+    // its live numbers, the six percentiles and this year's score, are in the
+    // table underneath and the histogram above.
     el.spreadAggregate.append(fill(c.spreadAggregate, {
       year: yearLabel(currentYear),
       percentile: ordinal(100 * (1 - aggregate.p)),
-    }), " ", hint(c.spreadHelp, fill(c.spreadHelpBody, {
-      ways: aggregate.tests, waysWord: numberWord(aggregate.tests),
-      year: yearLabel(currentYear),
-      ranks: listOf(aggregate.each.map((v) => `${pct(v)}%`)),
-      effective: aggregate.effective.toFixed(1),
-      z: aggregate.z.toFixed(2), beaten, peers: aggregate.peers,
-    })));
+    }));
   }
 
   writeAggregateChart(spread, currentYear);
