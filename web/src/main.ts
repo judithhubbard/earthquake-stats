@@ -860,6 +860,11 @@ async function writeLatest(minMag: number) {
  * decade, so twenty percent over fifty years" from a series whose fitted rise
  * is three quarters of one year's ordinary scatter.
  */
+/** A percentage that always carries its sign, so a range across zero reads as one. */
+function signedPct(v: number): string {
+  return `${v >= 0 ? "+" : "\u2212"}${Math.abs(v).toFixed(1)}%`;
+}
+
 function writeTrend(counts: AnnualCount[], refYears: number[], minMag: number,
                     kind: string, theme: ReturnType<typeof readTheme>, width: number) {
   const refSet = new Set(refYears);
@@ -880,9 +885,10 @@ function writeTrend(counts: AnnualCount[], refYears: number[], minMag: number,
 
   el.trendBody.textContent = fill(c.trendIntro, {
     rise: Math.abs(rise).toFixed(1), kind, years: t.years,
-    ratio: `${(Math.abs(rise) / t.scatter).toFixed(2)} times`,
-    low: pct(t.perDecade - t.margin).toFixed(1),
-    high: pct(t.perDecade + t.margin).toFixed(1),
+    ratio: (Math.abs(rise) / t.scatter).toFixed(2),
+    // Signed, so a range spanning zero reads as one: "-1.0% to +5.3%".
+    low: signedPct(pct(t.perDecade - t.margin)),
+    high: signedPct(pct(t.perDecade + t.margin)),
   }) + "\n\n" + fill(
     key === "probably" ? c.trendProbably : key === "maybe" ? c.trendMaybe : c.trendNo,
     { p: (100 * t.p).toFixed(0) });
@@ -904,7 +910,8 @@ function writeTrend(counts: AnnualCount[], refYears: number[], minMag: number,
     ],
     key === "probably" ? 0 : key === "maybe" ? 1 : 2,
     [fill(copy.correlations.flipNow, {
-       value: `${pct(t.perDecade - t.margin).toFixed(1)}% to ${pct(t.perDecade + t.margin).toFixed(1)}% per decade`,
+       value: `${signedPct(pct(t.perDecade - t.margin))} to `
+            + `${signedPct(pct(t.perDecade + t.margin))} per decade`,
      }),
      fill(copy.correlations.flipNow, { value: `${(100 * t.p).toFixed(0)}%` }), null],
   ));

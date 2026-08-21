@@ -179,9 +179,9 @@ export const copy = {
     trendIntro:
       "We fitted a straight line through the yearly counts above and asked whether its slope " +
       "can be told apart from no slope at all." +
-      "\n\nThe line rises by {rise} {kind} across the whole {years} years — {ratio} of what the " +
-      "count varies by from one year to the next. The data are consistent with anywhere between " +
-      "{low}% and {high}% per decade, a range that includes no change at all.",
+      "\n\nThe line rises by {rise} {kind} across the whole {years} years — {ratio} times what " +
+      "the count varies by from one year to the next. The data are consistent with anywhere " +
+      "between {low} and {high} per decade, a range that includes no change at all.",
     trendNo:
       "So the answer is no: there is no trend here that can be distinguished from the ordinary " +
       "year-to-year scatter.",
