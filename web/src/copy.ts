@@ -334,8 +334,9 @@ export const copy = {
       "were running that year, so counts cannot be compared across decades." +
 
       "\n\n**Moment/Count.** Count treats every earthquake as one. Moment weights each by the " +
-      "energy it released. We convert moment into an equivalent “earthquake magnitude”, " +
-      "because otherwise moment spans multiple orders of magnitude." +
+      "energy it released. We convert moment into an equivalent “earthquake magnitude” via " +
+      "the Hanks and Kanamori relation, because otherwise moment spans multiple orders of " +
+      "magnitude." +
 
       "\n\n**The shaded ranges.** The default shows where the middle 50% and middle 90% of " +
       "past years fell on each date. The ±2σ setting uses the mean plus and minus two " +
@@ -362,18 +363,20 @@ export const copy = {
       "tests are worth about 1.7 independent tests. That is the divisor used: Strube's " +
       "correction, with the correlations taken from the data rather than assumed." +
 
-      "\n\n**Is the rate changing?** A straight line is fitted through the yearly counts of " +
-      "four fixed series — M6+ and M7+, each with aftershocks left in and taken out — and " +
-      "each slope is tested against no slope at all. Four rather than one, because the answer " +
-      "depends on which you pick: their p-values currently run from 7% to 85%." +
+      "\n\n**Is the rate changing?** A straight line is fitted by least squares through the " +
+      "yearly counts of four fixed series — M6+ and M7+, each with aftershocks left in and " +
+      "taken out — and each slope is tested against no slope at all with a t-test. Four " +
+      "rather than one, because the answer depends on which you pick: their p-values " +
+      "currently run from 7% to 85%." +
 
-      "\n\n**The four are combined by shuffling.** The textbook correction assumes the four " +
-      "tests are independent, and these are nested: every M7+ earthquake is also an M6+ " +
-      "earthquake, and the four yearly counts correlate between 0.11 and 0.80. So the year " +
-      "labels are shuffled instead — the same shuffle across all four at once, which keeps " +
-      "the overlap intact — the lines refitted, and the steepest recorded. A hundred thousand " +
-      "shuffles give the distribution of the steepest slope when none of the four is " +
-      "trending. The formula would say 25% where this says 21%." +
+      "\n\n**The four are combined by a permutation test.** The textbook correction, " +
+      "Šidák's formula, assumes the four tests are independent, and these are nested: every " +
+      "M7+ earthquake is also an M6+ earthquake, and the four yearly counts correlate between " +
+      "0.11 and 0.80. So the year labels are shuffled instead — the same shuffle across all " +
+      "four at once, which keeps the overlap intact — the lines refitted, and the steepest " +
+      "recorded. A hundred thousand shuffles give the distribution of the steepest slope when " +
+      "none of the four is trending. This is the Westfall-Young max-T procedure, evaluated by " +
+      "Monte Carlo. Šidák would say 25% where this says 21%." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
       "their consequences, and the two are only loosely related: where an earthquake happens, " +
@@ -827,13 +830,15 @@ export const copy = {
       "page says." +
 
       "\n\n**The five tests were checked for independence before being combined.** The " +
-      "combination, 1 - (1 - p)⁵, is only valid if the five are independent, and on the front " +
+      "combination, Šidák's formula, 1 - (1 - p)⁵, is only valid if the five are independent, " +
+      "and on the front " +
       "page the equivalent formula is not used because the series there are nested inside one " +
       "another. Here they are not. Day of the week, month of the year and the lunar cycle are " +
       "three clocks of 7, 365.25 and 29.53 days, none of which divides into another, so across " +
       "fifty years an earthquake's position on one says nothing about its position on the " +
       "others. The two yearly comparisons do share a count of earthquakes, so they were tested " +
-      "as a pair by shuffling the year labels 200,000 times: the correlation between their two " +
+      "as a pair with a permutation test, shuffling the year labels 200,000 times: the " +
+      "correlation between their two " +
       "statistics came out at 0.01, and the shuffled result agrees with the formula to four " +
       "decimal places at every cutoff the page uses." +
 
