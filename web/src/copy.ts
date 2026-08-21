@@ -113,24 +113,20 @@ export const copy = {
        tests the same claim, so the question is what they say together, not
        whether any one of them crosses a line. */
     spreadAggregate:
-      "Combined across the {ways} ways of counting the year so far, a year with nothing " +
-      "unusual about it runs at least this busy {p}% of the time.",
+      "{year} is in the {percentile} percentile: on average, {p}% of years are busier.",
     spreadHelp: "how is this worked out?",
     spreadHelpBody:
-      "Each way of counting ranks {year} against every year since 1976, which gives {ways} " +
-      "p-values: {ranks}. Each one is how often a past year ran at least this high on that " +
-      "way of counting." +
-      "\n\nThose {ways} are then pooled into a single number using Stouffer's method, which " +
-      "converts each p-value to a standard score, adds them, and divides by how much the sum " +
-      "could vary by chance." +
-      "\n\nThe usual divisor assumes the {ways} tests are independent. These are close to " +
-      "the same test repeated: counting M6+ and counting M7+ move together, and by moment the " +
-      "two are almost identical, because a year's moment is dominated by its largest " +
-      "earthquakes whichever threshold you set. Measured against the past years, the {ways} " +
-      "are worth about {effective} independent tests, and the divisor uses that instead. " +
-      "Ignoring it would make this year look far more unusual than it is." +
-      "\n\nThe result is Z = {z}, or p = {p}%. Below 1% would read as probably, 1% to 5% as " +
-      "maybe, above 5% as no.",
+      "Each way of counting asks how often a year since 1976 ran at least as busy as {year}. " +
+      "That gives {ways} answers: {ranks}." +
+      "\n\nStouffer's method pools them into one. It turns each answer into a score, adds " +
+      "the scores, and divides by how much that sum could vary by chance." +
+      "\n\nThat last step normally assumes the {ways} tests are independent. They are not. " +
+      "A year busy in M6+ is usually busy in M7+, and by moment the two are almost the same " +
+      "number, since a year's moment comes mostly from its largest earthquakes either way." +
+      "\n\nMeasured against the past years, the {ways} are worth about {effective} " +
+      "independent tests, and that is what the divisor uses. Treating them as {ways} separate " +
+      "tests would make this year look far more unusual than it is." +
+      "\n\nThe result is Z = {z}, or p = {p}%.",
     spreadNote:
       "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
       "percentile, which is why the answer at the top depends on which one you are looking " +

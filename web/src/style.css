@@ -344,6 +344,9 @@ main {
 
 .hint-tip strong { color: var(--text-primary); }
 
+.hint-tip p { margin: 0 0 0.6rem; }
+.hint-tip p:last-child { margin-bottom: 0; }
+
 .hint:hover .hint-tip,
 .hint:focus-within .hint-tip { display: block; }
 

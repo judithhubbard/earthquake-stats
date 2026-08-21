@@ -597,7 +597,14 @@ function hint(label: string, body: string): HTMLElement {
   const tip = document.createElement("span");
   tip.className = "hint-tip";
   tip.setAttribute("role", "tooltip");
-  tip.textContent = body;
+  // One <p> per paragraph. The tips written into the HTML use <br /><br />,
+  // and .hint-tip has no white-space rule, so a body assigned with textContent
+  // collapsed its blank lines and came out as one block of prose.
+  for (const para of body.split("\n\n")) {
+    const line = document.createElement("p");
+    line.textContent = para;
+    tip.append(line);
+  }
   wrap.append(button, tip);
   return wrap;
 }
@@ -694,7 +701,9 @@ function writeSpread(tier: Tier, currentYear: number) {
   if (aggregate) {
     const pct = (v: number) => (v >= 0.1 ? (100 * v).toFixed(0) : (100 * v).toFixed(1));
     el.spreadAggregate.append(fill(c.spreadAggregate, {
-      ways: aggregate.tests, p: pct(aggregate.p),
+      year: yearLabel(currentYear),
+      percentile: ordinal(100 * (1 - aggregate.p)),
+      p: pct(aggregate.p),
     }), " ", hint(c.spreadHelp, fill(c.spreadHelpBody, {
       ways: aggregate.tests, year: yearLabel(currentYear),
       ranks: listOf(aggregate.each.map((v) => `${pct(v)}%`)),
