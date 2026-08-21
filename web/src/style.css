@@ -1021,6 +1021,16 @@ footer p { margin: 0 0 0.4rem; }
    and two titles above two tables read as a heading for the pair. */
 .answer-tables .flip-title { display: none; }
 
+/* Says which questions the combined figure is over. Sits under the table it
+   qualifies, because the column header has room for a count and not a list. */
+.combined-note {
+  margin: 0.55rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
 /* Right-aligned so the column reads as numbers, and tabular so 8% and 70%
    line up on the per-cent sign. */
 .flip-num { text-align: right; padding-right: 0.6rem; }

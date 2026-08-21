@@ -517,21 +517,28 @@ export const copy = {
        and the wrong way to answer "do sunspots cause earthquakes". */
     pageColQuestion: "The question",
     pageColOwnP: "Its p-value",
-    pageColCombined: "Combined p-value for the five tests",
+    pageColCombined: "Combined p-value for {testsWord} tests",
+    pageCombinedNote:
+      "This calculation includes the month of the year, the lunar cycle, global temperature " +
+      "and solar activity, but not the day of the week — because no one is asking that " +
+      "question.",
     pageHelp: "how is this calculated?",
     pageHelpBody:
       "Each question gets its own p-value: how often data with no pattern in it would " +
-      "produce a result at least that strong. The smallest of the five right now is {p}%, " +
-      "from {subject}." +
-      "\n\nAsk five questions at a 5% cutoff and the chance that at least one crosses by " +
-      "chance alone is not 5% but about {anyFlag}%. So the five are combined into one number: " +
-      "if none of the five relationships were real, the chance of seeing a p-value at least as " +
-      "small as {p}% somewhere among them is {corrected}%. That combined number is what this " +
-      "page answers on." +
-      "\n\nCombining this way needs the five tests to be independent of each other, which was " +
-      "checked rather than assumed. Day of the week, month of the year and the lunar cycle are " +
-      "three clocks that do not divide into one another, so where an earthquake falls on one " +
-      "says nothing about where it falls on the others. The two yearly comparisons share a " +
+      "produce a result at least that strong. The smallest of the {testsWord} right now is " +
+      "{p}%, from {subject}." +
+      "\n\nAsk {testsWord} questions at a 5% cutoff and the chance that at least one crosses " +
+      "by chance alone is not 5% but about {anyFlag}%. So the {testsWord} are combined into " +
+      "one number: if none of the {testsWord} relationships were real, the chance of seeing a " +
+      "p-value at least as small as {p}% somewhere among them is {corrected}%. That combined " +
+      "number is what this page answers on." +
+      "\n\nThe day of the week is not among them. It is shown as a check on the catalog, not " +
+      "as a question about the Earth, and counting it would hold the other {testsWord} to a " +
+      "stricter standard for no gain." +
+      "\n\nCombining this way needs the {testsWord} tests to be independent of each other, " +
+      "which was checked rather than assumed. The month of the year and the lunar cycle are " +
+      "two clocks that do not divide into one another, so where an earthquake falls on one " +
+      "says nothing about where it falls on the other. The two yearly comparisons share a " +
       "count of earthquakes, so they were tested together by shuffling the years: the " +
       "correlation between them came out at 0.01. The combined number is the same to four " +
       "decimal places either way.",
@@ -894,11 +901,18 @@ export const copy = {
 
       "\n\n**Correcting for {testsWord} questions.** Each panel is tested at a 5% cutoff, so " +
       "across {testsWord} the chance that at least one crosses by luck alone is about " +
-      "{anyFlag}%, " +
-      "not 5%. The answer at the top is graded on the combined p-value instead, using " +
-      "\u0160id\u00e1k's formula, 1 - (1 - p)\u2075. That formula needs the {testsWord} to be " +
-      "independent, and they are: day of the week, month of the year and the lunar cycle are " +
-      "three clocks of 7, 365.25 and 29.53 days, none of which divides into another." +
+      "{anyFlag}%, not 5%. The answer at the top is graded on the combined p-value instead, " +
+      "using Šidák's formula. That formula needs the {testsWord} to be independent, and they " +
+      "are: the month of the year and the lunar cycle are two clocks of 365.25 and 29.53 " +
+      "days, neither of which divides into the other, and the two yearly comparisons were " +
+      "checked against each other by shuffling the years." +
+
+      "\n\n**The day of the week is not one of the {testsWord}.** It is a calibration test: " +
+      "earthquakes cannot know what day it is, so a result there would say something about " +
+      "how the catalog is assembled rather than about the Earth. It is shown, and graded on " +
+      "its own p-value, but it is left out of the combined figure — counting it would hold " +
+      "the {testsWord} real questions to a stricter standard to guard against an answer " +
+      "nobody is looking for." +
 
       "\n\n**A p-value is not the probability that there is no pattern.** It is how often " +
       "chance alone would produce a result this strong. It also says nothing about size: with " +

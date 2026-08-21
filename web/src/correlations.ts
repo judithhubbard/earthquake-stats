@@ -264,13 +264,26 @@ function scatterChart(points: { x: number; y: number; year: number }[], width: n
  * from another field.
  */
 /**
- * How many questions this page puts a cutoff to: weekday, season, moon,
- * climate, solar. Oklahoma is not one -- it has no statistic.
+ * How many questions the page's own answer is corrected for: season, moon,
+ * climate, solar. Oklahoma is not one -- it has no statistic. Neither is the
+ * day of the week, which is the reason this is four rather than five.
  *
- * The same five vote on the page's own answer, so the count quoted in the
+ * A multiplicity correction controls error over the family of hypotheses you
+ * would report, so the family has to be the set you would act on. Earthquakes
+ * cannot know what day it is: the weekday panel is a calibration test, shown
+ * so a reader can see what a null looks like, and a hit there would say
+ * something about the catalogue rather than the Earth. Counting it charged the
+ * four real questions a 25% tax -- to reach 5% combined, each needed p <=
+ * 0.0102 against 0.0127 -- and left the page able to announce that
+ * earthquakes prefer Wednesdays.
+ *
+ * Excluded before looking, on what kind of question it is. Dropping it after
+ * seeing it cross would be the p-hacking this page is built to avoid.
+ *
+ * The same four vote on the page's own answer, so the count quoted in the
  * tooltips and the set that decides the headline cannot drift apart.
  */
-const TESTS = 5;
+const TESTS = 4;
 const ANY_FLAG = Math.round((1 - 0.95 ** TESTS) * 100);
 
 const P_STRONG = 0.01;
@@ -403,23 +416,24 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
 /**
  * The page's own answer, graded like a panel but on the corrected p-value.
  *
- * The smallest of the five decides which rung, after correcting for having
- * asked five questions: 1 - (1 - p)^5, the chance of seeing one at least that
+ * The smallest of the four decides which rung, after correcting for having
+ * asked four questions: 1 - (1 - p)^4, the chance of seeing one at least that
  * small somewhere among them. The correction lands on the same 1% and 5% lines
- * the panels use, since 1 - (1 - 0.0102)^5 is 0.05.
+ * the panels use, since 1 - (1 - 0.0127)^4 is 0.05.
  *
  * Without it the page contradicted itself -- it blanked its headline whenever
  * any panel crossed, while its own tooltip explained that one crossing out of
- * five is roughly what chance produces.
+ * four is roughly what chance produces.
  */
 /**
- * The page's own answer, from the five tests below it.
+ * The page's own answer, from the four tests in the family below it.
  *
- * Graded on the combined number, not the smallest of the five. Reporting the
- * best of five tests as though it were the only one is what makes a page like
- * this untrustworthy.
+ * Graded on the combined number, not the smallest of the four. Reporting the
+ * best of four tests as though it were the only one is what makes a page like
+ * this untrustworthy. The weekday panel is shown and graded but not counted --
+ * see TESTS for why.
  *
- * Sidak's 1 - (1 - p)^5 is only valid when the five are independent, which was
+ * Sidak's 1 - (1 - p)^4 is only valid when the four are independent, which was
  * measured rather than assumed. Weekday, month and lunar day are three clocks
  * that do not divide into one another -- 7 days, 365.25 days and 29.53 days --
  * so over fifty years an earthquake's position on one carries no information
@@ -436,8 +450,8 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
  *
  * The combined number beside this one is the right way to read the page as a
  * whole, and the wrong way to answer a reader who came for exactly one of these
- * five. Someone who wants to know about sunspots is not helped by being told
- * that nothing among five questions stands out; they want the sunspot row.
+ * them. Someone who wants to know about sunspots is not helped by being told
+ * that nothing among four questions stands out; they want the sunspot row.
  */
 function writeTestTable(tests: { p: number; label: string }[]): HTMLElement {
   const c = copy.correlations;
@@ -475,10 +489,14 @@ function writeTestTable(tests: { p: number; label: string }[]): HTMLElement {
   return box;
 }
 
-function writePageAnswer(tests: { p: number; subject: string; label: string }[]) {
+function writePageAnswer(tests: { p: number; subject: string; label: string;
+                                 combined?: boolean }[]) {
   const c = copy.correlations;
-  const closest = tests.reduce((a, b) => (b.p < a.p ? b : a));
-  const corrected = 1 - (1 - closest.p) ** tests.length;
+  // Every test is listed below; only the family decides the answer.
+  const family = tests.filter((t) => t.combined !== false);
+  if (!family.length) return;
+  const closest = family.reduce((a, b) => (b.p < a.p ? b : a));
+  const corrected = 1 - (1 - closest.p) ** family.length;
   const key = outcomeFor(corrected);
 
   el.answer.innerHTML = key === "probably" ? c.answerProbably
@@ -486,20 +504,24 @@ function writePageAnswer(tests: { p: number; subject: string; label: string }[])
                       : c.answer;
   el.answerDetail.textContent = key === "no" ? c.detail
     : fill(key === "probably" ? c.detailProbably : c.detailMaybe, {
-        subject: closest.subject, tests: tests.length,
+        subject: closest.subject, tests: family.length,
         corrected: asPercent(corrected),
       });
 
   el.answerTests.replaceChildren(writeTestTable(tests));
 
-  // One deciding column. The smallest of the five is still reported -- in the
-  // table beside this one, in the help text, and under its own panel -- where
-  // it cannot be mistaken for the number the answer rests on.
+  // One deciding column. The smallest of the family is still reported -- in
+  // the table beside this one, in the help text, and under its own panel --
+  // where it cannot be mistaken for the number the answer rests on. That table
+  // lists all five, weekday included; only four decide.
+  const note = document.createElement("p");
+  note.className = "combined-note";
+  note.textContent = c.pageCombinedNote;
   el.answerTable.replaceChildren(flipTable(
-    [{ label: c.pageColCombined,
+    [{ label: fill(c.pageColCombined, { testsWord: numberWord(family.length) }),
        help: { label: c.pageHelp,
                body: fill(c.pageHelpBody, {
-                 tests: tests.length, anyFlag: ANY_FLAG,
+                 tests: family.length, anyFlag: ANY_FLAG,
                  subject: closest.subject, p: asPercent(closest.p),
                  corrected: asPercent(corrected),
                }) } },
@@ -511,7 +533,7 @@ function writePageAnswer(tests: { p: number; subject: string; label: string }[])
     ],
     key === "probably" ? 0 : key === "maybe" ? 1 : 2,
     [fill(c.flipNow, { value: `${asPercent(corrected)}%` }), null],
-  ));
+  ), note);
 }
 
 /* ---------------- build ---------------- */
@@ -623,7 +645,8 @@ async function boot() {
   // one has no statistic and answers a different question.
   // Each entry is one test's p-value and what it is a test of, so the page can
   // both grade itself and name whichever question is closest.
-  const headline: { p: number; subject: string; label: string }[] = [];
+  const headline: { p: number; subject: string; label: string;
+                    combined?: boolean }[] = [];
   el.answerDetail.textContent = copy.correlations.detail;
 
   const legend: LegendKey[] = [
@@ -642,7 +665,7 @@ async function boot() {
   const busiest = weekday.reduce((a, b) => (b.deviation > a.deviation ? b : a));
   const weekdayOut = binOutcome(weekday);
   headline.push({ p: weekdayOut.p, subject: copy.correlations.weekdaySubject,
-                  label: copy.correlations.weekdayLabel });
+                  label: copy.correlations.weekdayLabel, combined: false });
   built.push(panel(copy.correlations.weekdayQuestion,
     plainVerdict(weekdayOut.key),
     fill([copy.correlations.weekdayIntro,
