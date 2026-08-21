@@ -338,8 +338,9 @@ export const copy = {
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
       "hundreds of smaller ones with it. **Mainshocks only** removes them, using " +
-      "Gardner-Knopoff windows with the distance widened to twice the Wells and Coppersmith " +
-      "rupture length: 40 km at M5, 159 km at M8. The windows run forward in time only, so " +
+      "Gardner-Knopoff windows, widened to twice the Wells and Coppersmith rupture length " +
+      "wherever that is larger: 53 km at M6, 87 km at M7. The windows run forward in time " +
+      "only, so " +
       "an earthquake is removed if a larger one came before it and never if a larger one " +
       "followed." +
 
@@ -836,8 +837,9 @@ export const copy = {
 
       "\n\n**Aftershocks are removed.** A year containing one great earthquake carries " +
       "hundreds of smaller ones with it. They are removed everywhere on this page, using " +
-      "Gardner-Knopoff windows with the distance widened to twice the Wells and Coppersmith " +
-      "rupture length: 40 km at M5, 159 km at M8. The windows run forward in time only, so " +
+      "Gardner-Knopoff windows, widened to twice the Wells and Coppersmith rupture length " +
+      "wherever that is larger: 53 km at M6, 87 km at M7. The windows run forward in time " +
+      "only, so " +
       "an earthquake is removed if a larger one came before it and never if a larger one " +
       "followed." +
 

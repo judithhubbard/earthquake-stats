@@ -518,6 +518,20 @@ export function normalQuantile(p: number): number {
        / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
 }
 
+/**
+ * A p-value as a percentage, for prose.
+ *
+ * "under 1" rather than a rounded "0": combinedTrendP deliberately returns
+ * (atLeast + 1) / (permutations + 1) so the answer can never be exactly zero,
+ * and a display layer that rounds 0.004 to "0" throws that away -- printing
+ * "produce a slope at least this steep only 0% of the time" in the very band,
+ * p < 1%, where the page reports its strongest finding.
+ */
+export function asPercent(share: number): string {
+  const pct = share * 100;
+  return pct < 1 ? "under 1" : pct.toFixed(0);
+}
+
 export interface Combined {
   /** Stouffer's combined statistic, corrected for the correlation between tests. */
   z: number;

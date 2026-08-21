@@ -17,7 +17,12 @@ So the distance window here is the larger of the GK radius and twice the Wells &
 Coppersmith (1994) subsurface rupture length, which keeps GK's sensible behaviour
 at small magnitudes and gives realistic aftershock zones at large ones:
 
-    M5 -> 40 km    M7 -> 70 km    M8 -> 159 km    M9 -> 631 km
+    M5 -> 40 km    M6 -> 53 km    M7 -> 87 km    M8 -> 332 km    M9 -> 1262 km
+
+Below about M6.8 the Gardner-Knopoff radius is the larger of the two and wins
+the max(), so the widening only takes effect at the magnitudes it was meant
+for. These figures are what space_window() returns; the table above them used
+to predate the 2.0 factor, and the site quoted it.
 
 This is a pragmatic hybrid, not a literature-standard scheme. Nearest-neighbour
 declustering (Zaliapin & Ben-Zion) is the more defensible choice and does not

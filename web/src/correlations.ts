@@ -1,7 +1,7 @@
 import * as Plot from "@observablehq/plot";
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
 import { readTheme, type Theme } from "./chart";
-import { MIN_MAGNITUDE, dayIndex } from "./stats";
+import { MIN_MAGNITUDE, asPercent, dayIndex } from "./stats";
 import { copy, fill, numberWord } from "./copy";
 import { renderTech } from "./tech";
 import { flipTable } from "./verdict";
@@ -306,12 +306,6 @@ interface Outcome { key: "no" | "maybe" | "probably"; p: number; }
 
 function outcomeFor(p: number): Outcome["key"] {
   return p < P_STRONG ? "probably" : p < P_WEAK ? "maybe" : "no";
-}
-
-/** A share as a readable percentage: 0.077 reads 8, 0.0004 reads "under 1". */
-function asPercent(share: number): string {
-  const pct = share * 100;
-  return pct < 1 ? "under 1" : pct.toFixed(0);
 }
 
 function binOutcome(bins: Bin[]): Outcome {

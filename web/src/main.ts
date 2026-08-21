@@ -4,7 +4,7 @@ import { renderAnnualChart, renderChart, renderDistribution, renderTrend,
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
   TREND_PERMUTATIONS, combineRanks, combinedTrendP, dayIndex, empiricalBand,
-  equivalentMagnitude,
+  asPercent, equivalentMagnitude, seismicMoment,
   rollingWindowBand,
   trend, verdict,
   type Combined, type Measure, type Trend, type YearCurves,
@@ -510,7 +510,8 @@ async function pollLive(afterMs: number) {
  * year's count fall the moment the user switches to mainshocks -- so they are
  * presumed independent, matching how build.py treats unclassified events.
  */
-function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number): number {
+function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number,
+                   measure: Measure): number {
   const cutoff = tier.info.lastTime ?? 0;
   let added = 0;
   for (const event of liveEvents) {
@@ -518,7 +519,12 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
     const { year, day } = dayIndex(event.time, shift);
     const curve = curves.curves.get(year);
     if (!curve) continue;
-    for (let d = day; d < DAYS; d++) curve[d] += 1;
+    // Whatever the curve is accumulating. cumulativeByYear adds seismicMoment
+    // on the moment views, so adding 1 here made every live earthquake worth
+    // the same as an M7.27 -- and moment supplies two of the six pooled tests,
+    // so it reached the headline as well as the chart.
+    const amount = measure === "moment" ? seismicMoment(event.mag) : 1;
+    for (let d = day; d < DAYS; d++) curve[d] += amount;
     added++;
   }
   return added;
@@ -700,7 +706,7 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
           const shift = calendarShift(window);
           const curves = cumulativeByYear(
             tier, minMag, REFERENCE_START, mainshocksOnly, measure, shift);
-          applyLive(curves, tier, minMag, shift);
+          applyLive(curves, tier, minMag, shift, measure);
           const { year, day: today } = dayIndex(Date.now(), shift);
           const day = window === "rolling" ? DAYS - 1 : today;
           const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < year);
@@ -1319,7 +1325,7 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
   // section was rebuilt to avoid, so the number that decides the answer is the
   // one that has paid for the four looks.
   const key = outcome(corrected);
-  const pct = (n: number) => (100 * n).toFixed(0);
+  const pct = asPercent;
 
   // What the technical summary quotes about this section. Sidak is computed
   // here rather than stated so the comparison stays honest: it is the formula
@@ -1464,7 +1470,7 @@ async function update() {
     ? cumulativeByYear(
         tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure, shift)
     : { curves: new Map<number, Float64Array>(), years: [], matched: 0 };
-  const liveAdded = applyLive(curves, tier, minMag, shift);
+  const liveAdded = applyLive(curves, tier, minMag, shift, state.measure);
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
   const percentiles = empiricalBand(curves, refYears, state.measure);
@@ -1486,7 +1492,21 @@ async function update() {
   const result = verdict(curves, refYears, currentYear, today, state.measure);
   // Before the headline, because the headline is now read off it. Every way of
   // counting the year, pooled -- see spreadTable.
-  const spread = spreadTable(tier);
+  //
+  // Always the M6 tier, whatever is selected above, exactly as writeTrend does.
+  // Passing the selected tier meant that with M7+ chosen the "M6+" rows were
+  // computed from a tier holding only M7+ events: the two rows came out
+  // identical and the pooled percentile moved with the control, which is the
+  // one thing the page promises it does not do.
+  let pooledTier = tier;
+  if (minMag !== MIN_MAGNITUDE) {
+    try {
+      pooledTier = await store.load(MIN_MAGNITUDE);
+    } catch {
+      pooledTier = tier;
+    }
+  }
+  const spread = spreadTable(pooledTier);
   // The one number the controls cannot move. Falling back to the selected
   // slice only if the pooling could not be done at all, which needs three
   // years of catalogue.

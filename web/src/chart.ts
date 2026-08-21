@@ -232,7 +232,13 @@ function niceStep(raw: number): number {
  */
 export function renderDistribution(opts: DistributionOptions): SVGSVGElement | HTMLElement {
   const { peers, value, theme, width } = opts;
-  const values = peers.map((d) => d.value);
+  // Non-finite peers are dropped rather than binned. A reference year with no
+  // moment yet is a legitimate 0.0, which survives the caller's finite check
+  // and only becomes NaN under equivalentMagnitude -- one of those made lo, hi
+  // and the bin count NaN, left bins empty, and threw on bins[-1].n. That is
+  // every 1 January for M7+/Moment, where most reference years start at zero.
+  const values = peers.map((d) => d.value).filter(Number.isFinite);
+  if (values.length < 2 || !Number.isFinite(value)) return document.createElement("span");
   const lo = Math.min(value, ...values);
   const hi = Math.max(value, ...values);
   // Halve the round step, rather than asking niceStep for twice as many bins.
