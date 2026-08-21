@@ -290,7 +290,8 @@ const techValues: Record<string, string | number> = {
   tests: TESTS, testsWord: numberWord(TESTS), anyFlag: ANY_FLAG,
   threshold: `M${MIN_MAGNITUDE}+`, binThreshold: `M${BIN_MAGNITUDE}+`,
   minMag: MIN_MAGNITUDE,
-  lunarDays: LUNAR_DAYS, synodic: SYNODIC_DAYS.toFixed(2),
+  lunarDays: LUNAR_DAYS, lunarDf: LUNAR_DAYS - 1, fullMoonDay: FULL_MOON_DAY,
+  synodic: SYNODIC_DAYS.toFixed(2),
 };
 
 function writeTech() {

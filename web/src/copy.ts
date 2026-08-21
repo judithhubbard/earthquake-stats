@@ -851,20 +851,30 @@ export const copy = {
       "at data by year; we cut off earthquakes below M{minMag} so that a change in network " +
       "quality won't skew the results." +
 
-      "\n\n**How the answers are decided.** The first three panels test whether the counts " +
-      "differ across the cycle more than chance allows, using a chi-square goodness-of-fit " +
-      "test: seven weekday bins, twelve month bins, {lunarDays} lunar-day bins, each on one " +
-      "degree of freedom fewer than it has bins. Days and months are taken in UTC, and the " +
-      "week starts on Monday. Months are unequal, so each month bin expects earthquakes in " +
-      "proportion to the days it actually ran rather than a flat twelfth. The lunar bins use " +
-      "mean synodic phase — a cycle of {synodic} days measured from a fixed new moon — so " +
-      "day 1 holds the new moon. The last two panels test whether two annual series move " +
-      "together, using a Pearson correlation, with the p-value taken from t on n − 2 degrees " +
-      "of freedom. Both tests report how often data with no pattern in them would give a " +
-      "result at least this strong; both p-values come from closed-form approximations, " +
-      "Wilson-Hilferty for chi-square and a normal approximation for t, which agree with the " +
-      "exact distributions to about a thousandth over the range used here. Each panel is " +
-      "graded on its own p-value; the page as a whole is graded on the combined one." +
+      "\n\n**How the answers are decided.** Every panel runs one test and reports a p-value: " +
+      "how often data with no pattern in them would give a result at least this strong. Each " +
+      "panel is graded on its own p-value; the page as a whole is graded on the combined one. " +
+      "Times are taken in UTC throughout. Both p-values come from closed-form approximations " +
+      "— Wilson-Hilferty for chi-square, a normal approximation for t — which agree with the " +
+      "exact distributions to about a thousandth over the range used here." +
+
+      "\n\n**Day of the week.** A chi-square goodness-of-fit test over seven bins, on six " +
+      "degrees of freedom, with the week starting on Monday. Every weekday is the same " +
+      "length, so each bin expects a seventh of the total." +
+
+      "\n\n**Month of the year.** A chi-square goodness-of-fit test over twelve bins, on " +
+      "eleven degrees of freedom. Months are unequal, so each bin expects earthquakes in " +
+      "proportion to the days it actually ran rather than a flat twelfth." +
+
+      "\n\n**Day of the lunar cycle.** A chi-square goodness-of-fit test over {lunarDays} " +
+      "bins, on {lunarDf} degrees of freedom. The bins are mean synodic phase — a cycle of " +
+      "{synodic} days measured from a fixed new moon — so day 1 holds the new moon and day " +
+      "{fullMoonDay} the full moon." +
+
+      "\n\n**Temperature and sunspots.** Both compare a yearly series against the annual " +
+      "count of {threshold} earthquakes, using a Pearson correlation, with the p-value taken " +
+      "from t on n − 2 degrees of freedom. Only complete years are used, so the current one " +
+      "is left out." +
 
       "\n\n**Correcting for {testsWord} questions.** Each panel is tested at a 5% cutoff, so " +
       "across {testsWord} the chance that at least one crosses by luck alone is about " +
