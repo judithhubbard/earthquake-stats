@@ -163,6 +163,44 @@ export function outsideBand(bins: Bin[]): { count: number; expected: number } {
 }
 
 /** Chi-square across bins, and the 5% critical value for that many bins. */
+/** Standard normal upper tail, Abramowitz & Stegun 26.2.17. Six-figure accurate. */
+function normalTail(z: number): number {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937
+            + t * (-1.821255978 + t * 1.330274429))));
+  const tail = Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI) * poly;
+  return z >= 0 ? tail : 1 - tail;
+}
+
+/**
+ * How often random data would produce a chi-square at least this large.
+ *
+ * Wilson-Hilferty: the cube root of a chi-square over its degrees of freedom is
+ * close to normal, and the transform is the same one the critical value uses in
+ * the other direction, so the two agree at the 5% point by construction.
+ */
+export function chiSquareP(statistic: number, df: number): number {
+  if (df < 1 || statistic <= 0) return 1;
+  const z = (Math.cbrt(statistic / df) - (1 - 2 / (9 * df))) / Math.sqrt(2 / (9 * df));
+  return normalTail(z);
+}
+
+/**
+ * The same for a correlation: how often {n} pairs of unrelated numbers would
+ * give a correlation at least this strong, in either direction.
+ *
+ * The t statistic is mapped to a normal deviate rather than integrating the t
+ * density; the error is under a thousandth for the degrees of freedom here.
+ */
+export function correlationP(r: number, n: number): number {
+  const df = n - 2;
+  if (df < 1) return 1;
+  const rr = Math.min(Math.abs(r), 0.999999);
+  const t = rr * Math.sqrt(df / (1 - rr * rr));
+  const z = t * (1 - 1 / (4 * df)) / Math.sqrt(1 + (t * t) / (2 * df));
+  return Math.min(1, 2 * normalTail(z));
+}
+
 export function chiSquare(bins: Bin[]): { statistic: number; critical: number; df: number } {
   const statistic = bins.reduce(
     (acc, b) => acc + (b.expected > 0 ? (b.count - b.expected) ** 2 / b.expected : 0), 0);
