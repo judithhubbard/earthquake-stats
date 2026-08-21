@@ -75,8 +75,11 @@ export const copy = {
     /* Two lines: "34% of years had more" leaves the reader to work out more
        what, and the answer changes with the controls. The second line is what
        is being counted, on the same setting the rest of the page is on. */
-    stripShareMore: "of years had more\n{subject}",
-    stripShareMoreMoment: "of years released more\nmoment",
+    stripShareMore: "of years had more\n{subject}{when}",
+    stripShareMoreMoment: "of years released more\nmoment{when}",
+    /* Only on the calendar view. The rolling one is a full twelve months, so
+       there is no date to count up to -- "by 21 August" would be wrong there. */
+    stripShareBy: "\nby {date}",
 
     /* The spread strip under the answer. Every combination the controls above
        can reach, so the reader can see how much the answer depends on which

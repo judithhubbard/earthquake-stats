@@ -1486,10 +1486,18 @@ async function update() {
         value: moment ? asMagnitude(result.count) : result.count,
         share: {
           more: fill(copy.home.stripShare, { share: above }),
-          moreLabel: moment
-            ? copy.home.stripShareMoreMoment
-            : fill(copy.home.stripShareMore,
-                   { subject: `${magLabel(minMag)} ${kind}` }),
+          moreLabel: fill(
+            moment ? copy.home.stripShareMoreMoment : copy.home.stripShareMore,
+            {
+              subject: `${magLabel(minMag)} ${kind}`,
+              // The calendar view counts up to today, and the number means
+              // nothing without saying so; the rolling view is a full twelve
+              // months and has no such date.
+              when: rolling ? "" : fill(copy.home.stripShareBy, {
+                date: new Date().toLocaleDateString(undefined,
+                                                    { day: "numeric", month: "long" }),
+              }),
+            }),
         },
         currentLabel: moment
           ? fill(copy.home.stripCurrentMoment, {

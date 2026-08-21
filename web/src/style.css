@@ -194,7 +194,7 @@ main {
   left: 4.6rem;
   width: 16.5rem;
   max-width: calc(100% - 6rem);
-  padding: 0.3rem 0.35rem 0.1rem;
+  padding: 0.1rem 0.15rem 0;
   border-radius: 10px;
   background: color-mix(in srgb, var(--surface-1) 88%, transparent);
 }

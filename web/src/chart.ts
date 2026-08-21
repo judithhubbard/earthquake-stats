@@ -293,14 +293,17 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   const compact = opts.compact ?? false;
   return Plot.plot({
     width,
-    height: compact ? 112 : 150,
+    height: compact ? 104 : 150,
     // Side margins hold a tick label; the first and last ticks sit on the frame
     // edge, so 8px cut them in half. The caption lives outside the figure, in
     // HTML that can wrap -- inside the plot it was one line and ran off the end.
-    marginTop: compact ? 24 : 30,
-    marginBottom: compact ? 24 : 42,
-    marginLeft: compact ? 18 : 24,
-    marginRight: compact ? 18 : 24,
+    // The compact one is inside another chart, so its margins hold nothing but
+    // the tick labels along the bottom. The share block and the year marker
+    // both sit inside the frame.
+    marginTop: compact ? 6 : 30,
+    marginBottom: compact ? 20 : 42,
+    marginLeft: compact ? 13 : 24,
+    marginRight: compact ? 13 : 24,
     style: {
       background: "transparent", color: theme.text,
       fontSize: compact ? "10px" : "11px",
