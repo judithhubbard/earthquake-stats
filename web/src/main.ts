@@ -172,7 +172,6 @@ const el = {
   trendVerdict: document.getElementById("trend-verdict")!,
   trendBody: document.getElementById("trend-body")!,
   spread: document.getElementById("spread") as HTMLElement,
-  spreadTitle: document.getElementById("spread-title")!,
   spreadAggregate: document.getElementById("spread-aggregate")!,
   spreadChart: document.getElementById("spread-chart")!,
   spreadNote: document.getElementById("spread-note")!,
@@ -570,8 +569,8 @@ interface SpreadRow {
 interface Aggregate {
   /** Mean percentile across the slicings, for the current year. */
   percentile: number;
-  /** Share of past years whose own mean percentile was lower. */
-  beats: number;
+  /** How many past years had a lower mean percentile than this one. */
+  beaten: number;
   /** How many slicings went into each year's average. */
   slices: number;
   /** How many past years it was ranked against. */
@@ -668,7 +667,7 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Aggregate | nu
     const past = mean.slice(0, -1);
     aggregate = {
       percentile: current,
-      beats: (100 * past.filter((m) => m < current).length) / past.length,
+      beaten: past.filter((m) => m < current).length,
       slices: ranks.length,
       years: past.length,
     };
@@ -683,26 +682,17 @@ function writeSpread(tier: Tier, currentYear: number) {
 
   const c = copy.home;
   const all = rows.flatMap((r) => r.cells.map((cell) => cell.percentile));
-  el.spreadTitle.textContent = fill(c.spreadTitle, { year: yearLabel(currentYear) });
-  el.spreadAggregate.textContent = aggregate
-    ? fill(c.spreadAggregate, {
-        ways: aggregate.slices, year: yearLabel(currentYear),
-        aggregate: ordinal(aggregate.percentile),
-        beats: Math.round(aggregate.beats),
-      })
-    : "";
   el.spreadNote.textContent = fill(c.spreadNote, {
     ways: all.length,
     low: ordinal(Math.min(...all)),
     high: ordinal(Math.max(...all)),
   });
-  if (aggregate) {
-    el.spreadAggregate.textContent = fill(c.spreadAggregate, {
-      ways: aggregate.slices, year: yearLabel(currentYear),
-      aggregate: ordinal(aggregate.percentile),
-      beats: Math.round(aggregate.beats), years: aggregate.years,
-    });
-  }
+  el.spreadAggregate.textContent = aggregate
+    ? fill(c.spreadAggregate, {
+        ways: aggregate.slices, year: yearLabel(currentYear),
+        beaten: aggregate.beaten, years: aggregate.years,
+      })
+    : "";
 
   const box = document.createElement("div");
   box.className = "correlate-flip spread-box";

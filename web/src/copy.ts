@@ -93,7 +93,6 @@ export const copy = {
        can reach, so the reader can see how much the answer depends on which
        one they are looking at -- rather than discovering it by clicking, or
        not discovering it at all. */
-    spreadTitle: "Where {year} lands on every way of counting",
     spreadLabel: "{threshold} {catalog}, {measure}",
     spreadAll: "all earthquakes",
     spreadMainshocks: "mainshocks only",
@@ -107,10 +106,17 @@ export const copy = {
        taken, so this year's average can be ranked against theirs directly --
        no correction, because the redundancy between the slicings applies
        equally to every year being compared. */
+    /* One number, not two. It used to report the average of the six percentiles
+       and then the rank of that average, which read as a contradiction: "the
+       72nd percentile — higher than 80%". Both were right and they measure
+       different things, because averaging six percentiles pulls the result
+       toward the middle, so a 72 among averages is further out than a 72 among
+       single years. The rank is the one that answers the question, and it is
+       clearer as a count of years than as a second percentage. */
     spreadAggregate:
-      "Averaged across the {ways} ways of counting the year so far, {year} sits at the " +
-      "{aggregate} percentile — a higher average than {beats}% of the {years} years since " +
-      "1976, each scored exactly the same way.",
+      "Averaged across the {ways} ways of counting the year so far, {year} is running higher " +
+      "than {beaten} of the {years} years since 1976 — each of them scored the same {ways} " +
+      "ways, so the comparison is like for like.",
     spreadNote:
       "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
       "percentile, which is why the answer at the top depends on which one you are looking " +
