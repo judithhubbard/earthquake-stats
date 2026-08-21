@@ -842,7 +842,6 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
     el.spreadAggregate.append(fill(c.spreadAggregate, {
       year: yearLabel(currentYear),
       percentile: ordinal(100 * (1 - aggregate.p)),
-      beaten, peers: aggregate.peers,
     }), " ", hint(c.spreadHelp, fill(c.spreadHelpBody, {
       ways: aggregate.tests, waysWord: numberWord(aggregate.tests),
       year: yearLabel(currentYear),

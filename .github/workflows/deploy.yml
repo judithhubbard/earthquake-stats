@@ -225,44 +225,47 @@ jobs:
           echo "::warning::Pipeline failed. Falling back rather than publishing a new catalog."
           git checkout -- web/public/data
 
+          # Shell only, deliberately. An earlier version of this step embedded
+          # Python in a heredoc indented to match the YAML block; bash does not
+          # strip leading spaces from <<'PY', so Python saw an indented module
+          # and raised IndentationError. It never showed up because this branch
+          # only runs when the pipeline has already failed, which had not
+          # happened. A recovery path that has never executed is not a recovery
+          # path, so there is nothing left in here that can surprise it.
           SITE=""
-          if [[ -f web/public/CNAME ]]; then SITE="https://$(cat web/public/CNAME)"; fi
+          if [ -f web/public/CNAME ]; then SITE="https://$(cat web/public/CNAME)"; fi
 
-          if [[ -n "$SITE" ]] && curl -fsS --max-time 30 "$SITE/data/meta.json" -o /tmp/meta.json; then
-            FILES=$(python3 -c "
-import json
-m = json.load(open('/tmp/meta.json'))
-names = ['meta.json', 'context.json', 'posts.json']
-for t in m.get('tiers', []):
-    names.append(t['name'] + '.bin')
-    if t.get('hasDetail'):
-        names.append(t['name'] + '.detail.json')
-print(' '.join(names))
-")
+          # The committed copy names the files the site serves, so the listing
+          # needs no JSON parsing.
+          FILES=$(ls web/public/data)
+          echo "Catalog files: $FILES"
+
+          FETCHED=0
+          if [ -n "$SITE" ]; then
             OK=1
             for f in $FILES; do
               curl -fsS --max-time 60 "$SITE/data/$f" -o "web/public/data/$f.new" || { OK=0; break; }
             done
-            if [[ "$OK" == "1" ]]; then
+            if [ "$OK" = "1" ]; then
               for f in $FILES; do mv "web/public/data/$f.new" "web/public/data/$f"; done
+              FETCHED=1
               echo "::notice::Using the catalog currently published at $SITE."
             else
               rm -f web/public/data/*.new
-              echo "::warning::Could not fetch the published catalog; using the committed copy."
+              echo "::warning::Could not fetch the published catalog."
             fi
-          else
-            echo "::warning::No published catalog reachable; using the committed copy."
+          fi
+          if [ "$FETCHED" = "0" ]; then
+            echo "::warning::Falling back to the catalog committed in the repo, which does not advance until a run succeeds."
           fi
 
-          AGE=$(python3 - <<'PY'
-          import json, datetime
-          m = json.load(open("web/public/data/meta.json"))
-          built = datetime.datetime.fromisoformat(m["generated"])
-          now = datetime.datetime.now(datetime.timezone.utc)
-          print(int((now - built).total_seconds() // 3600))
-          PY
-          )
-          echo "::warning::Publishing a catalog ${AGE} hours old."
+          GEN=$(sed -n 's/.*"generated"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' web/public/data/meta.json | head -1)
+          BUILT=$(date -u -d "$GEN" +%s 2>/dev/null || echo 0)
+          if [ "$BUILT" -gt 0 ]; then
+            echo "::warning::Publishing a catalog $(( ( $(date -u +%s) - BUILT ) / 3600 )) hours old."
+          else
+            echo "::warning::Publishing a catalog built at $GEN."
+          fi
 
       # The harvested Mw values are the one piece of state that cannot be
       # rebuilt from a ComCat download -- they come from a separate 145 MB

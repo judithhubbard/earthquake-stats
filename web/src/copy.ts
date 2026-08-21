@@ -119,9 +119,7 @@ export const copy = {
        assumed. Pooling, not a multiplicity correction: every way of counting
        tests the same claim, so the question is what they say together, not
        whether any one of them crosses a line. */
-    spreadAggregate:
-      "{year} is in the {percentile} percentile: pooling every way of counting, it scores " +
-      "higher than {beaten} of the {peers} years before it.",
+    spreadAggregate: "{year} is in the {percentile} percentile, so far.",
     aggregateShareMore: "of years scored higher",
     aggregateCurrent: "{year}",
     aggregateCaption: "z-score for every year since {from}",
