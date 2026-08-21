@@ -1,14 +1,15 @@
 import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, renderDistribution, readTheme,
+import { renderAnnualChart, renderChart, renderDistribution, renderTrend, readTheme,
          type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand, equivalentMagnitude, rollingWindowBand, verdict,
-  type Measure, type YearCurves,
+  dayIndex, empiricalBand, equivalentMagnitude, rollingWindowBand, trend, verdict,
+  type AnnualCount, type Measure, type Trend, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
 import { copy, fill } from "./copy";
 import { renderTech } from "./tech";
+import { flipTable } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 
@@ -165,6 +166,13 @@ const el = {
   largestList: document.getElementById("largest-list")!,
   largestNote: document.getElementById("largest-note")!,
   generated: document.getElementById("generated")!,
+  trendQuestion: document.getElementById("trend-question")!,
+  trendVerdict: document.getElementById("trend-verdict")!,
+  trendBody: document.getElementById("trend-body")!,
+  trendSubtitle: document.getElementById("trend-subtitle")!,
+  trendChart: document.getElementById("trend-chart")!,
+  trendTable: document.getElementById("trend-table")!,
+  trendCaveats: document.getElementById("trend-caveats")!,
   techTitle: document.getElementById("tech-title")!,
   techBody: document.getElementById("tech-body")!,
 };
@@ -844,6 +852,84 @@ async function writeLatest(minMag: number) {
   });
 }
 
+/**
+ * Is the rate changing?
+ *
+ * Graded on the same three rungs as the correlations page, from the same kind
+ * of p-value, and it never prints a bare slope. A slope invites "four percent a
+ * decade, so twenty percent over fifty years" from a series whose fitted rise
+ * is three quarters of one year's ordinary scatter.
+ */
+function writeTrend(counts: AnnualCount[], refYears: number[], minMag: number,
+                    kind: string, theme: ReturnType<typeof readTheme>, width: number) {
+  const refSet = new Set(refYears);
+  const points = counts.filter((c) => refSet.has(c.year))
+                       .map((c) => ({ year: c.year, value: c.count }));
+  const t = trend(points);
+  if (!t) { el.trendQuestion.textContent = ""; return; }
+
+  const pct = (v: number) => (100 * v) / t.mean;
+  const key = t.p < 0.01 ? "probably" : t.p < 0.05 ? "maybe" : "no";
+  const rise = (t.perDecade * (t.years - 1)) / 10;
+  const c = copy.home;
+
+  el.trendQuestion.textContent = c.trendQuestion;
+  el.trendVerdict.textContent = key === "probably" ? copy.correlations.verdictProbably
+                              : key === "maybe" ? copy.correlations.verdictMaybe
+                              : copy.correlations.verdictNo;
+
+  el.trendBody.textContent = fill(c.trendIntro, {
+    rise: Math.abs(rise).toFixed(1), kind, years: t.years,
+    ratio: `${(Math.abs(rise) / t.scatter).toFixed(2)} times`,
+    low: pct(t.perDecade - t.margin).toFixed(1),
+    high: pct(t.perDecade + t.margin).toFixed(1),
+  }) + "\n\n" + fill(
+    key === "probably" ? c.trendProbably : key === "maybe" ? c.trendMaybe : c.trendNo,
+    { p: (100 * t.p).toFixed(0) });
+
+  el.trendSubtitle.textContent = fill(c.trendSubtitle, {
+    threshold: magLabel(minMag), kind, from: t.first, to: t.last,
+  });
+  el.trendCaveats.textContent = fill(c.trendCaveats, { from: t.first });
+
+  el.trendTable.replaceChildren(flipTable(
+    [{ label: c.trendColSlope },
+     { label: c.trendColP,
+       help: { label: c.trendHelp, body: fill(c.trendHelpBody, { years: t.years }) } },
+     { label: copy.correlations.flipColAnswer }],
+    [
+      [c.trendAboveZero, copy.correlations.flipPStrong, copy.correlations.verdictProbably],
+      [c.trendAboveZero, copy.correlations.flipPWeak, copy.correlations.verdictMaybe],
+      [c.trendSpanZero, copy.correlations.flipPNone, copy.correlations.verdictNo],
+    ],
+    key === "probably" ? 0 : key === "maybe" ? 1 : 2,
+    [fill(copy.correlations.flipNow, {
+       value: `${pct(t.perDecade - t.margin).toFixed(1)}% to ${pct(t.perDecade + t.margin).toFixed(1)}% per decade`,
+     }),
+     fill(copy.correlations.flipNow, { value: `${(100 * t.p).toFixed(0)}%` }), null],
+  ));
+
+  el.trendChart.replaceChildren(renderTrendChart(t, points, theme, width));
+}
+
+/** The fitted line and its 95% band, as marks. */
+function renderTrendChart(t: Trend, points: { year: number; value: number }[],
+                          theme: ReturnType<typeof readTheme>, width: number) {
+  const mid = (t.first + t.last) / 2;
+  const at = (year: number) => t.mean + (t.perDecade / 10) * (year - mid);
+  const halfAt = (year: number) => (t.margin / 10) * Math.abs(year - mid);
+  const band = points.map((p) => ({
+    year: p.year, lo: at(p.year) - halfAt(p.year), hi: at(p.year) + halfAt(p.year),
+  }));
+  return renderTrend({
+    points,
+    line: [{ year: t.first, value: at(t.first) }, { year: t.last, value: at(t.last) }],
+    band, theme, width,
+    yLabel: fill(copy.home.axisAnnualCount, { threshold: magLabel(state.minMag) }),
+    wholeNumbers: state.measure === "count",
+  });
+}
+
 /* ---------------- render ---------------- */
 
 let lastRender: (() => void) | null = null;
@@ -1018,6 +1104,8 @@ async function update() {
       sigma: annualSigma,
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
+
+    writeTrend(counts, refYears, minMag, kind, theme, width);
 
     const mapEvents = highlightedEvents(tier, minMag, highlights, shift);
     buildMapLegend(highlights);

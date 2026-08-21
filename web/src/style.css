@@ -129,6 +129,18 @@ main {
   .brand span { display: none; }
 }
 
+/* The eyebrow is uppercase and letter-spaced; the latest event runs on from it
+   as a lower-case italic aside, with its own space rather than one wedged into
+   the copy string. */
+.latest {
+  margin-left: 0.6rem;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-secondary);
+}
+
 .eyebrow {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
@@ -683,6 +695,36 @@ main {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
+/* The trend section: a question and an answer, like a correlations panel, but
+   sitting under the chart it is about rather than in a list of its own. */
+.trend { margin-top: 2rem; }
+
+.trend figcaption {
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin-bottom: 0.3rem;
+}
+
+.trend-verdict {
+  margin: 0 0 0.6rem;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.trend-body {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  white-space: pre-line;
+}
+
+#trend-chart { min-height: 240px; margin-bottom: 0.4rem; }
+
+#trend-table .correlate-flip { border-top: 0; padding-top: 0; }
+#trend-table .flip-title { display: none; }
 
 /* Loud on purpose. If this shows, the numbers below it are not to be trusted,
    and a quiet note at the bottom would be worse than useless. */

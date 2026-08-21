@@ -171,6 +171,51 @@ export const copy = {
     yearsSome: "{n} years",
     yearsCount: "{n} of {max}",
 
+    /* The trend section under the annual chart. It reports an interval and
+       never a bare slope: a slope invites "5% a decade, so 20% over forty
+       years" from data that cannot tell the line from flat. */
+    trendQuestion: "Is the rate of earthquakes changing?",
+    trendSubtitle: "{threshold} {kind} per year, {from}–{to}, with the best straight line through them",
+    trendIntro:
+      "We fitted a straight line through the yearly counts above and asked whether its slope " +
+      "can be told apart from no slope at all." +
+      "\n\nThe line rises by {rise} {kind} across the whole {years} years — {ratio} of what the " +
+      "count varies by from one year to the next. The data are consistent with anywhere between " +
+      "{low}% and {high}% per decade, a range that includes no change at all.",
+    trendNo:
+      "So the answer is no: there is no trend here that can be distinguished from the ordinary " +
+      "year-to-year scatter.",
+    trendMaybe:
+      "That is enough to notice. A slope this steep, or steeper, turns up {p}% of the time in " +
+      "counts with no trend in them — worth watching rather than announcing.",
+    trendProbably:
+      "A slope this steep, or steeper, turns up only {p}% of the time in counts with no trend " +
+      "in them. That is a real change in the rate at this magnitude and this setting, which is " +
+      "not the same as a change in the Earth: see below.",
+    trendCaveats:
+      "Two things change this answer, and both are settings you can see above." +
+      "\n\nAftershocks. Left in, the counts drift upward, because a single great earthquake " +
+      "brings hundreds of events with it and those cluster in particular years. Taken out, the " +
+      "drift goes away. The rate of earthquake sequences and the rate of earthquakes are " +
+      "different questions." +
+      "\n\nWhere the record starts. Fitting from {from} is flat. Fitting from 1990 slopes " +
+      "downward. Neither is significant, but a start year chosen after seeing the answer would " +
+      "make either one look like a finding. This uses the whole record, always.",
+    trendColSlope: "Slope",
+    trendColP: "p-value",
+    trendSpanZero: "range includes zero",
+    trendAboveZero: "range excludes zero",
+    trendHelp: "what is this testing?",
+    trendHelpBody:
+      "A straight line is fitted through the {years} yearly counts, and the test asks how often " +
+      "counts with no trend in them would produce a slope at least this steep." +
+      "\n\nThe range shown is where the true slope lies with 95% confidence. When it includes " +
+      "zero, no change is one of the possibilities the data allow — which is why this page shows " +
+      "the range rather than the single number in the middle of it. That number on its own " +
+      "invites arithmetic the data cannot support." +
+      "\n\nA straight line is also an assumption. It would not detect a rate that rose and then " +
+      "fell, or a step change.",
+
     /* ===============================================================
        THE TECHNICAL SUMMARY, front page. Plain and direct: what the
        data is, what was done to it, and what that costs.
@@ -227,7 +272,7 @@ export const copy = {
       "to the outcome than the magnitude does.",
 
     /* Footer and failures. */
-    latest: "Latest {threshold}: {when}, M{mag} {place}",
+    latest: "latest {threshold}: {when}, M{mag} {place}",
     generated: "Catalog snapshot built {when}; live events appended from the USGS one-day feed.",
     errorCatalog: "Could not load the catalog: {message}",
     errorNoHistory: "Not enough history yet to draw a reference range.",

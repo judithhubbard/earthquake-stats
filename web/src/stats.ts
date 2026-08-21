@@ -6,6 +6,9 @@
  */
 
 import type { Tier } from "./catalog";
+// The trend p-value is the correlation between count and year, which is the
+// same test the correlations page runs against temperature and sunspots.
+import { correlationP } from "./correlate";
 
 export const DAYS = 365;
 
@@ -326,6 +329,60 @@ export function empiricalBand(curves: YearCurves, refYears: number[],
     });
   }
   return out;
+}
+
+/**
+ * A straight line through annual counts, with the uncertainty that decides
+ * whether it means anything.
+ *
+ * `perDecade` on its own is not a measurement. On M7+ mainshocks it comes out
+ * near +4% while the 95% interval runs from -1% to +9%, so the honest reading
+ * is "somewhere in there, including nothing". The interval is what the page
+ * shows; the point estimate only ever appears inside it.
+ */
+export interface Trend {
+  perDecade: number;
+  /** Half-width of the 95% interval, in the same units. */
+  margin: number;
+  mean: number;
+  /** Year-to-year scatter, for comparing the whole fitted rise against. */
+  scatter: number;
+  p: number;
+  first: number;
+  last: number;
+  years: number;
+}
+
+export function trend(counts: { year: number; value: number }[]): Trend | null {
+  const n = counts.length;
+  if (n < 5) return null;
+  const mx = counts.reduce((a, c) => a + c.year, 0) / n;
+  const my = counts.reduce((a, c) => a + c.value, 0) / n;
+  const sxx = counts.reduce((a, c) => a + (c.year - mx) ** 2, 0);
+  const sxy = counts.reduce((a, c) => a + (c.year - mx) * (c.value - my), 0);
+  const slope = sxy / sxx;
+
+  const df = n - 2;
+  const rss = counts.reduce((a, c) => a + (c.value - (my + slope * (c.year - mx))) ** 2, 0);
+  const scatter = Math.sqrt(rss / df);
+  const se = scatter / Math.sqrt(sxx);
+
+  // Two-sided 5% t quantile, same Cornish-Fisher expansion the correlation uses.
+  const z = 1.959963984540054;
+  const tCrit = z + (z ** 3 + z) / (4 * df)
+    + (5 * z ** 5 + 16 * z ** 3 + 3 * z) / (96 * df * df);
+
+  const first = counts[0].year;
+  const last = counts[n - 1].year;
+  return {
+    perDecade: slope * 10,
+    margin: tCrit * se * 10,
+    mean: my,
+    scatter,
+    p: correlationP(sxy / Math.sqrt(sxx * counts.reduce(
+      (a, c) => a + (c.value - my) ** 2, 0)), n),
+    first, last, years: last - first + 1,
+  };
 }
 
 export interface Verdict {

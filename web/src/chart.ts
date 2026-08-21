@@ -117,6 +117,63 @@ function magnitudeTicks(max: number): number[] {
   return [0, ...ticks.filter((_, i) => i % stride === 0)].sort((a, b) => a - b);
 }
 
+export interface TrendOptions {
+  points: { year: number; value: number }[];
+  /** The fitted line, as its two endpoints. */
+  line: { year: number; value: number }[];
+  /** The 95% band around the fitted line, drawn so the range is visible. */
+  band: { year: number; lo: number; hi: number }[];
+  theme: Theme;
+  width: number;
+  yLabel: string;
+  wholeNumbers?: boolean;
+}
+
+/**
+ * One dot per year with the fitted line through them, and the 95% range around
+ * the line as a band.
+ *
+ * The band is the point of the figure. A line on its own reads as a finding;
+ * the same line inside a band wide enough to hold a horizontal one reads as
+ * what it is.
+ */
+export function renderTrend(opts: TrendOptions): SVGSVGElement | HTMLElement {
+  const { points, line, band, theme, width } = opts;
+  return Plot.plot({
+    width,
+    height: Math.max(240, Math.min(320, width * 0.36)),
+    marginLeft: 62, marginRight: 18, marginBottom: 38, marginTop: 18,
+    style: { background: "transparent", color: theme.text, fontSize: "12px" },
+    x: { label: null, tickFormat: "d", ticks: 6, tickSize: 0, tickPadding: 7 },
+    y: {
+      label: opts.yLabel, labelAnchor: "center", labelOffset: 46, grid: true,
+      labelArrow: null, zero: true,
+      tickFormat: opts.wholeNumbers
+        ? (d: number) => (Number.isInteger(d) ? d.toLocaleString() : "")
+        : undefined,
+    },
+    color: { type: "identity" },
+    marks: [
+      Plot.areaY(band, {
+        x: "year", y1: "lo", y2: "hi", fill: theme.rangeInner, fillOpacity: 0.45,
+      }),
+      Plot.line(line, { x: "year", y: "value", stroke: theme.median, strokeWidth: 2 }),
+      Plot.dot(points, {
+        x: "year", y: "value", r: 3.2,
+        fill: theme.series[0], fillOpacity: 0.8,
+        stroke: theme.surface, strokeWidth: 0.8,
+      }),
+      Plot.ruleY([0], { stroke: theme.axis }),
+      Plot.tip(points, Plot.pointerX({
+        x: "year", y: "value",
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+        title: (d: { year: number; value: number }) =>
+          `${d.year}\n${d.value.toLocaleString()}`,
+      })),
+    ],
+  });
+}
+
 export interface DistributionOptions {
   peers: { year: number; value: number }[];
   value: number;
