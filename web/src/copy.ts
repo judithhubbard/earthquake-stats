@@ -120,8 +120,8 @@ export const copy = {
        tests the same claim, so the question is what they say together, not
        whether any one of them crosses a line. */
     spreadAggregate:
-      "{year} is in the {percentile} percentile: pooling every way of counting, {p}% of " +
-      "years score higher.",
+      "{year} is in the {percentile} percentile: pooling every way of counting, it scores " +
+      "higher than {beaten} of the {peers} years before it.",
     aggregateShareMore: "of years scored higher",
     aggregateCurrent: "{year}",
     aggregateCaption: "z-score for every year since {from}",
@@ -129,20 +129,24 @@ export const copy = {
     aggregateHelpBody:
       "A z-score says how far a year sits from the middle, measured in units of the ordinary " +
       "year-to-year spread. Zero is an average year." +
-      "\n\nThere are many ways to look at earthquake numbers; we show {ways} of them below. " +
-      "This z-score combines those {ways} into a single representative number.",
+      "\n\nThere are many ways to look at earthquake numbers; we show {waysWord} of them below. " +
+      "This z-score combines those {waysWord} into a single representative number.",
     spreadHelp: "how is this worked out?",
     spreadHelpBody:
       "Each way of counting asks how often a year since 1976 ran at least as busy as {year}. " +
-      "That gives {ways} answers: {ranks}." +
+      "That gives {waysWord} answers: {ranks}." +
       "\n\nStouffer's method pools them into one. It turns each answer into a score, adds " +
       "the scores, and divides by how much that sum could vary by chance." +
-      "\n\nThat last step normally assumes the {ways} tests are independent. They are not. " +
+      "\n\nThat last step normally assumes the {waysWord} tests are independent. They are not. " +
       "A year busy in M6+ is usually busy in M7+, and by moment the two are almost the same " +
       "number, since a year's moment comes mostly from its largest earthquakes either way." +
-      "\n\nMeasured against the past years, the {ways} different dependent tests are worth " +
+      "\n\nMeasured against the past years, the {waysWord} different dependent tests are " +
+      "worth " +
       "about {effective} independent tests. That is the divisor used." +
-      "\n\nThe result is Z = {z}, or p = {p}%.",
+      "\n\nThe result is Z = {z}. Every past year is scored the same way, and {year} comes " +
+      "out higher than {beaten} of the {peers} years before it." +
+      "\n\nThat ranking is a count, not a curve: with {peers} years to compare against, the " +
+      "answer moves one year at a time and cannot resolve finer.",
     spreadNote:
       "Taken one at a time the {ways} combinations run from the {low} to the {high} " +
       "percentile, which is why the answer at the top is not read off any one of them. The " +
@@ -372,17 +376,21 @@ export const copy = {
       "turns " +
       "each " +
       "into a " +
-      "z-score, adds them, and divides by how much that sum could vary by chance. The " +
-      "last-365-days combinations are left out: a window ending today is not a year, so it " +
-      "cannot be ranked against past years." +
+      "z-score, adds them, and divides by how much that sum could vary by chance. Every past " +
+      "year is scored the same way, and the answer is where this year ranks among them — a " +
+      "count of the years that scored higher, not a probability read off a normal curve. " +
+      "That is what the histogram beside the answer draws. The last-365-days combinations " +
+      "are left out: a window ending today is not a year, so it cannot be ranked against " +
+      "past years." +
 
       "\n\n**The tests are not independent.** The usual divisor assumes the tests are " +
       "independent. They are not: a year busy in M6+ is usually busy in M7+, " +
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
       "from its largest earthquakes. Measured against the record, the {waysWord} different " +
-      "dependent tests are worth about {effective} independent tests. That is the divisor " +
-      "used: Strube's " +
-      "correction, with the correlations taken from the data rather than assumed." +
+      "dependent tests are worth about {effective} independent tests. That is Strube's " +
+      "correction, with the correlations taken from the data rather than assumed. The " +
+      "divisor also accounts for how widely the scores themselves spread, rather than " +
+      "assuming each one has a standard deviation of exactly 1." +
 
       "\n\n**Is the rate changing?** A straight line is fitted by least squares through the " +
       "yearly counts of four fixed series — M6+ and M7+, each with aftershocks left in and " +

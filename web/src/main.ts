@@ -626,7 +626,8 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
   caption.append(
     fill(copy.home.aggregateCaption, { from: first }),
     " ",
-    hint(copy.home.aggregateHelp, fill(copy.home.aggregateHelpBody, { ways: a.tests })),
+    hint(copy.home.aggregateHelp,
+         fill(copy.home.aggregateHelpBody, { waysWord: numberWord(a.tests) })),
   );
   el.answerAggregate.replaceChildren(strip, caption);
 }
@@ -808,15 +809,17 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
     techValues.ways = aggregate.tests;
     techValues.waysWord = numberWord(aggregate.tests);
     techValues.effective = aggregate.effective.toFixed(1);
+    const beaten = aggregate.peers - aggregate.higher;
     el.spreadAggregate.append(fill(c.spreadAggregate, {
       year: yearLabel(currentYear),
       percentile: ordinal(100 * (1 - aggregate.p)),
-      p: pct(aggregate.p),
+      beaten, peers: aggregate.peers,
     }), " ", hint(c.spreadHelp, fill(c.spreadHelpBody, {
-      ways: aggregate.tests, year: yearLabel(currentYear),
+      ways: aggregate.tests, waysWord: numberWord(aggregate.tests),
+      year: yearLabel(currentYear),
       ranks: listOf(aggregate.each.map((v) => `${pct(v)}%`)),
       effective: aggregate.effective.toFixed(1),
-      z: aggregate.z.toFixed(2), p: pct(aggregate.p),
+      z: aggregate.z.toFixed(2), beaten, peers: aggregate.peers,
     })));
   }
 

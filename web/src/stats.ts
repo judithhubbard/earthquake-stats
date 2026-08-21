@@ -535,8 +535,18 @@ export function asPercent(share: number): string {
 export interface Combined {
   /** Stouffer's combined statistic, corrected for the correlation between tests. */
   z: number;
-  /** One-sided p: how often a year with nothing unusual about it runs this high. */
+  /**
+   * Share of the previous years that scored higher, as a fraction.
+   *
+   * Counted, not read off a normal curve. The scores below are what the
+   * histogram beside the headline draws, so this is the number a reader can
+   * check by counting bars -- and it makes the answer independent of whether
+   * the combined score is normally distributed, which 51 years cannot show.
+   */
   p: number;
+  /** How many previous years scored higher, and how many there were. */
+  higher: number;
+  peers: number;
   /** How many independent tests the correlated set is worth. */
   effective: number;
   /** The one-sided p-value of each test, in the order given. */
@@ -591,8 +601,8 @@ export function combineRanks(ranks: number[][]): Combined | null {
   const past = z.map((r) => r.slice(0, n - 1));
 
   // Sum of the correlation matrix, diagonal included: k + 2 * sum of the upper
-  // triangle. This is the variance of the sum of k unit-variance correlated
-  // scores, which is exactly what the divisor has to be.
+  // triangle. This is what k correlated tests are worth, and it is what
+  // `effective` reports.
   let total = k;
   for (let i = 0; i < k; i++) {
     for (let j = i + 1; j < k; j++) {
@@ -601,7 +611,30 @@ export function combineRanks(ranks: number[][]): Combined | null {
   }
   if (!(total > 0)) return null;
 
-  const root = Math.sqrt(total);
+  // The divisor is the variance of the sum, which is the sum of the COVARIANCE
+  // matrix. Using the correlation matrix instead assumes each score has
+  // variance 1, and these do not: normalQuantile of evenly spaced percentiles
+  // gives the two clamped extremes the same weight as every interior point,
+  // where a normal would put far less mass that far out. Measured on fifty
+  // years the scores carry a variance near 1.05, so dividing by sqrt(total)
+  // made every z about 2% too large -- invisible on the chart, because it
+  // scales every year alike, but it inflated the p-value it used to be
+  // converted into.
+  const spread = past.map((column) => {
+    const mean = column.reduce((a, v) => a + v, 0) / column.length;
+    return column.reduce((a, v) => a + (v - mean) ** 2, 0) / column.length;
+  });
+  let variance = 0;
+  for (let i = 0; i < k; i++) {
+    for (let j = 0; j < k; j++) {
+      variance += i === j
+        ? spread[i]
+        : correlation(past[i], past[j]) * Math.sqrt(spread[i] * spread[j]);
+    }
+  }
+  if (!(variance > 0)) return null;
+
+  const root = Math.sqrt(variance);
   const scores: number[] = [];
   for (let j = 0; j < n; j++) {
     let sum = 0;
@@ -609,10 +642,14 @@ export function combineRanks(ranks: number[][]): Combined | null {
     scores.push(sum / root);
   }
   const combined = scores[n - 1];
+  const peerScores = scores.slice(0, n - 1);
+  const higher = peerScores.filter((v) => v > combined).length;
   return {
     z: combined,
     scores,
-    p: 1 - normalCdf(combined),
+    p: higher / peerScores.length,
+    higher,
+    peers: peerScores.length,
     effective: (k * k) / total,
     each: current.map((v) => 1 - normalCdf(v)),
     tests: k,
