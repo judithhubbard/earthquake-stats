@@ -618,7 +618,7 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
   const caption = document.createElement("p");
   caption.className = "answer-caption";
   caption.append(
-    fill(copy.home.aggregateCaption, { from: first, ways: a.tests }),
+    fill(copy.home.aggregateCaption, { from: first }),
     " ",
     hint(copy.home.aggregateHelp, fill(copy.home.aggregateHelpBody, { ways: a.tests })),
   );

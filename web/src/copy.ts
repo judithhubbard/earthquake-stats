@@ -108,8 +108,7 @@ export const copy = {
       "{year} is in the {percentile} percentile: on average, {p}% of years are busier.",
     aggregateShareMore: "of years scored higher",
     aggregateCurrent: "{year}",
-    aggregateCaption:
-      "Combined z-score for every year since {from}",
+    aggregateCaption: "z-score for every year since {from}",
     aggregateHelp: "what is a z-score?",
     aggregateHelpBody:
       "A z-score says how far a year sits from the middle, measured in units of the ordinary " +
@@ -162,11 +161,7 @@ export const copy = {
       "Each faint line is one of the {years} previous years. The band is the mean plus " +
       "and minus two standard deviations — the range a normal distribution would put " +
       "95.45% of the data in. It is measured over every window of this length anywhere " +
-      "in the record, not over the calendar years: taking it year by year makes a single " +
-      "huge earthquake enter the calculation on its own anniversary, and the band visibly " +
-      "steps on 11 March, the date of Tohoku. Sliding the window spreads that event over " +
-      "every window containing it, which is what asking how much a year's worth varies " +
-      "actually means.",
+      "in the record, not over the calendar years.",
     noteMoment:
       "Moment measures how much the ground moved, not how often. One great earthquake can " +
       "outweigh a whole ordinary year, so this line can jump in a single afternoon.",
@@ -345,10 +340,8 @@ export const copy = {
 
       "\n\n**The shaded ranges.** The default shows where the middle 50% and middle 90% of " +
       "past years fell on each date. The ±2σ setting uses the mean plus and minus two " +
-      "standard deviations, measured over every 365-day window in the record rather than over " +
-      "calendar years: taken year by year, one enormous event enters the calculation on its " +
-      "own anniversary, and the band visibly steps on 11 March, the date of the 2011 Tohoku " +
-      "earthquake." +
+      "standard deviations, measured over every window of that length anywhere in the " +
+      "record rather than over calendar years." +
 
       "\n\n**The answer at the top ignores the settings.** The controls reach twelve " +
       "combinations, and this year lands anywhere from the 41st percentile to the 92nd across " +
