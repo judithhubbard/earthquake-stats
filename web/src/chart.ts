@@ -411,8 +411,8 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   // A cumulative chart has exactly two empty corners: above the curves early in
   // the year, and below them late, because every line rises and none comes back
   // down. The summary box lives in whichever one is open on the day under the
-  // pointer, and October is where they swap.
-  const flipDay = band.findIndex((b) => dayToDate(b.day).getUTCMonth() >= 9);
+  // pointer, and September is where they swap.
+  const flipDay = band.findIndex((b) => dayToDate(b.day).getUTCMonth() >= 8);
   const flipAt = flipDay < 0 ? band.length : band[flipDay].day;
   const hover = band.map((b) => {
     const row: Record<string, number> = {
@@ -427,14 +427,19 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     // collapsing onto the axis.
     const lead = primary ? row[`y${primary.year}`] : NaN;
     row.value = Number.isFinite(lead) ? lead : b.median;
-    // Pinned to the frame, never to the line, so the box cannot wander onto
-    // the data or onto the per-line tip. Two channels, one per anchor: the one
-    // that does not apply on this day is NaN, which stops its mark drawing.
-    // Both marks still hold every day, so pointerX resolves to the same day in
-    // both and only one of them has anything to render -- splitting the days
-    // between the marks instead gave two boxes on two different days.
-    row.tipTop = b.day < flipAt ? yTop : NaN;
-    row.tipBottom = b.day < flipAt ? NaN : 0;
+    // Pinned to the top or the bottom of the frame, never to the line, so the
+    // box cannot wander onto the data or onto the per-line tip.
+    //
+    // One channel and one mark. Two marks with opposite anchors cannot work,
+    // however the days are divided between them: Plot drops data with an
+    // invalid position channel before the pointer transform runs, so each mark
+    // resolves pointerX within whatever it has left, lands on a different day,
+    // and both draw. That is what put "Sep 28" and "Oct 1" on screen together.
+    // The anchor is left unset instead, and Plot chooses it from where the
+    // point sits in the frame -- hanging down from a point at the top, standing
+    // up from one at the bottom -- which is the flip, done by the one thing
+    // that can vary per day.
+    row.tipY = b.day < flipAt ? yTop : 0;
     return row;
   });
 
@@ -504,9 +509,9 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     // its own anchor did not work: pointerX picks the nearest day inside each
     // mark's own data, so both always matched, on two different days, and the
     // chart drew three boxes at once counting the per-line one.
-    const summary = (yChannel: string, anchor: "top" | "bottom") =>
+    const summary = () =>
       Plot.tip(hover, Plot.pointerX({
-        x: "day", y: yChannel, anchor,
+        x: "day", y: "tipY",
         // 12px is the charts' own axis size. The tip is meant to read as part
         // of the figure, not as a caption pasted over it.
         fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
@@ -531,10 +536,9 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       Plot.ruleX(hover, Plot.pointerX({
         x: "day", stroke: theme.muted, strokeWidth: 1, strokeDasharray: "3,3",
       })),
-      // Hanging down from the top of the frame before October, standing up from
-      // the bottom of it after.
-      summary("tipTop", "top"),
-      summary("tipBottom", "bottom"),
+      // Hanging down from the top of the frame before September, standing up
+      // from the bottom of it after.
+      summary(),
     );
   }
 
