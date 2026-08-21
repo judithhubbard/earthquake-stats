@@ -343,21 +343,21 @@ export const copy = {
       "standard deviations, measured over every window of that length anywhere in the " +
       "record rather than over calendar years." +
 
-      "\n\n**The answer at the top ignores the user selections.** The controls reach twelve " +
-      "combinations, and this year lands anywhere from the 41st percentile to the 92nd across " +
-      "them. An answer read off whichever one was selected could be changed by clicking, so " +
-      "the answer pools all of them. Everything below it still follows the controls, and says " +
-      "which setting it is showing." +
+      "\n\n**The answer at the top ignores the user selections.** Depending on what " +
+      "earthquakes a user selects, they can land at different percentiles. For instance, this " +
+      "year the selected earthquakes can yield anywhere from the 41st to the 92nd percentile. " +
+      "The answer at the top is based on aggregate statistics, derived from the combined " +
+      "selection options below." +
 
-      "\n\n**How the pooling works.** Each way of counting ranks this year against every " +
-      "year since 1976, which gives six p-values. Stouffer's method turns each into a " +
+      "\n\n**How the aggregate statistics work.** Each way of counting ranks this year " +
+      "against every year since 1976, which gives six p-values. Stouffer's method turns each " +
+      "into a " +
       "z-score, adds them, and divides by how much that sum could vary by chance. The " +
       "last-365-days combinations are left out: a window ending today is not a year, so it " +
-      "cannot be ranked against past years. They stay in the table, where each column is read " +
-      "on its own terms." +
+      "cannot be ranked against past years." +
 
-      "\n\n**The six overlap, and the arithmetic allows for it.** The usual divisor assumes " +
-      "the tests are independent. They are not: a year busy in M6+ is usually busy in M7+, " +
+      "\n\n**Dealing with dependent variables.** The usual divisor assumes the tests are " +
+      "independent. They are not: a year busy in M6+ is usually busy in M7+, " +
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
       "from its largest earthquakes. Measured against the record, the six are worth about 1.7 " +
       "independent tests, and that is the divisor used — Strube's correction, with the " +
