@@ -472,6 +472,12 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   // value, but the reference years and the band still do -- and that is most of
   // what this tip is for.
   const yTop = opts.yMax ?? Math.max(0, ...band.map((b) => b.hi));
+  // A cumulative chart has exactly two empty corners: above the curves early in
+  // the year, and below them late, because every line rises and none comes back
+  // down. The summary box lives in whichever one is open on the day under the
+  // pointer, and October is where they swap.
+  const flipDay = band.findIndex((b) => dayToDate(b.day).getUTCMonth() >= 9);
+  const flipAt = flipDay < 0 ? band.length : band[flipDay].day;
   const hover = band.map((b) => {
     const row: Record<string, number> = {
       day: b.day, median: b.median, lo: b.lo, hi: b.hi,
@@ -485,10 +491,14 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     // collapsing onto the axis.
     const lead = primary ? row[`y${primary.year}`] : NaN;
     row.value = Number.isFinite(lead) ? lead : b.median;
-    // Pinned to the top of the frame rather than to the line. yTop is the top
-    // of the y range, which is above every mark by construction, so the box
-    // hangs into empty space and cannot land on the per-line tip below it.
-    row.tipY = yTop;
+    // Pinned to the frame, never to the line, so the box cannot wander onto
+    // the data or onto the per-line tip. Two channels, one per anchor: the one
+    // that does not apply on this day is NaN, which stops its mark drawing.
+    // Both marks still hold every day, so pointerX resolves to the same day in
+    // both and only one of them has anything to render -- splitting the days
+    // between the marks instead gave two boxes on two different days.
+    row.tipTop = b.day < flipAt ? yTop : NaN;
+    row.tipBottom = b.day < flipAt ? NaN : 0;
     return row;
   });
 
@@ -558,9 +568,9 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     // its own anchor did not work: pointerX picks the nearest day inside each
     // mark's own data, so both always matched, on two different days, and the
     // chart drew three boxes at once counting the per-line one.
-    const summary = (rows: Record<string, number>[]) =>
-      Plot.tip(rows, Plot.pointerX({
-        x: "day", y: "tipY", anchor: "top",
+    const summary = (yChannel: string, anchor: "top" | "bottom") =>
+      Plot.tip(hover, Plot.pointerX({
+        x: "day", y: yChannel, anchor,
         // 12px is the charts' own axis size. The tip is meant to read as part
         // of the figure, not as a caption pasted over it.
         fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
@@ -585,7 +595,10 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       Plot.ruleX(hover, Plot.pointerX({
         x: "day", stroke: theme.muted, strokeWidth: 1, strokeDasharray: "3,3",
       })),
-      summary(hover),
+      // Hanging down from the top of the frame before October, standing up from
+      // the bottom of it after.
+      summary("tipTop", "top"),
+      summary("tipBottom", "bottom"),
     );
   }
 
