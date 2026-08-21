@@ -359,23 +359,23 @@ function binFlip(bins: Bin[]): HTMLElement {
   const test = chiSquare(bins);
   const n = bins.reduce((a, b) => a + b.count, 0);
   const v = Math.sqrt(test.statistic / (n * (bins.length - 1)));
-  const critical = test.critical.toFixed(1);
+  const p = chiSquareP(test.statistic, test.df);
+  // One direction only -- more uneven is the only way to depart from level --
+  // so the p column orders the table and stays monotonic down it.
   const current = test.statistic <= test.critical ? 2 : v < NEGLIGIBLE_V ? 1 : 0;
   const c = copy.correlations;
   return flipTable(
-    [{ label: c.flipColChi,
-       help: { label: c.flipHelp, body: fill(c.flipHelpBody, { bins: bins.length }) } },
+    [{ label: c.flipColP,
+       help: { label: c.flipHelp, body: c.flipHelpBody } },
      { label: c.flipColSize, help: { label: c.flipHelpV, body: c.flipHelpVBody } },
      { label: c.flipColAnswer }],
     [
-      [fill(c.flipBinAbove, { critical }), fill(c.flipVAbove, { v: NEGLIGIBLE_V }),
-       c.verdictYes],
-      [fill(c.flipBinAbove, { critical }), fill(c.flipVBelow, { v: NEGLIGIBLE_V }),
-       c.verdictMaybe],
-      [fill(c.flipBinBelow, { critical }), c.flipVAny, c.verdictNo],
+      [c.flipPBelow, fill(c.flipVAbove, { v: NEGLIGIBLE_V }), c.verdictYes],
+      [c.flipPBelow, fill(c.flipVBelow, { v: NEGLIGIBLE_V }), c.verdictMaybe],
+      [c.flipPAbove, c.flipVAny, c.verdictNo],
     ],
     current,
-    [fill(c.flipNow, { value: test.statistic.toFixed(1) }),
+    [fill(c.flipNow, { value: `${asPercent(p)}%` }),
      fill(c.flipNow, { value: v.toFixed(3) }), null],
   );
 }
@@ -395,19 +395,24 @@ function scatterFlip(c: Correlation | null, up: string, down: string): HTMLEleme
   if (!c) return undefined;
   const critical = c.critical.toFixed(2);
   const t = copy.correlations;
-  // Ordered like the number line it describes: positive, neither, negative.
+  // The correlation leads here, not the p-value. This test has two tails, so p
+  // is small at both ends and large in the middle -- which reads as a mistake
+  // unless the column that runs monotonically is the one you meet first.
   const current = !c.significant ? 1 : c.r > 0 ? 0 : 2;
   return flipTable(
     [{ label: t.flipColR,
-       help: { label: t.flipHelpR, body: fill(t.flipHelpRBody, { years: c.n, critical }) } },
+       help: { label: t.flipHelpR, body: t.flipHelpRBody } },
+     { label: t.flipColP,
+       help: { label: t.flipHelpRP, body: fill(t.flipHelpRPBody, { years: c.n }) } },
      { label: t.flipColAnswer }],
     [
-      [fill(t.flipScatterAbove, { critical }), up],
-      [fill(t.flipScatterWithin, { critical }), t.verdictNo],
-      [fill(t.flipScatterBelow, { critical }), down],
+      [fill(t.flipScatterAbove, { critical }), t.flipPBelow, up],
+      [fill(t.flipScatterWithin, { critical }), t.flipPAbove, t.verdictNo],
+      [fill(t.flipScatterBelow, { critical }), t.flipPBelow, down],
     ],
     current,
-    [fill(t.flipNow, { value: c.r.toFixed(2) }), null],
+    [fill(t.flipNow, { value: c.r.toFixed(2) }),
+     fill(t.flipNow, { value: `${asPercent(correlationP(c.r, c.n))}%` }), null],
   );
 }
 

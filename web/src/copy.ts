@@ -261,7 +261,6 @@ export const copy = {
     verdictNo: "No.",
     verdictYes: "Yes.",
     verdictMaybe: "Maybe.",
-    verdictNotReally: "Not really.",
     /* The furthest bar, and how many stray bars to expect anyway. Said in one
        breath, because saying "inside the grey" and then "one bar is outside"
        about the same bar reads as a contradiction. */
@@ -290,54 +289,58 @@ export const copy = {
        column reuses the verdict strings themselves, so the table cannot
        describe a rule the page does not follow. */
     flipTitle: "This answer is calculated, not hard-coded:",
-    flipHelp: "what is chi-square?",
-    flipHelpR: "what is a correlation coefficient?",
+    flipHelp: "what is a p-value?",
+    flipHelpBody:
+      "The p-value is how often data with no pattern in it would produce a spread at least as " +
+      "uneven as the one above." +
+      "\n\nAt 30%, three datasets in ten would look at least this uneven by chance alone, so " +
+      "there is nothing here that needs explaining. At 1%, one in a hundred would, which is " +
+      "harder to put down to chance." +
+      "\n\nIt is not the probability that there is no pattern, and it says nothing about how " +
+      "large a pattern is. On a large enough dataset a difference of a fraction of a percent " +
+      "will produce a very small p-value, which is why the column beside it exists." +
+      "\n\nThe 5% line is a convention rather than a discovery. Chance alone crosses it one " +
+      "time in twenty.",
     flipHelpV: "what is Cramér's V?",
     flipHelpVBody:
       "Cramér's V measures how large the unevenness is, rather than how confidently it can be " +
       "told apart from chance." +
       "\n\nIt runs from 0 to 1. At 0 the bars are exactly level. The larger it gets, the " +
       "further from level they are." +
-      "\n\nChi-square grows with the amount of data: given enough earthquakes, a difference of " +
-      "a fraction of a percent will pass its threshold. V does not. It stays the same size as " +
-      "the data accumulate, so it answers whether a difference is worth caring about rather " +
-      "than whether it can be detected." +
+      "\n\nThe p-value shrinks as data accumulate: given enough earthquakes, a difference of a " +
+      "fraction of a percent will drop it below 5%. V does not. It stays the same size, so it " +
+      "answers whether a difference is worth caring about rather than whether it can be " +
+      "detected." +
       "\n\nAnything below 0.1 is conventionally treated as negligible.",
+    flipHelpR: "what is a correlation coefficient?",
     flipHelpRBody:
       "The correlation coefficient is one way to assess whether two quantities move together, " +
       "or vary independently." +
       "\n\nIt runs from −1 to +1. At 0, knowing one value tells you nothing about the other. " +
       "Near +1, the two rise and fall together. Near −1, one rises as the other falls." +
-      "\n\nThe threshold in the rows below is the value that {years} pairs of unrelated " +
-      "numbers exceed only 5% of the time. A correlation weaker than that is the size " +
-      "unrelated quantities produce on their own." +
-      "\n\nThis threshold does move, unlike the chi-square one. It is set by how many years " +
-      "there are, and tightens as they accumulate: ±{critical} at {years} years, about ±0.23 " +
-      "at seventy-five. More data makes a weaker relationship detectable." +
       "\n\nIt measures straight-line relationships only, and says nothing about which " +
       "quantity would be influencing which.",
-    flipHelpBody:
-      "Chi-square is one way to assess whether the wobble above is random, or reflects a real " +
-      "pattern." +
-      "\n\nEach bar is compared with the count it would hold if there were no pattern at all. " +
-      "Those differences are combined into a single number. The larger the differences, the " +
-      "larger the number." +
-      "\n\nWhat counts as large depends on how many bars there are. If the data are random, " +
-      "we expect the chi-square to exceed the threshold only 5% of the time." +
-      "\n\nThe threshold never moves. It is set by the number of bars alone, so more " +
-      "earthquakes will not change it. Only the chi-square moves, as new earthquakes occur and " +
-      "are added to the dataset.",
+    flipHelpRP: "what is a p-value?",
+    flipHelpRPBody:
+      "The p-value is how often {years} pairs of unrelated numbers would produce a correlation " +
+      "at least this strong, in either direction." +
+      "\n\nAt 30%, three sets in ten would come out at least this correlated by chance alone, " +
+      "so there is nothing here that needs explaining. At 1%, one in a hundred would." +
+      "\n\nIt is not the probability that the two are unrelated, and it says nothing about how " +
+      "strong the relationship is. The correlation itself, beside it, is the measure of that." +
+      "\n\nThe 5% line is a convention rather than a discovery. Chance alone crosses it one " +
+      "time in twenty.",
     /* Column headings, then the conditions in each. A row is one combination
        of them, and the values underneath sit in the column they are compared
        against -- classifying a difference as negligible while never showing
        the number that decides it would be the sort of thing this page argues
        against. */
-    flipColChi: "Chi-square",
+    flipColP: "p-value",
     flipColSize: "Cramér's V",
     flipColR: "Correlation (r)",
     flipColAnswer: "The answer",
-    flipBinAbove: "above {critical}",
-    flipBinBelow: "below {critical}",
+    flipPBelow: "below 5%",
+    flipPAbove: "above 5%",
     flipVAbove: "{v} or more",
     flipVBelow: "below {v}",
     flipVAny: "—",
@@ -413,7 +416,6 @@ export const copy = {
     monthSubtitle: "Month of the year · {since}",
 
     moonQuestion: "Does the moon set off earthquakes?",
-    moonVerdict: "No.",
     /* {allBut} is filled from the data, so the count cannot go stale, and the
        link is built from one URL held in correlations.ts. */
     /* Split three ways: the setup, the part that depends on the answer, and the
