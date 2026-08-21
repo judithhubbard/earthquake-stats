@@ -491,14 +491,18 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   // way to identify one of the 49 grey lines.
   //
   // This and the crosshair below can both be showing at once -- one keys off
-  // the nearest point in two dimensions, the other off the x position alone --
-  // and they used to draw on top of each other. They are anchored on opposite
-  // sides of the pointer now: this one sits above it, the summary below.
+  // the nearest point in two dimensions, the other off the x position alone.
+  // They stay apart because the summary is pinned to the top or bottom edge of
+  // the frame while this one rides the line under the pointer.
+  //
+  // No fixed anchor. It used to be pinned above the pointer, which put it
+  // outside the frame whenever the line was near the top -- in December every
+  // line is -- and the chart's own overflow rule cut it off. Left unset, Plot
+  // measures the box and flips it below the point when there is no room above.
   marks.push(
     Plot.tip(history, Plot.pointer({
       x: "day", y: "value", maxRadius: 10,
       fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
-      anchor: "bottom",
       title: (d: { year: number; value: number; day: number }) =>
         `${d.year}\n${d.value.toLocaleString()} by ${formatDay(d.day, dayToDate)}`,
     })),
