@@ -367,6 +367,7 @@ main {
 }
 
 .map-row {
+  margin-top: 2.75rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 15rem;
   gap: 1.25rem;
@@ -612,7 +613,7 @@ main {
 
 /* ---------- chart ---------- */
 
-.chart { margin: 1.25rem 0 0; }
+.chart { margin: 2.75rem 0 0; }
 
 .chart figcaption {
   font-size: 0.95rem;
@@ -698,7 +699,7 @@ main {
 
 /* The trend section: a question and an answer, like a correlations panel, but
    sitting under the chart it is about rather than in a list of its own. */
-.trend { margin-top: 2rem; }
+.trend { margin-top: 3.25rem; }
 
 .trend figcaption {
   font-size: 1.05rem;
