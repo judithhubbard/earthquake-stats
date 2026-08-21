@@ -1207,10 +1207,16 @@ async function update() {
         value: moment ? asMagnitude(result.count) : result.count,
         share: {
           more: fill(copy.home.stripShare, { share: above }),
-          moreLabel: copy.home.stripShareMore,
+          moreLabel: moment
+            ? copy.home.stripShareMoreMoment
+            : fill(copy.home.stripShareMore,
+                   { subject: `${magLabel(minMag)} ${kind}` }),
           less: fill(copy.home.stripShare,
                      { share: Math.round(result.belowShare * 100) }),
-          lessLabel: copy.home.stripShareLess,
+          lessLabel: moment
+            ? copy.home.stripShareLessMoment
+            : fill(copy.home.stripShareLess,
+                   { subject: `${magLabel(minMag)} ${kind}` }),
         },
         currentLabel: moment
           ? fill(copy.home.stripCurrentMoment, {

@@ -81,8 +81,13 @@ export const copy = {
     stripCurrent: "{year}: {count}",
     stripCurrentMoment: "{year}: M{count}",
     stripShare: "{share}%",
-    stripShareMore: "of years had more",
-    stripShareLess: "of years had less",
+    /* Two lines: "34% of years had more" leaves the reader to work out more
+       what, and the answer changes with the controls. The second line is what
+       is being counted, on the same setting the rest of the page is on. */
+    stripShareMore: "of years had more\n{subject}",
+    stripShareLess: "of years had fewer\n{subject}",
+    stripShareMoreMoment: "of years released more\nmoment",
+    stripShareLessMoment: "of years released less\nmoment",
 
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",
