@@ -12,6 +12,14 @@ export interface TierInfo {
   count: number;
   /** Events surviving declustering; equals `count` if it has not been run. */
   mainshocks: number;
+  /**
+   * Events whose magnitude is a published Mw rather than ComCat's preferred one.
+   *
+   * Read by the integrity check: this ran at 99.5% for M6+ and fell to 2.9%
+   * when the harvest was skipped, which put the pre-1984 counts on a different
+   * magnitude scale from everything after. See integrity.ts.
+   */
+  homogenised: number;
   /** Whether a `<name>.detail.json` sidecar of ids and place names exists. */
   hasDetail: boolean;
   bytes: number;
@@ -79,15 +87,30 @@ const MS_PER_MIN = 60_000;
  */
 export const DATA_BASE = `${import.meta.env.BASE_URL}data`;
 
+/**
+ * The catalog's parts are separate files with separate cache lifetimes, so a
+ * browser can hold a new meta.json beside an old tier, or the reverse. The
+ * sizes then disagree and the page fails to draw -- which is what happened when
+ * the catalog was rebuilt underneath open tabs.
+ *
+ * Every tier request carries the build stamp from meta.json, so a rebuild asks
+ * for URLs nothing has cached, and a stale body cannot be served against a
+ * fresh manifest. meta.json itself is fetched no-store: it is 4 KB and it is
+ * the thing that decides whether anything else needs refetching.
+ */
+function versioned(base: string, file: string, meta?: Meta): string {
+  return meta ? `${base}/${file}?v=${encodeURIComponent(meta.generated)}` : `${base}/${file}`;
+}
+
 export async function loadMeta(base = DATA_BASE): Promise<Meta> {
-  const res = await fetch(`${base}/meta.json`);
+  const res = await fetch(`${base}/meta.json`, { cache: "no-store" });
   if (!res.ok) throw new Error(`meta.json: ${res.status} ${res.statusText}`);
   return res.json();
 }
 
 export async function loadTier(info: TierInfo, encoding: Encoding,
-                              base = DATA_BASE): Promise<Tier> {
-  const res = await fetch(`${base}/${info.name}.bin`);
+                              base = DATA_BASE, meta?: Meta): Promise<Tier> {
+  const res = await fetch(versioned(base, `${info.name}.bin`, meta));
   if (!res.ok) throw new Error(`${info.name}.bin: ${res.status} ${res.statusText}`);
   const buf = await res.arrayBuffer();
   return decode(buf, info, encoding);
@@ -157,7 +180,8 @@ export class CatalogStore {
   loadDetail(info: TierInfo): Promise<TierDetail> {
     let pending = this.details.get(info.name);
     if (!pending) {
-      pending = fetch(`${this.base}/${info.name}.detail.json`).then((res) => {
+      pending = fetch(versioned(this.base, `${info.name}.detail.json`, this.meta))
+        .then((res) => {
         if (!res.ok) throw new Error(`${info.name}.detail.json: ${res.status}`);
         return res.json();
       });
@@ -189,7 +213,7 @@ export class CatalogStore {
     const info = this.tierFor(threshold);
     let pending = this.cache.get(info.name);
     if (!pending) {
-      pending = loadTier(info, this.meta.encoding, this.base);
+      pending = loadTier(info, this.meta.encoding, this.base, this.meta);
       this.cache.set(info.name, pending);
     }
     return pending;

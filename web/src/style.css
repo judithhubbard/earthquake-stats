@@ -684,7 +684,61 @@ main {
   color: var(--text-muted);
 }
 
+/* Loud on purpose. If this shows, the numbers below it are not to be trusted,
+   and a quiet note at the bottom would be worse than useless. */
+.integrity {
+  margin: 0 0 1.5rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--up);
+  border-left: 4px solid var(--up);
+  border-radius: 8px;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 /* ---------- footer ---------- */
+
+/* Provenance for whoever wants it, closed by default so it is not part of the
+   argument. <details> gives the toggle for free and stays open to in-page
+   search in browsers that look inside closed ones. */
+.tech {
+  margin: 0 0 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.9rem;
+}
+
+.tech summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--text-secondary);
+  list-style: none;
+}
+
+.tech summary::-webkit-details-marker { display: none; }
+
+.tech summary::before {
+  content: "+";
+  display: inline-block;
+  width: 1rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.tech[open] summary::before { content: "−"; }
+.tech summary:hover { color: var(--text-primary); }
+
+.tech-body {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.tech-body p { margin: 0 0 0.85rem; }
+.tech-body p:last-child { margin-bottom: 0; }
+.tech-body strong { color: var(--text-primary); }
 
 footer {
   margin-top: 2.5rem;

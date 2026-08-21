@@ -171,6 +171,61 @@ export const copy = {
     yearsSome: "{n} years",
     yearsCount: "{n} of {max}",
 
+    /* ===============================================================
+       THE TECHNICAL SUMMARY, front page. Plain and direct: what the
+       data is, what was done to it, and what that costs.
+       =============================================================== */
+    techTitle: "Technical summary",
+    techBody:
+      "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
+      "pulled through the FDSN event service. Quarry blasts, explosions and other non-tectonic " +
+      "events are excluded. The catalog is re-fetched every 15 minutes; earthquakes from the " +
+      "last 24 hours are read live in your browser from the USGS one-day feed, so they appear " +
+      "before the next rebuild." +
+
+      "\n\n**Magnitudes are converted to Mw where possible.** ComCat's preferred magnitude is " +
+      "not the same kind of number throughout the record. Before about 1984 it is usually mb or " +
+      "Ms; after that it is usually moment magnitude. Those scales do not agree, so counting " +
+      "everything above M6 on the preferred magnitude compares different things in different " +
+      "decades. We therefore take the moment magnitude wherever one has been published — " +
+      "preferring W-phase, then GCMT centroid, then body-wave, then any other Mw — and fall " +
+      "back to the preferred magnitude only when no Mw exists. About 99.5% of M6+ events carry " +
+      "an Mw. Without this the 1970s lose roughly a quarter of their M6+ earthquakes and every " +
+      "later year looks busier by comparison." +
+
+      "\n\n**Aftershocks can be removed.** A large earthquake is followed by many smaller ones " +
+      "nearby, so a year containing one great earthquake can look like a busy year. The " +
+      "Mainshocks only setting removes them using Gardner-Knopoff windows, with the distance " +
+      "widened to twice the Wells and Coppersmith rupture length for large events — 40 km at " +
+      "M5, 159 km at M8. Windows run forward in time only: an earthquake is removed if a larger " +
+      "one preceded it inside the window, never if a larger one followed. Symmetric windows " +
+      "would strip events from the end of the catalog, which is the part being asked about." +
+
+      "\n\n**The reference period starts in 1976.** That is when the Global CMT catalog begins, " +
+      "so it is the earliest date from which moment magnitudes are broadly available." +
+
+      "\n\n**Only M6+ and M7+ are offered.** Below M6 the number of earthquakes in the catalog " +
+      "for a given year depends partly on how many seismometers were running that year, so " +
+      "counts cannot be compared across decades." +
+
+      "\n\n**Moment.** The Count setting treats every earthquake as one. The Moment setting " +
+      "weights each by the energy released, using the standard relation between moment " +
+      "magnitude and scalar moment. On that setting the axis is labelled with the magnitude of " +
+      "the single earthquake that would release the same total, because raw moment spans a " +
+      "factor of a hundred across the record and is unreadable." +
+
+      "\n\n**The shaded ranges.** The default shows where the middle 50% and middle 90% of " +
+      "previous years fell on each date. The ±2σ setting shows the mean plus and minus two " +
+      "standard deviations instead, measured over every window of that length anywhere in the " +
+      "record rather than over calendar years. Taken year by year, one enormous event enters " +
+      "the calculation on its own anniversary, and the band visibly steps on 11 March, the date " +
+      "of the 2011 Tohoku earthquake." +
+
+      "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
+      "their consequences, and the two are only loosely related: where an earthquake happens, " +
+      "how deep it is, what the ground is made of and what people have built on it matter more " +
+      "to the outcome than the magnitude does.",
+
     /* Footer and failures. */
     latest: "Latest {threshold}: {when}, M{mag} {place}",
     generated: "Catalog snapshot built {when}; live events appended from the USGS one-day feed.",
@@ -575,6 +630,51 @@ export const copy = {
     oklahomaLegendRate: "Normal rate before 2009: about {rate} a year",
 
     sources: "Data: {list}.",
+    /* ===============================================================
+       THE TECHNICAL SUMMARY, correlations page.
+       =============================================================== */
+    techTitle: "Technical summary",
+    techBody:
+      "**Where the data comes from.** Every earthquake here is from the USGS ComCat catalog, " +
+      "pulled through the FDSN event service, excluding quarry blasts and explosions. " +
+      "Magnitudes are converted to moment magnitude wherever one has been published, because " +
+      "ComCat's preferred magnitude changes kind around 1984 — usually mb or Ms before, usually " +
+      "Mw after — and the two scales do not agree. Aftershocks are removed throughout, using " +
+      "Gardner-Knopoff windows that run forward in time only. The front page has the details." +
+
+      "\n\n**Two magnitude thresholds, for two kinds of question.** The first three panels " +
+      "compare days, months and lunar phases within the record, so a change in detection that " +
+      "affects the whole record cancels out; they use M5+, which gives four times the data. The " +
+      "last two compare one year against another, where a change in detection would look like a " +
+      "real trend, so they use M6+, which has been detected worldwide throughout." +
+
+      "\n\n**How the answers are decided.** The first three panels test whether the counts " +
+      "differ across the cycle more than chance allows, using a chi-square goodness-of-fit " +
+      "test. The last two test whether two annual series move together, using a Pearson " +
+      "correlation. Both produce a p-value: how often data with no pattern in it would give a " +
+      "result at least this strong. Below 1% the page says Probably, between 1% and 5% Maybe, " +
+      "above 5% No. Nothing here is written in — change the data and the answers change." +
+
+      "\n\n**The page corrects for asking five questions.** Each panel is tested at a 5% " +
+      "cutoff, so across five the chance that at least one crosses by luck alone is about 23%, " +
+      "not 5%. The answer at the top is based on the smallest of the five p-values corrected " +
+      "for how many times we looked, which is why one panel crossing 5% does not by itself " +
+      "change what the page says." +
+
+      "\n\n**A p-value is not the probability that there is no pattern.** It is how often " +
+      "chance alone would produce a result this strong. It also says nothing about size: with " +
+      "40,000 earthquakes, a difference of two or three percent is enough to pass a 5% cutoff. " +
+      "A result that crosses is worth looking at, not a finding." +
+
+      "\n\n**What these tests cannot do.** A chi-square across bins can say a distribution is " +
+      "uneven; it cannot say what makes it uneven. A correlation can say two series move " +
+      "together; it cannot say which moves the other, or whether something else moves both. " +
+      "Neither can establish a cause, which is why the strongest answer here is Probably." +
+
+      "\n\n**The Oklahoma panel is different.** It is not a test and has no p-value. It shows " +
+      "a case where the cause is established by other evidence: the timing, the depth, the " +
+      "distance from injection wells, and the decline after injection was restricted.",
+
     errorLoad: "Could not load the data.",
   },
 } as const;

@@ -8,6 +8,8 @@ import {
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
 import { copy, fill } from "./copy";
+import { renderTech } from "./tech";
+import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 
 /**
@@ -163,6 +165,8 @@ const el = {
   largestList: document.getElementById("largest-list")!,
   largestNote: document.getElementById("largest-note")!,
   generated: document.getElementById("generated")!,
+  techTitle: document.getElementById("tech-title")!,
+  techBody: document.getElementById("tech-body")!,
 };
 
 const magLabel = (m: number) => `M${m.toFixed(1).replace(/\.0$/, "")}+`;
@@ -1195,6 +1199,9 @@ async function boot() {
     return;
   }
 
+  const problem = checkCatalog(meta);
+  if (problem) showProblem(problem);
+
   store = new CatalogStore(meta);
   buildControls();
   // Seeded once, not per render, so "Clear all" leaves the chart showing just
@@ -1223,5 +1230,6 @@ async function boot() {
   }, LIVE_INTERVAL_MS);
 }
 
+renderTech(copy.home.techTitle, copy.home.techBody, el.techTitle, el.techBody);
 startAnalytics();
 void boot();

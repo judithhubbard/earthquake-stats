@@ -3,6 +3,8 @@ import { CatalogStore, DATA_BASE, loadMeta, type Meta, type Tier } from "./catal
 import { readTheme, type Theme } from "./chart";
 import { MIN_MAGNITUDE, dayIndex } from "./stats";
 import { copy, fill } from "./copy";
+import { renderTech } from "./tech";
+import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 import {
   FULL_MOON_DAY, chiSquare, chiSquareP, correlationP, lunarBins, monthBins,
@@ -29,6 +31,8 @@ const el = {
   answerTable: document.getElementById("answer-table")!,
   panels: document.getElementById("panels")!,
   sources: document.getElementById("sources")!,
+  techTitle: document.getElementById("tech-title")!,
+  techBody: document.getElementById("tech-body")!,
 };
 
 let theme: Theme;
@@ -565,6 +569,9 @@ async function boot() {
     return;
   }
 
+  const problem = checkCatalog(meta);
+  if (problem) showProblem(problem);
+
   const store = new CatalogStore(meta);
   const [fine, coarse] = await Promise.all([
     store.load(BIN_MAGNITUDE), store.load(MIN_MAGNITUDE),
@@ -818,5 +825,6 @@ window.addEventListener("resize", () => {
   window.clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(() => { for (const fn of redraw) fn(); }, 150);
 });
+renderTech(copy.correlations.techTitle, copy.correlations.techBody, el.techTitle, el.techBody);
 startAnalytics();
 void boot();
