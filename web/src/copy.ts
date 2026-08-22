@@ -120,7 +120,13 @@ export const copy = {
        tests the same claim, so the question is what they say together, not
        whether any one of them crosses a line. */
     spreadAggregate: "{year} is in the {percentile} percentile, so far.",
-    aggregateShareMore: "of years scored higher",
+    /* A count, not a percentage. The headline percentile comes off the fitted
+       curve and this comes off the bars, so on fifty years they differ by
+       about one -- and while both were percentages, sitting inches apart, the
+       reader was invited to subtract one from a hundred and find the other.
+       "11 of 50" describes the picture instead of competing with it. */
+    aggregateShareCount: "{n}",
+    aggregateShareMore: "of {peers} years scored higher",
     aggregateCurrent: "{year}",
     aggregateCaption: "z-score for every year since {from}",
     aggregateHelp: "what is a z-score?",

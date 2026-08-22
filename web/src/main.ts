@@ -635,17 +635,18 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
   const scores = a.scores;
   const first = currentYear - (scores.length - 1);
   const peers = scores.slice(0, -1).map((value, i) => ({ year: first + i, value }));
-  // Counted off the bars beside it, not from a.p, which is now the fitted
-  // normal tail. The two are different claims -- "11 of 50 scored higher" and
-  // "78th percentile of the fit" -- and the label belongs to the picture.
-  const above = Math.round(100 * a.higher / a.peers);
+  // Counted off the bars beside it, not from a.p, which is the fitted normal
+  // tail. The label belongs to the picture, so it says how many years, not
+  // what share: a percentage here reads as the complement of the percentile
+  // above it and does not quite match, because one is a count of fifty bars
+  // and the other is a smooth curve through them.
 
   const strip = renderDistribution({
     peers,
     value: a.z,
     share: {
-      more: fill(copy.home.stripShare, { share: above }),
-      moreLabel: copy.home.aggregateShareMore,
+      more: fill(copy.home.aggregateShareCount, { n: a.higher }),
+      moreLabel: fill(copy.home.aggregateShareMore, { peers: a.peers }),
     },
     // Just the year. The percentile was on the marker as well as in the
     // sentence above the chart, which printed the same number twice.
