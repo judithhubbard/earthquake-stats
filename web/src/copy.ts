@@ -318,7 +318,9 @@ export const copy = {
     techBody:
       "**Where the data come from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
-      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes." +
+      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes, and your " +
+      "browser reads the USGS feed of the last day directly, so an earthquake from an hour " +
+      "ago is already counted here." +
 
       "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
       "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +
@@ -379,9 +381,7 @@ export const copy = {
       "and by moment the two are almost the same number, because a year's moment comes mostly " +
       "from its largest earthquakes. Measured against the record, the {waysWord} different " +
       "dependent tests are worth about {effective} independent tests. That is Strube's " +
-      "correction, with the correlations taken from the data rather than assumed. The " +
-      "divisor also accounts for how widely the scores themselves spread, rather than " +
-      "assuming each one has a standard deviation of exactly 1." +
+      "correction, with the correlations taken from the data rather than assumed." +
 
       "\n\n**Is the rate changing?** A straight line is fitted by least squares through the " +
       "yearly counts of four fixed series — M6+ and M7+, each with aftershocks left in and " +
@@ -400,8 +400,9 @@ export const copy = {
       "Monte Carlo. Šidák would say {sidak}% where this says {joint}%." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
-      "their consequences. The two are related, but loosely: a M7 on the mid-Atlantic ridge " +
-      "will have no human effects, while a M7 below Los Angeles will cause widespread damage.",
+      "their consequences. The two are related, but loosely: an M7 on the Mid-Atlantic Ridge " +
+      "will have no human effects, while an M7 below Los Angeles will cause widespread " +
+      "damage.",
 
     /* Footer and failures. */
     latest: "latest {threshold}: {when}, M{mag} {place}",
@@ -767,8 +768,9 @@ export const copy = {
     techBody:
       "**Where the data come from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
-      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes, and these " +
-      "panels use everything in it, up to and including the incomplete current year." +
+      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes. The three " +
+      "binned panels use everything in it, up to and including the incomplete current year; " +
+      "the two yearly comparisons use complete years only." +
 
       "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
       "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +
