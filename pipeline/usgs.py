@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import gzip
+import json
 import io
 import time
 import urllib.error
@@ -54,6 +55,39 @@ def _get(params: dict, *, retries: int = 5) -> str:
             time.sleep(delay)
             delay *= 2
     raise RuntimeError(f"USGS request failed after {retries} tries: {url}") from last
+
+
+def alias_map(start: datetime, end: datetime, minmagnitude: float) -> dict[str, str]:
+    """{superseded id: the id ComCat now prefers}, for one time window.
+
+    ComCat sometimes carries a regional or tsunami-warning solution as its own
+    event for the first minutes after an earthquake, then associates it with
+    the authoritative one. The GeoJSON `ids` property lists every id an event
+    answers to, so anything in there that is not the event's own id is an alias
+    that should not exist separately in a mirror.
+
+    GeoJSON rather than CSV because the CSV format does not carry `ids` at all,
+    which is why ingest could not see the merge happen.
+    """
+    params = {
+        "format": "geojson",
+        "starttime": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "endtime": end.strftime("%Y-%m-%dT%H:%M:%S"),
+        "minmagnitude": minmagnitude,
+        "orderby": "time",
+    }
+    body = _get(params)
+    if not body.strip():
+        return {}
+    out: dict[str, str] = {}
+    for feature in json.loads(body).get("features", []):
+        preferred = feature.get("id")
+        if not preferred:
+            continue
+        for alias in (feature.get("properties", {}).get("ids") or "").strip(",").split(","):
+            if alias and alias != preferred:
+                out[alias] = preferred
+    return out
 
 
 def _parse_csv(body: str) -> list[dict]:
