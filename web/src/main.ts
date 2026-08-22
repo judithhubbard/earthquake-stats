@@ -635,7 +635,10 @@ function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
   const scores = a.scores;
   const first = currentYear - (scores.length - 1);
   const peers = scores.slice(0, -1).map((value, i) => ({ year: first + i, value }));
-  const above = Math.round(100 * a.p);
+  // Counted off the bars beside it, not from a.p, which is now the fitted
+  // normal tail. The two are different claims -- "11 of 50 scored higher" and
+  // "78th percentile of the fit" -- and the label belongs to the picture.
+  const above = Math.round(100 * a.higher / a.peers);
 
   const strip = renderDistribution({
     peers,
@@ -837,6 +840,7 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
     techValues.ways = aggregate.tests;
     techValues.waysWord = numberWord(aggregate.tests);
     techValues.effective = aggregate.effective.toFixed(1);
+    techValues.peers = aggregate.peers;
     // No tooltip. It walked through Stouffer, the divisor and the ranking --
     // all of which the technical summary now says, and says better -- while
     // its live numbers, the six percentiles and this year's score, are in the

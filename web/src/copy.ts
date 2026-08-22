@@ -358,10 +358,13 @@ export const copy = {
       "turns " +
       "each " +
       "into a " +
-      "z-score, adds them, and divides by how much that sum could vary by chance. Every past " +
-      "year is scored the same way, and the answer is where this year ranks among them — a " +
-      "count of the years that scored higher, not a probability read off a normal curve. " +
-      "That is what the histogram beside the answer draws. The last-365-days combinations " +
+      "z-score, adds them, and divides by how much that sum could vary by chance — by the " +
+      "spread of the scores as well as by how strongly they move together, so the combined " +
+      "score has a standard deviation of one. The percentile at the top is then read off the " +
+      "normal curve. Every past year is scored the same way, and the histogram beside the " +
+      "answer draws all of them, so the share it reports is a count of years rather than the " +
+      "curve: on {peers} past years the two agree to about a percentile. The last-365-days " +
+      "combinations " +
       "are left out: a window ending today is not a year, so it cannot be ranked against " +
       "past years." +
 

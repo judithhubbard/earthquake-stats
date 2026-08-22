@@ -554,12 +554,21 @@ export interface Combined {
   /** Stouffer's combined statistic, corrected for the correlation between tests. */
   z: number;
   /**
-   * Share of the previous years that scored higher, as a fraction.
+   * One-sided p: how often a year with nothing unusual about it scores this
+   * high, from the standard normal.
    *
-   * Counted, not read off a normal curve. The scores below are what the
-   * histogram beside the headline draws, so this is the number a reader can
-   * check by counting bars -- and it makes the answer independent of whether
-   * the combined score is normally distributed, which 51 years cannot show.
+   * Safe to read this way only because the divisor is the covariance sum. When
+   * it was the correlation sum the scores carried a variance near 1.05, so the
+   * tail was wrong -- 3% out at a typical value and 25% out in the tail. On the
+   * current catalogue the 51 combined scores sit at mean -0.001, sd 0.997,
+   * skewness 0.024, excess kurtosis -0.48, and a KS distance of 0.067 against
+   * a 5% critical value of 0.190. The light tails make this conservative where
+   * it matters.
+   *
+   * The empirical rank is carried alongside rather than instead: it is what the
+   * histogram counts, and it is the number a reader can check. Ranking alone
+   * moves in steps of 1/peers -- two whole percentiles on fifty years -- which
+   * reports a score change of 0.02 as a two-point jump.
    */
   p: number;
   /** How many previous years scored higher, and how many there were. */
@@ -665,7 +674,7 @@ export function combineRanks(ranks: number[][]): Combined | null {
   return {
     z: combined,
     scores,
-    p: higher / peerScores.length,
+    p: 1 - normalCdf(combined),
     higher,
     peers: peerScores.length,
     effective: (k * k) / total,
