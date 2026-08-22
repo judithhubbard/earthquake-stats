@@ -200,8 +200,14 @@ main {
 }
 
 /* Below this the chart is too narrow to give a corner away, so the histogram
-   drops underneath it and the layout goes back to stacking. */
-@media (max-width: 60rem) {
+   drops underneath it and the layout goes back to stacking.
+
+   48rem, not the 60rem this used to be. The inset needs 21.1rem of room --
+   4.6rem of offset plus 16.5rem of width -- and the old breakpoint dropped it
+   on any window under 960px, which is an ordinary laptop half-screen. The
+   difference it was guarding against is small: the inset covers 28% of the
+   chart at 960px, where it was allowed, and 34% at 768px, where it now is. */
+@media (max-width: 48rem) {
   .chart-inset {
     position: static;
     width: auto;
