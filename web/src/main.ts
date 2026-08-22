@@ -577,9 +577,17 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
  * about? Picking M7+ over M6+ is a legitimate interest, not a fishing trip. So
  * the fix is to show what the choice is worth rather than to take it away.
  */
+/**
+ * One percentile. Deliberately carries no "is this the selected one" flag.
+ *
+ * The matching cell used to be picked out in the series colour. But the answer
+ * above the table does not come from the selected combination -- that is the
+ * whole point of pooling -- so colouring one of the twelve implied it was the
+ * one that counted, and made the table look like it was answering the controls
+ * when it is there to show what the controls are worth.
+ */
 interface SpreadCell {
   percentile: number;
-  selected: boolean;
 }
 
 /** One row per way of counting; one cell per time window. */
@@ -755,12 +763,7 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
             ranks.push(new Map(scored.map((y, i) => [y, percentiles[i]])));
           }
 
-          cells.push({
-            percentile: result.percentile * 100,
-            selected: minMag === state.minMag && measure === state.measure
-                   && mainshocksOnly === effectiveMainshocksOnly()
-                   && window === state.window,
-          });
+          cells.push({ percentile: result.percentile * 100 });
         }
         if (cells.length !== SPREAD_WINDOWS.length) continue;
         rows.push({
@@ -860,14 +863,13 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
   list.className = "flip-rows";
   const template = "minmax(0, 1fr) minmax(0, 7.5rem) minmax(0, 7.5rem)";
 
-  const row = (cells: string[], cls: string, marked: boolean[] = []) => {
+  const row = (cells: string[], cls: string) => {
     const li = document.createElement("li");
     li.className = cls;
     li.style.gridTemplateColumns = template;
     cells.forEach((text, i) => {
       const cell = document.createElement("span");
       cell.className = i === 0 ? "flip-when" : "flip-when flip-num";
-      if (marked[i]) cell.classList.add("is-selected");
       cell.textContent = text;
       li.append(cell);
     });
@@ -877,8 +879,7 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
   list.append(row([c.spreadColWay, c.spreadCalendar, c.spreadRolling], "flip-head"));
   for (const r of rows) {
     list.append(row(
-      [r.label, ...r.cells.map((cell) => ordinal(cell.percentile))],
-      "", [false, ...r.cells.map((cell) => cell.selected)]));
+      [r.label, ...r.cells.map((cell) => ordinal(cell.percentile))], ""));
   }
   box.append(list);
   el.spreadChart.replaceChildren(box);

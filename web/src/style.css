@@ -861,13 +861,6 @@ main {
 .spread-box { margin: 0; padding-top: 0; border-top: 0; }
 .spread-box .flip-title { display: none; }
 
-/* The cell matching the controls below, so the reader can see which of the
-   twelve the rest of the page is showing them. */
-.flip-num.is-selected {
-  color: var(--series-1);
-  font-weight: 700;
-}
-
 .spread-note {
   margin: 0.55rem 0 0;
   font-size: 0.82rem;
