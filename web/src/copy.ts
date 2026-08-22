@@ -423,9 +423,11 @@ export const copy = {
     detail: "We checked. The data below updates as the USGS catalog does, and every answer on "
       + "this page is computed from it rather than hard-coded.",
     /* The page's own answer, on the same three rungs as the panels. The
-       smallest of the five p-values decides which, but only after correcting
-       for having asked five questions -- and the correction lands on the same
-       1% and 5% lines, since 1 - (1 - 0.0102)^5 is 5%. */
+       smallest of the four p-values in the family decides which, but only
+       after correcting for having asked four questions -- and the correction
+       lands on the same 1% and 5% lines, since 1 - (1 - 0.0127)^4 is 5%. The
+       weekday panel is shown and graded but not in the family; see TESTS in
+       correlations.ts. */
     answerMaybe: "<strong>Maybe.</strong>",
     answerProbably: "<strong>Probably.</strong>",
     detailMaybe:
@@ -439,10 +441,11 @@ export const copy = {
       "this strong turns up {corrected}% of the time when none is real. That is worth " +
       "explaining, and it is still not a cause. The data below updates as the USGS catalog " +
       "does, and every answer on this page is computed from it rather than hard-coded.",
-    /* The per-question table, left of the combined one. Someone who came for
-       one of these five wants that one answered, not averaged into the other
-       four: the combined number is the right way to read the page as a whole
-       and the wrong way to answer "do sunspots cause earthquakes". */
+    /* The per-question table, left of the combined one, and it lists all five
+       including the weekday check. Someone who came for one of them wants that
+       one answered, not averaged into the others: the combined number is the
+       right way to read the page as a whole and the wrong way to answer "do
+       sunspots cause earthquakes". */
     pageColQuestion: "The question",
     pageColOwnP: "Its p-value",
     pageColCombined: "Combined p-value for {testsWord} tests",

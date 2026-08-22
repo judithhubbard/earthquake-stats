@@ -37,9 +37,11 @@ Three tiers:
 1. **Baseline (static).** `pipeline/fetch.py` mirrors ComCat into SQLite,
    `pipeline/decluster.py` flags dependent events, and `pipeline/build.py` emits
    the packed binary. A cron job refreshes them.
-2. **Live (client-direct).** The page polls USGS's `all_day.geojson` itself every
+2. **Live (client-direct).** The page polls USGS's `4.5_day.geojson` itself every
    60s. That feed is CORS-enabled and CDN-cached at 60s, so the browser can hit
    it directly — no proxy, and our traffic never touches the FDSN query service.
+   M4.5+ rather than `all_day`: the page only ever offers M6+ and M7+, so the
+   smaller feed is a strict superset of what it reads, at 20 KB against 225 KB.
    It carries event ids and place names, so new events reach the event list too,
    not just the counts.
 3. **Event pages.** Not built yet.
@@ -316,12 +318,20 @@ seasons, the weather, the sun, and whether people cause earthquakes. It is a
 separate page with its own URL rather than a toggle on the front page, because
 each question is a thing someone will want to link to.
 
+The page grades itself on a combined p-value over **four** questions — the
+month, the moon, temperature and sunspots — using Šidák. Day of the week is
+shown and graded on its own p-value but deliberately left out of that
+combination: earthquakes cannot know what day it is, so it is a calibration
+test rather than a claim about the Earth, and counting it would hold the four
+real questions to a stricter standard against an answer nobody is looking for.
+
 **It is not headlined "do earthquakes correlate with anything?"** — that draft
 title was simply false. Earthquakes correlate strongly with faults and with each
 other; aftershock clustering is about the most reliable relationship in the
 subject, and this page *removes* it before it starts looking. The page asks
-whether anything **outside** the Earth sets them off, and the headline answer
-leads with the true positive: *No. But they do follow each other.*
+whether anything **outside** the Earth sets them off. The headline answer is
+*No.* — it used to add "but they do follow each other", which went when the
+aftershocks page it pointed at was removed.
 
 Every panel is the same shape — bars against a shaded band of what chance alone
 produces — so a reader never has to judge whether 3% is a lot, only whether a bar
@@ -371,7 +381,10 @@ Oklahoma is the punchline: an average of 3 M3+ earthquakes a year until 2008,
 
 ## Still to build
 
-Roughly in value order: rolling 365-day count (no Jan 1 artifact), day-of-week
-and month control charts for the "patterns people think they see" section,
-nearest-neighbour declustering, the Oklahoma induced-seismicity case study, and
-event permalink pages with Substack links.
+Roughly in value order: day-of-week and month control charts for the "patterns
+people think they see" section, nearest-neighbour declustering, and event
+permalink pages with Substack links.
+
+Done since this list was written: the rolling 365-day count (the **Last 365
+days** window, which removes the Jan 1 artifact) and the Oklahoma
+induced-seismicity panel.
