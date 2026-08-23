@@ -242,10 +242,10 @@ main {
      absorbs the header having shrunk, the title having left the flow to become
      a chip on the border. */
   position: absolute;
-  top: 4.75rem;
-  left: calc(4.6rem + var(--sec-pad-x, 0rem));
+  top: 0.9rem;
+  left: 4.6rem;
   width: 16.5rem;
-  max-width: calc(100% - 6rem - 2 * var(--sec-pad-x, 0rem));
+  max-width: calc(100% - 6rem);
   padding: 0.1rem 0.15rem 0;
   border-radius: 10px;
   background: color-mix(in srgb, var(--surface-1) 88%, transparent);
@@ -472,11 +472,9 @@ main {
 /* A chip hanging off a border needs room either side of it. On a narrow screen
    there is none, so it drops back into the flow as an ordinary title. */
 @media (max-width: 34rem) {
-  .chart,
-  .map-row { padding: 0.9rem 0.75rem 0.85rem; }
-  #chart-title,
+  .chart { padding: 0.9rem 0.75rem 0.85rem; }
+  #explore-title,
   #annual-title,
-  #map-title,
   .trend > figcaption {
     position: static;
     transform: none;
@@ -725,8 +723,7 @@ main {
    straddling the top edge. The chip is out of flow, so .chart-head pushes the
    Range toggle to the right on its own; the box's top padding is what reserves
    room for the chip rather than the title's own margin. ---- */
-.chart,
-.map-row {
+.chart {
   --sec-pad-x: 1rem;
   --sec-pad-top: 1.55rem;
   position: relative;
@@ -833,9 +830,8 @@ main {
    are figcaptions too, and ".trend figcaption" outranks ".trend-panel-title",
    which is how they came out big and green after being demoted. */
 .section-title,
-#chart-title,
+#explore-title,
 #annual-title,
-#map-title,
 .trend > figcaption {
   font-weight: 700;
   line-height: 1.25;
@@ -845,9 +841,8 @@ main {
 
 .section-title { font-size: 1.35rem; }
 
-#chart-title,
+#explore-title,
 #annual-title,
-#map-title,
 .trend > figcaption {
   position: absolute;
   top: 0;
@@ -864,6 +859,24 @@ main {
 
 /* The title is out of flow, so the row that held it only carries the toggle. */
 .chart-head { justify-content: flex-end; }
+
+/* The controls live inside "Explore the data" now, so the chart's own title is
+   a subtitle under them: it names the current selection rather than the
+   section, and the chip on the border carries the section name. */
+.chart-subhead { margin-top: 1.1rem; justify-content: space-between; }
+
+.chart-subtitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* The inset is positioned against this rather than against the figure, so
+   whatever sits above the chart -- a control row, a subtitle -- cannot push it
+   off the plot. */
+.chart-stage { position: relative; margin-top: 0.75rem; }
+
+.explore .controls { padding-bottom: 0.9rem; margin-bottom: 0; }
 
 .section-title { margin: 0 0 0.6rem; }
 

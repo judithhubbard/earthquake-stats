@@ -116,10 +116,8 @@ export const copy = {
     cumulativeTitle: "Cumulative {subject} worldwide",
     cumulativeSubjectCount: "{threshold} {kind}",
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
-    annualTitleCount: "{threshold} {kind} per year, worldwide",
-    annualTitleMoment: "Moment released per year, worldwide",
-    mapTitle: "{threshold} earthquakes, selected years",
-
+    annualTitleCount: "How many earthquakes occur each year?",
+    annualTitleMoment: "How much moment is released each year?",
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
     axisCumulativeMoment: "Moment this year, as a single earthquake",
@@ -163,12 +161,8 @@ export const copy = {
       "shows the year so far, and the dashed outline is where it will land if it continues at the usual pace.",
 
     /* The map and the year list beside it. */
-    mapEmpty: "Select a year to plot its earthquakes.",
     largestEmpty: "No {threshold} {kind} recorded in {years}.",
-    largestNoYears: "Select a year above to list its earthquakes.",
-    largestNote: "{n} {threshold} {kind}.",
     largestTruncated: "{n} {threshold} {kind} — showing the first {shown}.",
-    largestNoDetail: "No event details available at this magnitude.",
     largestFailed: "Could not load event details.",
     readAnalysis: "Read our analysis →",
 
@@ -312,7 +306,6 @@ export const copy = {
     errorBoot:
       "{message}. Run the pipeline first: python3 pipeline/fetch.py --backfill && " +
       "python3 pipeline/magnitudes.py && python3 pipeline/decluster.py && python3 pipeline/build.py",
-    errorBasemap: "Could not load the basemap.",
   },
 
   /* ===================================================================

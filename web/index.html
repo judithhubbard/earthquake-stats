@@ -35,11 +35,57 @@
           the USGS. The answers here are calculated automatically from that data.
         </p>
 
-
       </header>
 
+      <section class="feels">
+        <h2 class="section-title">How do we decide if this year is normal?</h2>
+        <p class="feels-close">
+          If you hear that the rate of earthquakes is increasing from some source, ask
+          yourself: what data do they have that isn&rsquo;t on this page? This is an
+          automatically generated page. In years when the rate is unusually low or high,
+          the answer shown here will flip &mdash; it&rsquo;s in the code.
+        </p>
+
+        <figure class="scale" id="scale">
+          <figcaption id="scale-title"></figcaption>
+          <div class="scale-bar" id="scale-bar"></div>
+          <ol class="scale-rows" id="scale-rows"></ol>
+          <p class="scale-note" id="scale-note"></p>
+        </figure>
+
+        <p>
+          <a class="explore" data-track="substack-footer" href="https://earthquakeinsights.substack.com/"
+             target="_blank" rel="noopener noreferrer">
+            We write about earthquakes every week <span class="arrow">→</span>
+          </a>
+        </p>
+      </section>
+
       <section class="panel">
-        <div class="controls" id="controls">
+
+        <figure class="chart">
+          <figcaption class="chart-head">
+            <span id="annual-title"></span>
+            <span class="chart-toggle">
+              <span class="chart-toggle-label">Range</span>
+              <span class="segmented segmented-sm" id="annual-range-control"></span>
+            </span>
+          </figcaption>
+          <div id="annual-chart"></div>
+          <p class="chart-note" id="annual-note"></p>
+        </figure>
+
+        <figure class="chart trend">
+          <figcaption id="trend-question"></figcaption>
+          <p class="trend-verdict" id="trend-verdict"></p>
+          <p class="trend-body" id="trend-body"></p>
+          <div class="trend-grid" id="trend-grid"></div>
+          <div id="trend-table"></div>
+        </figure>
+
+        <figure class="chart explore">
+          <figcaption><span id="explore-title">Explore the data</span></figcaption>
+          <div class="controls" id="controls">
           <fieldset>
             <legend>
               Magnitude
@@ -90,82 +136,21 @@
               </div>
             </div>
           </fieldset>
-        </div>
-
-        <figure class="chart has-inset">
-          <figcaption class="chart-head">
-            <span id="chart-title"></span>
+          </div>
+          <div class="chart-head chart-subhead">
+            <span class="chart-subtitle" id="chart-title"></span>
             <span class="chart-toggle">
               <span class="chart-toggle-label">Range</span>
               <span class="segmented segmented-sm" id="range-control"></span>
             </span>
-          </figcaption>
-          <div id="chart"></div>
-          <div class="answer-detail chart-inset" id="answer-detail"></div>
+          </div>
+          <div class="chart-stage has-inset">
+            <div id="chart"></div>
+            <div class="answer-detail chart-inset" id="answer-detail"></div>
+          </div>
           <p class="chart-note" id="chart-note"></p>
         </figure>
 
-        <figure class="chart">
-          <figcaption class="chart-head">
-            <span id="annual-title"></span>
-            <span class="chart-toggle">
-              <span class="chart-toggle-label">Range</span>
-              <span class="segmented segmented-sm" id="annual-range-control"></span>
-            </span>
-          </figcaption>
-          <div id="annual-chart"></div>
-          <p class="chart-note" id="annual-note"></p>
-        </figure>
-
-        <figure class="chart trend">
-          <figcaption id="trend-question"></figcaption>
-          <p class="trend-verdict" id="trend-verdict"></p>
-          <p class="trend-body" id="trend-body"></p>
-          <div class="trend-grid" id="trend-grid"></div>
-          <div id="trend-table"></div>
-        </figure>
-
-        <div class="map-row">
-          <figure class="chart map-figure">
-            <figcaption id="map-title"></figcaption>
-            <div id="map"></div>
-            <p class="legend" id="map-legend"></p>
-          </figure>
-
-          <aside class="largest" aria-label="Earthquakes in the selected years">
-            <div class="largest-head">
-              <span class="largest-heading" id="largest-heading"></span>
-              <div class="segmented segmented-sm" id="sort-control"></div>
-            </div>
-            <ol id="largest-list"></ol>
-            <p class="largest-note" id="largest-note"></p>
-          </aside>
-        </div>
-      </section>
-
-
-      <section class="feels">
-        <h2 class="section-title">How do we decide if this year is normal?</h2>
-        <p class="feels-close">
-          If you hear that the rate of earthquakes is increasing from some source, ask
-          yourself: what data do they have that isn&rsquo;t on this page? This is an
-          automatically generated page. In years when the rate is unusually low or high,
-          the answer shown here will flip &mdash; it&rsquo;s in the code.
-        </p>
-
-        <figure class="scale" id="scale">
-          <figcaption id="scale-title"></figcaption>
-          <div class="scale-bar" id="scale-bar"></div>
-          <ol class="scale-rows" id="scale-rows"></ol>
-          <p class="scale-note" id="scale-note"></p>
-        </figure>
-
-        <p>
-          <a class="explore" data-track="substack-footer" href="https://earthquakeinsights.substack.com/"
-             target="_blank" rel="noopener noreferrer">
-            We write about earthquakes every week <span class="arrow">→</span>
-          </a>
-        </p>
       </section>
 
       <p>
