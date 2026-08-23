@@ -487,14 +487,18 @@ main {
   /* One line, label beside control, not above it. Five stacked
      label-over-control blocks read as a settings form; four choices on a rule
      read as a caption you can click. */
-  align-items: center;
-  gap: 0.5rem 1.15rem;
+  /* Names above their controls. Taking the four labels out of the horizontal
+     run frees roughly 390px, which is what lets all four groups sit on one
+     line -- they were beside their controls precisely to save height, and it
+     cost more width than it saved. */
+  align-items: end;
+  gap: 0.75rem 1.5rem;
   padding-bottom: 1.1rem;
   margin-bottom: 1.4rem;
   border-bottom: 1px solid var(--border);
 }
 
-.controls fieldset { display: flex; align-items: center; gap: 0.35rem; }
+.controls fieldset { display: block; }
 
 .controls fieldset {
   border: 0;
@@ -504,8 +508,8 @@ main {
 }
 
 .controls legend {
-  float: left;
-  padding: 0 0.3rem 0 0;
+  display: block;
+  padding: 0 0 0.35rem;
   font-family: var(--mono);
   font-size: var(--t-micro);
   font-weight: 500;
