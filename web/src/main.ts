@@ -188,7 +188,6 @@ const el = {
   spreadChart: document.getElementById("spread-chart")!,
   trendTable: document.getElementById("trend-table")!,
   trendGrid: document.getElementById("trend-grid")!,
-  trendOverlap: document.getElementById("trend-overlap")!,
   techTitle: document.getElementById("tech-title")!,
   techBody: document.getElementById("tech-body")!,
 };
@@ -1381,12 +1380,6 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
     techValues.corrMin = corr.min.toFixed(2);
     techValues.corrMax = corr.max.toFixed(2);
   }
-  el.trendOverlap.textContent = fill(c.trendOverlap, {
-    threshold: magLabel(MIN_MAGNITUDE), major: magLabel(MAJOR_MAGNITUDE),
-    minCorr: corr ? corr.min.toFixed(2) : "—",
-    maxCorr: corr ? corr.max.toFixed(2) : "—",
-  });
-
   // One column, not two. The smallest p-value used to sit beside the combined
   // one, which invited the reader to grade off whichever looked better; it is
   // still reported, in the prose and under each panel, where it cannot be

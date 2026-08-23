@@ -838,7 +838,6 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
-.trend-overlap { margin-bottom: 0; }
 
 /* Where this year lands on every combination the controls can reach. Quiet:
    it qualifies the answer above it rather than competing with it. */

@@ -270,18 +270,6 @@ export const copy = {
       "this steep only {corrected}% of the time. The steepest single series is {subject}, at " +
       "{p}%. That is a real change in the rate at this magnitude and this setting, which is " +
       "not the same as a change in the Earth.",
-    /* Said out loud rather than buried. The four series are nested, so Sidak's
-       independence assumption does not hold. It fails in the safe direction,
-       and saying which direction is the point. */
-    trendOverlap:
-      "The four series overlap: every {major} earthquake is also an {threshold} earthquake, " +
-      "and every mainshock is also an earthquake. Their year-to-year counts correlate with " +
-      "each other between {minCorr} and {maxCorr}, so these are not four independent looks at " +
-      "the data, and the usual textbook correction — which assumes they are — would be too " +
-      "harsh. The combined number above is measured instead of assumed: it comes from " +
-      "reshuffling the years and seeing how often four series that genuinely have no trend " +
-      "throw up something this steep.",
-
     trendPanelAll: "{threshold}, all earthquakes",
     trendPanelMainshocks: "{threshold}, mainshocks only",
     trendPanelAxis: "{threshold} per year",
