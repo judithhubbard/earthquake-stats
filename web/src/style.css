@@ -843,19 +843,20 @@ main {
    the histogram still reads, and the scale gets two thirds of the width. */
 .answer-row {
   display: grid;
-  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
-  gap: 1.25rem 1.75rem;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 1.25rem 1.5rem;
   align-items: center;
 }
 
 .answer-row > .scale { margin: 0; min-width: 0; }
-.question .answer-detail { min-height: 0; }
+.question .answer-detail { min-height: 0; min-width: 0; }
 
-@media (max-width: 60rem) {
+/* 42rem, not 60: the page's column is 60rem wide, so a 60rem breakpoint
+   stacked the row on any window that was not comfortably wider than the
+   content itself -- which is most of them. */
+@media (max-width: 42rem) {
   .answer-row { grid-template-columns: minmax(0, 1fr); }
 }
-
-.question .answer-detail { min-height: 0; }
 
 
 .chart-intro {
@@ -952,7 +953,7 @@ main {
   border-radius: 10px;
 }
 
-@media (max-width: 52rem) {
+@media (max-width: 42rem) {
   .decade-row { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
 }
 
@@ -960,10 +961,6 @@ main {
 
 .decade-table .correlate-flip { margin: 0; padding-top: 0; border-top: 0; }
 .decade-table .flip-title { display: none; }
-
-@media (max-width: 52rem) {
-  .decade-row { grid-template-columns: minmax(0, 1fr); }
-}
 
 /* The histogram and the tooltip that names the bar under the pointer. */
 .hist-wrap { position: relative; }
