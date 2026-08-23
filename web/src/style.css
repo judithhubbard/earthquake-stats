@@ -105,16 +105,12 @@ main {
 
 .hero { margin-bottom: 2.25rem; }
 
-/* The two questions are equal partners, and neither is a tray: a frame would
-   file them with "Explore the data", which is the tool rather than the answer.
-   What sets them apart is a rule, a wide gap, and a heading larger than
-   anything else on the page. */
+/* One question now, so it takes the page rather than a box. The frame existed
+   to say "these two are a pair and neither is the tool below"; with a single
+   question the heading and the gap say that on their own, and a frame would
+   only file the page's own answer with "Explore the data". */
 .question {
   margin-top: 1.75rem;
-  padding: 1.6rem 1.4rem 1.5rem;
-  background: var(--question-ground);
-  border: 2px solid var(--chip-edge);
-  border-radius: 12px;
 }
 
 /* The one place on the site with a face of its own. A serif for the questions
@@ -834,6 +830,7 @@ main {
 .question > #annual-chart,
 .question > .answer-figure {
   background: #ffffff;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.9rem 1rem;
 }
