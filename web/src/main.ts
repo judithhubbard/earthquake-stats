@@ -1199,10 +1199,12 @@ function writeAnnualNote(currentYear: number, splitMajor: boolean, rolling: bool
   const template = rolling
     ? (splitMajor ? copy.home.noteAnnualRollingMajor : copy.home.noteAnnualRolling)
     : (splitMajor ? copy.home.noteAnnual : copy.home.noteAnnualPlain);
-  // The catalogue's own cut-off, not the reader's clock: every bar is measured
-  // to the moment the data was last rebuilt, and that is what moves when the
-  // site updates.
-  const cutoff = new Date(meta.generated);
+  // The window's end, which is now -- the bars really do run to today, with
+  // the live events appended on top of the built catalogue. meta.generated is
+  // when the data was last rebuilt, a different fact, and using it here made
+  // this line disagree with the inset's "by <date>" by however many days the
+  // pipeline was behind. The rebuild time is reported in the footer instead.
+  const cutoff = new Date();
   el.annualNote.textContent = fill(template,
     { major: magLabel(MAJOR_MAGNITUDE),
       when: cutoff.toLocaleString(undefined, {
