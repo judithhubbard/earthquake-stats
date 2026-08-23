@@ -170,7 +170,6 @@ const el = {
   annualNote: document.getElementById("annual-note")!,
   range: document.getElementById("range-control")!,
   annualRange: document.getElementById("annual-range-control")!,
-  scaleTitle: document.getElementById("scale-title")!,
   scaleBar: document.getElementById("scale-bar")!,
   scaleBasis: document.getElementById("scale-basis")!,
   scaleRows: document.getElementById("scale-rows")!,
@@ -262,7 +261,6 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[]) {
     };
   });
 
-  el.scaleTitle.textContent = copy.home.scaleTitle;
 
   el.scaleBar.replaceChildren(...bands.map((b) => {
     const seg = document.createElement("span");

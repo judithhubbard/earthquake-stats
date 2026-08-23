@@ -121,7 +121,9 @@ export const copy = {
        so the reader cannot pick the slice that best supports an answer. */
     annualIntro:
       "This chart shows {threshold} earthquakes globally, after removing aftershocks, to " +
-      "evaluate whether the rate of earthquakes is changing over time.",
+      "evaluate whether the rate of earthquakes is changing over time. Because we have removed " +
+      "aftershocks, the annual numbers are lower than in the previous plot. One large " +
+      "earthquake can trigger many aftershocks, which would skew these results.",
     annualTitleMoment: "Is the rate of moment release changing?",
 
     /* The verdict alone. What decides it is in the table beside the histogram,
@@ -217,9 +219,6 @@ export const copy = {
     legendBandInner: "Middle half of past years",
     legendMean: "Average year (mean)",
 
-    /* The scale at the foot of the page: every headline the site can print, how
-       wide a slice of the percentile range earns it, and how often that is. */
-    scaleTitle: "Every answer this page can give",
     /* Earthquakes, not percentiles: the frequency column already says what a
        percentile band means, and "5 years in 100" is easier to hold than "the
        95th percentile". */

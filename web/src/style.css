@@ -1373,13 +1373,6 @@ footer p { margin: 0 0 0.4rem; }
   margin: 1.75rem 0 0;
 }
 
-.scale figcaption {
-  font-size: 0.8rem;
-  font-weight: 650;
-  color: var(--text-secondary);
-  margin-bottom: 0.6rem;
-}
-
 .scale-bar {
   position: relative;
   display: flex;
