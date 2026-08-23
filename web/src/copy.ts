@@ -151,13 +151,13 @@ export const copy = {
       "Each bar is a full twelve months ending on this date, so the most recent one is " +
       "complete and directly comparable to the rest.",
     noteAnnualRollingMajor:
-      "The lighter part of each bar is the {major} share. Each bar is a full twelve months " +
+      "The darker part of each bar is the {major} share. Each bar is a full twelve months " +
       "ending on this date, so the most recent one is complete and directly comparable.",
     noteAnnualPlain:
       "{year} is still going: the solid bar shows the year so far, and the dashed outline is " +
       "where it will land if it continues at the usual pace.",
     noteAnnual:
-      "The lighter part of each bar is the {major} share. {year} is still going: the solid bar " +
+      "The darker part of each bar is the {major} share. {year} is still going: the solid bar " +
       "shows the year so far, and the dashed outline is where it will land if it continues at the usual pace.",
 
     /* The map and the year list beside it. */
