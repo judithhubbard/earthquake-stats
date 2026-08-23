@@ -190,9 +190,7 @@ export const copy = {
        the whole bar. */
     /* In the rolling view every bar is a complete twelve months, including the
        current one, so there is nothing to project. */
-    noteAnnualRolling:
-      "Each bar is a full twelve months ending on this date, so the most recent one is " +
-      "complete and directly comparable to the rest.",
+    noteAnnualRolling: "",
     noteAnnualRollingMajor: "",
     noteAnnualPlain:
       "{year} is still going: the solid bar shows the year so far, and the dashed outline is " +
