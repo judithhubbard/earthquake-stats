@@ -161,6 +161,8 @@ const el = {
   chartTitle: document.getElementById("chart-title")!,
   chartNote: document.getElementById("chart-note")!,
   annualChart: document.getElementById("annual-chart")!,
+  decadeText: document.getElementById("decade-text")!,
+  decadeChart: document.getElementById("decade-chart")!,
   annualTitle: document.getElementById("annual-title")!,
   annualNote: document.getElementById("annual-note")!,
   range: document.getElementById("range-control")!,
@@ -651,6 +653,65 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
   el.answerAggregate.replaceChildren(strip, caption);
 }
 
+/**
+ * The last ten years against every earlier ten-year stretch.
+ *
+ * Single years swing widely -- 71 to 119 over this record -- so a reader
+ * comparing one year with the next cannot see a rate change through the noise.
+ * Ten-year averages move far less, which is what makes the comparison worth
+ * drawing: if the rate were shifting, this is where it would show.
+ *
+ * The stretches overlap, so the count of busier ones is a description of where
+ * the recent stretch sits, not a p-value. The range is printed beside it for
+ * that reason: a rank on its own reads as a finding.
+ */
+const DECADE = 10;
+
+function writeDecades(counts: { year: number; count: number }[],
+                      theme: ReturnType<typeof readTheme>) {
+  el.decadeText.textContent = "";
+  el.decadeChart.replaceChildren();
+  if (counts.length < DECADE * 2) return;
+
+  const windows = counts.map((_, i) => i)
+    .filter((i) => i + DECADE <= counts.length)
+    .map((i) => ({
+      year: counts[i].year,
+      value: counts.slice(i, i + DECADE).reduce((a, c) => a + c.count, 0) / DECADE,
+    }));
+  const now = windows[windows.length - 1];
+  const past = windows.slice(0, -1);
+  if (past.length < 3) return;
+
+  const busier = past.filter((w) => w.value > now.value).length;
+  const one = (v: number) => v.toFixed(1);
+  el.decadeText.textContent = fill(copy.home.decadeText, {
+    now: one(now.value), threshold: magLabel(MIN_MAGNITUDE), peers: past.length,
+    busier, from: REFERENCE_START,
+    lo: one(Math.min(...past.map((w) => w.value))),
+    hi: one(Math.max(...past.map((w) => w.value))),
+  });
+
+  const strip = renderDistribution({
+    peers: past,
+    value: now.value,
+    share: {
+      more: fill(copy.home.decadeShareCount, { n: busier }),
+      moreLabel: fill(copy.home.decadeShareMore, { peers: past.length }),
+    },
+    currentLabel: copy.home.decadeCurrent,
+    yearLabel: (year: number) => `${year}\u2013${String(year + DECADE - 1).slice(2)}`,
+    tickFormat: (n: number) => n.toFixed(0),
+    theme,
+    width: Math.max(260, el.decadeChart.clientWidth || 320),
+  });
+
+  const caption = document.createElement("p");
+  caption.className = "answer-caption";
+  caption.textContent = fill(copy.home.decadeCaption, { from: REFERENCE_START });
+  el.decadeChart.replaceChildren(strip, caption);
+}
+
 /* ---------------- event lookup ---------------- */
 
 
@@ -987,6 +1048,8 @@ async function update() {
     });
     el.chart.replaceChildren(figure);
     figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
+
+    writeDecades(counts, theme);
 
     el.annualChart.replaceChildren(renderAnnualChart({
       counts, highlights: annualHighlights, refYears: aRefYears,

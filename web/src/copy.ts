@@ -118,6 +118,20 @@ export const copy = {
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
     annualTitleCount: "Is the rate of earthquakes changing?",
     annualTitleMoment: "Is the rate of moment release changing?",
+
+    /* Ten-year stretches, ranked. Individual years bounce around a great deal
+       -- 71 to 119 over this record -- so a reader comparing one year with the
+       last cannot see a rate change through the noise. Ten-year averages move
+       far less, which is what makes them worth ranking. The stretches overlap,
+       so this is a description of where the recent one sits, not a p-value. */
+    decadeText:
+      "The last ten years averaged {now} {threshold} mainshocks a year. Of the {peers} " +
+      "earlier ten-year stretches since {from}, {busier} were busier. They ran from {lo} to " +
+      "{hi} a year, so the recent stretch sits inside the range every earlier one occupied.",
+    decadeShareCount: "{n}",
+    decadeShareMore: "of {peers} earlier stretches were busier",
+    decadeCaption: "every ten-year stretch since {from}",
+    decadeCurrent: "last ten",
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
     axisCumulativeMoment: "Moment this year, as a single earthquake",

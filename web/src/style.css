@@ -884,6 +884,29 @@ main {
    off the plot. */
 .chart-stage { position: relative; margin-top: 0.75rem; }
 
+/* The ten-year comparison under the yearly counts: the sentence and the
+   histogram it is read off, side by side while there is room. */
+.decade-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: 1.25rem;
+  align-items: center;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.decade-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 52rem) {
+  .decade-row { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
+}
+
 /* The histogram and the tooltip that names the bar under the pointer. */
 .hist-wrap { position: relative; }
 
