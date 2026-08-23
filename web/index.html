@@ -35,6 +35,15 @@
         <h2 class="question-title">Are there more earthquakes than usual this&nbsp;year?</h2>
         <p class="answer" id="answer">Loading the catalog…</p>
         <p class="sr-only" id="answer-summary"></p>
+        <div class="chart-head">
+          <span class="chart-toggle">
+            <span class="chart-toggle-label">Range</span>
+            <span class="segmented segmented-sm" id="annual-range-control"></span>
+          </span>
+        </div>
+        <p class="chart-intro" id="annual-intro"></p>
+        <div id="annual-chart"></div>
+        <p class="chart-note" id="annual-note"></p>
         <div class="answer-figure answer-row">
           <div class="answer-detail" id="answer-aggregate"></div>
           <figure class="scale" id="scale">
@@ -48,16 +57,7 @@
 
       <section class="question">
         <h2 class="question-title" id="annual-title"></h2>
-        <div class="chart-head">
-          <span class="chart-toggle">
-            <span class="chart-toggle-label">Range</span>
-            <span class="segmented segmented-sm" id="annual-range-control"></span>
-          </span>
-        </div>
         <p class="decade-verdict" id="decade-verdict"></p>
-        <p class="chart-intro" id="annual-intro"></p>
-        <div id="annual-chart"></div>
-        <p class="chart-note" id="annual-note"></p>
         <p class="chart-intro" id="decade-check"></p>
         <div class="decade-row">
           <div class="decade-chart" id="decade-chart"></div>
