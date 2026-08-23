@@ -67,11 +67,11 @@ export const copy = {
 
     /** The same answers for the rolling window, which is complete rather than
         part-way through, so "running" and "so far" would both be wrong. */
-    rollingBusiest: "<strong>Yes.</strong> The last 365 days beat almost every year since {from}.",
-    rollingQuietest: "<strong>No — less.</strong> The last 365 days were quieter.",
-    rollingBusy: "<strong>No.</strong> The last 365 days were busy, but not unusual.",
-    rollingQuiet: "<strong>No.</strong> The last 365 days were on the quiet side.",
-    rollingAverage: "<strong>No.</strong> The last 365 days were about average.",
+    rollingBusiest: "<strong>Yes.</strong> The last year beat almost every year since {from}.",
+    rollingQuietest: "<strong>No — less.</strong> The last year was quieter.",
+    rollingBusy: "<strong>No.</strong> The last year was busy, but not unusual.",
+    rollingQuiet: "<strong>No.</strong> The last year was on the quiet side.",
+    rollingAverage: "<strong>No.</strong> The last year was about average.",
     detailCountRolling:
       "{count} {threshold} {kind} in the last 365 days — usual is {median} — {above}% of years " +
       "since {from} had more {kind}",
@@ -238,7 +238,7 @@ export const copy = {
     scaleRowHigh: "{n} or more",
     scaleFrequency: "{n} years in 100",
     scaleNow: "{year}, right now",
-    scaleColCount: "Earthquakes in the last 365 days",
+    scaleColCount: "Earthquakes in the last year",
     scaleColAnswer: "The answer",
     scaleBasis: "Calculated based on all {threshold} earthquakes worldwide",
     decadeBasis: "Calculated based on {threshold} earthquakes worldwide, aftershocks removed",
