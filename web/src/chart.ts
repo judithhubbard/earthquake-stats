@@ -73,17 +73,26 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
  * offsets. Walking the axis and marking where the month changes gets this right
  * for any window start, which hard-coded January offsets did not.
  */
-function monthTicks(dayToDate: (day: number) => Date): number[] {
-  const ticks: number[] = [];
+function monthTicks(dayToDate: (day: number) => Date, minGapDays = 0): number[] {
+  const all: number[] = [];
   let previous = -1;
   for (let day = 0; day < DAYS; day++) {
     const month = dayToDate(day).getUTCMonth();
     if (month !== previous) {
-      ticks.push(day);
+      all.push(day);
       previous = month;
     }
   }
-  return ticks;
+  // A rolling window starts mid-month, so its first tick sits on the window
+  // start and the next month boundary can be a few days later -- close enough
+  // that the two labels overlap. Drop a tick that crowds the one before it,
+  // keeping the later of the pair, which is a real month boundary.
+  const kept: number[] = [];
+  for (const day of all) {
+    if (kept.length && day - kept[kept.length - 1] < minGapDays) kept.pop();
+    kept.push(day);
+  }
+  return kept;
 }
 
 function formatDay(day: number, dayToDate: (day: number) => Date): string {
@@ -579,7 +588,9 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     style: { background: "transparent", color: theme.text, fontSize: "12px" },
     x: {
       domain: [0, DAYS - 1],
-      ticks: monthTicks(dayToDate),
+      // A month label is about 34px wide; the plot area is the width less the
+      // margins, so this is how many days that many pixels are worth.
+      ticks: monthTicks(dayToDate, (34 * DAYS) / Math.max(80, width - 70 - marginRight)),
       tickFormat: (d: number) => MONTHS[dayToDate(d).getUTCMonth()],
       label: null,
       tickSize: 0,

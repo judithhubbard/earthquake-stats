@@ -178,6 +178,7 @@ export const copy = {
     scaleTitle: "Every answer this page can give",
     scaleRow: "{low}–{high}th percentile",
     scaleFrequency: "{n} years in 100",
+    scaleBasis: "Calculated based on all {threshold} earthquakes worldwide",
     legendSigma: "±2σ — 95.45% under a normal fit",
     yearsNone: "None",
     yearsSome: "{n} years",

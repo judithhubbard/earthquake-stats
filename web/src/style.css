@@ -1031,23 +1031,26 @@ footer p { margin: 0 0 0.4rem; }
 
 /* The button off the front page. Deliberately quiet: it is a door to a second
    question, not a competitor to the first one. */
+/* These are the two things the page wants a reader to do next, and they sat in
+   the same near-white as everything else. They take the chip's green, which is
+   the only accent on the page that already means "this is a thing to click". */
 .explore {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 1.5rem;
   padding: 0.6rem 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--chip-edge);
   border-radius: 10px;
-  background: var(--surface-1);
-  color: var(--text-primary);
+  background: var(--chip);
+  color: var(--chip-ink);
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
 }
 
-.explore:hover { border-color: var(--text-muted); }
-.explore .arrow { color: var(--text-muted); font-weight: 400; }
+.explore:hover { border-color: var(--chip-ink); background: color-mix(in srgb, var(--chip) 80%, #ffffff); }
+.explore .arrow { color: var(--chip-ink); opacity: 0.75; font-weight: 400; }
 
 .correlate-panel { margin: 0 0 2.25rem; }
 .correlate-panel:last-child { margin-bottom: 0.5rem; }
@@ -1301,6 +1304,32 @@ footer p { margin: 0 0 0.4rem; }
   margin-left: -1px;
   background: var(--text-primary);
   border-radius: 1px;
+}
+
+/* The percentile, sitting above the line rather than beside it: the labels to
+   the side of the marker already carry the year, and a second one there read
+   as part of the same phrase. */
+.scale-marker-value {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.scale-marker-value.is-left { left: auto; right: 0; transform: none; }
+.scale-marker-value.is-right { left: 0; transform: none; }
+
+.scale-basis {
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text-secondary);
 }
 
 .scale-marker-label {

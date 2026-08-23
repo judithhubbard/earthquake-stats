@@ -73,6 +73,7 @@ const LIVE_INTERVAL_MS = 60_000;
 interface State {
   minMag: number;
   window: (typeof WINDOWS)[number]["id"];
+  annualWindow: (typeof WINDOWS)[number]["id"];
   measure: Measure;
   range: (typeof RANGES)[number]["id"];
   annualRange: (typeof ANNUAL_RANGES)[number]["id"];
@@ -85,6 +86,9 @@ interface State {
 const state: State = {
   minMag: MIN_MAGNITUDE,
   window: "rolling",
+  // Its own, so this chart can show calendar years -- and the projected bar
+  // for the year in progress -- while the headline stays on a full 365 days.
+  annualWindow: "calendar",
   // Pinned. The Count/Moment control is parked in attic/measure-control;
   // the moment branches downstream are unreachable but still present.
   measure: "count",
@@ -142,6 +146,7 @@ const el = {
   mag: document.getElementById("mag-control")!,
   catalog: document.getElementById("catalog-control")!,
   window: document.getElementById("window-control")!,
+  annualWindow: document.getElementById("annual-window-control")!,
   yearPicker: document.getElementById("year-picker")!,
   yearToggle: document.getElementById("year-toggle") as HTMLButtonElement,
   yearPanel: document.getElementById("year-panel")!,
@@ -159,6 +164,7 @@ const el = {
   annualRange: document.getElementById("annual-range-control")!,
   scaleTitle: document.getElementById("scale-title")!,
   scaleBar: document.getElementById("scale-bar")!,
+  scaleBasis: document.getElementById("scale-basis")!,
   scaleRows: document.getElementById("scale-rows")!,
   generated: document.getElementById("generated")!,
   trendQuestion: document.getElementById("trend-question")!,
@@ -207,6 +213,15 @@ function answerFor(pct: number, rolling: boolean): string {
  */
 const ANSWER_BOUNDS = [0, 5, 25, 75, 95, 100];
 
+/** 1st, 2nd, 3rd, 61st -- the copy used to append a literal "th". */
+function ordinal(n: number): string {
+  const v = Math.round(n);
+  const suffix = v % 100 >= 11 && v % 100 <= 13
+    ? "th"
+    : ["th", "st", "nd", "rd"][v % 10] ?? "th";
+  return `${v}${suffix}`;
+}
+
 
 /** Colour per band, palest in the middle: blue below average, red above. */
 const BAND_TINTS = ["down", "down", "mid", "up", "up"] as const;
@@ -253,9 +268,20 @@ function buildAnswerScale(pct: number | null, year: string) {
     // to sit on the other side of its own line.
     if (pct > 80) tag.classList.add("is-left");
 
-    marker.append(tag);
+    // The reading itself, above the line, where it cannot be mistaken for one
+    // of the band boundaries printed underneath.
+    const value = document.createElement("span");
+    value.className = "scale-marker-value";
+    value.textContent = ordinal(pct);
+    if (pct > 90) value.classList.add("is-left");
+    if (pct < 10) value.classList.add("is-right");
+
+    marker.append(value, tag);
     el.scaleBar.append(marker);
   }
+
+  el.scaleBasis.textContent = fill(copy.home.scaleBasis,
+                                   { threshold: magLabel(MIN_MAGNITUDE) });
 
   // Highest band at the top, so the list reads the way the question is asked:
   // "are there more?" first. The bar underneath still runs low to high left to
@@ -406,6 +432,8 @@ function buildControls() {
     () => String(state.minMag), (id) => { state.minMag = Number(id); });
   buildSegmented(el.range, RANGES.map((r) => ({ id: r.id, label: r.label })),
     () => state.range, (id) => { state.range = id as State["range"]; });
+  buildSegmented(el.annualWindow, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
+    () => state.annualWindow, (id) => { state.annualWindow = id as State["window"]; });
   buildSegmented(el.annualRange, ANNUAL_RANGES.map((r) => ({ id: r.id, label: r.label })),
     () => state.annualRange, (id) => { state.annualRange = id as State["annualRange"]; });
   buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
@@ -937,7 +965,24 @@ async function update() {
     : null;
   const result = verdict(curves, refYears, currentYear, today, state.measure);
 
-  const counts = annualCounts(curves, majorCurves, currentYear, today, refYears,
+  // The annual chart carries its own window, so it needs its own curves rather
+  // than a slice of the ones the cumulative chart is drawn from.
+  const annualShift = calendarShift(state.annualWindow);
+  const annualRolling = state.annualWindow === "rolling";
+  const sameWindow = state.annualWindow === state.window;
+  const annualCurvesFor = (threshold: number) => {
+    const c = cumulativeByYear(
+      tier, threshold, REFERENCE_START, mainshocksOnly, state.measure, annualShift);
+    applyLive(c, tier, threshold, annualShift, state.measure);
+    return c;
+  };
+  const aCurves = sameWindow ? curves : annualCurvesFor(minMag);
+  const aMajor = !splitMajor ? majorCurves
+               : sameWindow ? majorCurves : annualCurvesFor(MAJOR_MAGNITUDE);
+  const { year: aYear, day: aDay } = dayIndex(Date.now(), annualShift);
+  const aToday = annualRolling ? DAYS - 1 : aDay;
+  const aRefYears = aCurves.years.filter((y) => y >= REFERENCE_START && y < aYear);
+  const counts = annualCounts(aCurves, aMajor, aYear, aToday, aRefYears,
                              state.measure);
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const subject = state.measure === "moment"
@@ -1071,7 +1116,7 @@ async function update() {
     figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
 
     el.annualChart.replaceChildren(renderAnnualChart({
-      counts, highlights, refYears, theme, width: widthOf(el.annualChart),
+      counts, highlights, refYears: aRefYears, theme, width: widthOf(el.annualChart),
       yLabel: state.measure === "moment"
         ? copy.home.axisAnnualMoment
         : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
