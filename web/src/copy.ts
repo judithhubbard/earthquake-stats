@@ -208,7 +208,7 @@ export const copy = {
        one the answer is graded on. The steepest single series is named
        afterwards, as context -- naming it first would put the un-corrected
        p-value in the reader's head as the result. */
-    trendNo: "There is no meaningful trend to the data. The rate of earthquakes is not changing.",
+    trendNo: "",
     trendMaybe: "The line slopes, but not by enough to rule out chance: counts with no trend in " +
       "them produce a slope at least this steep {corrected}% of the time. Worth watching " +
       "rather than announcing.",
@@ -218,7 +218,7 @@ export const copy = {
       "a change in the Earth.",
     trendPanelAll: "{threshold}, all earthquakes",
     trendPanelMainshocks: "{threshold}, mainshocks only",
-    trendPanelAxis: "{threshold} per year",
+    trendPanelAxis: "{threshold} mainshocks per year",
     trendPanelStat: "{low} to {high} per decade · p = {p}%",
 
     trendColCombined: "p-value for the fitted slope",

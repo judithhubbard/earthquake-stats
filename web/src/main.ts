@@ -31,6 +31,10 @@ const REFERENCE_START = 1976;
    handful of big sequences happened to fall in it, so "is this year unusual"
    is a question about mainshocks; leaving aftershocks in answers a different
    one. The option to put them back stays, second. */
+const WINDOWS = [
+  { id: "calendar", label: "This year" },
+  { id: "rolling", label: "Last 365 days" },
+] as const;
 const CATALOG_MODES = [
   { id: "mainshocks", label: "Mainshocks only" },
   { id: "all", label: "All earthquakes" },
@@ -68,7 +72,7 @@ const LIVE_INTERVAL_MS = 60_000;
 
 interface State {
   minMag: number;
-  window: "calendar" | "rolling";
+  window: (typeof WINDOWS)[number]["id"];
   measure: Measure;
   range: (typeof RANGES)[number]["id"];
   annualRange: (typeof ANNUAL_RANGES)[number]["id"];
@@ -80,7 +84,6 @@ interface State {
 
 const state: State = {
   minMag: MIN_MAGNITUDE,
-  // Pinned. The Period control is parked in attic/period-control.
   window: "rolling",
   // Pinned. The Count/Moment control is parked in attic/measure-control;
   // the moment branches downstream are unreachable but still present.
@@ -99,15 +102,16 @@ const state: State = {
  * complete "year" -- and every past window run to the same date, so a full year
  * is only ever compared against full years.
  */
-function calendarShift(): number {
+function calendarShift(window: State["window"] = state.window): number {
+  if (window === "calendar") return 0;
   const now = new Date();
   const tomorrow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
   return tomorrow - Date.UTC(now.getUTCFullYear(), 0, 1);
 }
 
-/** "2025–26": every window straddles two calendar years now. */
-function yearLabel(year: number): string {
-  return `${year}–${String(year + 1).slice(2)}`;
+/** "2025" for a calendar year, "2025–26" for a window that straddles two. */
+function yearLabel(year: number, window: State["window"] = state.window): string {
+  return window === "calendar" ? String(year) : `${year}–${String(year + 1).slice(2)}`;
 }
 
 /**
@@ -137,6 +141,7 @@ const el = {
   latest: document.getElementById("latest")!,
   mag: document.getElementById("mag-control")!,
   catalog: document.getElementById("catalog-control")!,
+  window: document.getElementById("window-control")!,
   yearPicker: document.getElementById("year-picker")!,
   yearToggle: document.getElementById("year-toggle") as HTMLButtonElement,
   yearPanel: document.getElementById("year-panel")!,
@@ -333,7 +338,7 @@ function buildYearPicker(years: number[], theme: ReturnType<typeof readTheme>) {
 
   el.yearSummary.textContent = selected.length === 0
     ? copy.home.yearsNone
-    : selected.length <= 3 ? selected.map(yearLabel).join(", ")
+    : selected.length <= 3 ? selected.map((y) => yearLabel(y)).join(", ")
     : fill(copy.home.yearsSome, { n: selected.length });
   el.yearCount.textContent = fill(copy.home.yearsCount,
     { n: selected.length, max: MAX_HIGHLIGHTS });
@@ -403,6 +408,14 @@ function buildControls() {
     () => state.range, (id) => { state.range = id as State["range"]; });
   buildSegmented(el.annualRange, ANNUAL_RANGES.map((r) => ({ id: r.id, label: r.label })),
     () => state.annualRange, (id) => { state.annualRange = id as State["annualRange"]; });
+  buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
+    () => state.window, (id) => {
+      state.window = id as State["window"];
+      // "2025" means the calendar year in one mode and August-to-August in the
+      // other. Carrying a selection across would quietly point it elsewhere.
+      state.highlights.clear();
+      claimSlot(dayIndex(Date.now(), calendarShift()).year);
+    });
   buildSegmented(el.catalog, CATALOG_MODES.map((c) => ({ id: c.id, label: c.label })),
     () => state.catalogMode, (id) => { state.catalogMode = id as State["catalogMode"]; });
   wireYearPicker();
@@ -790,11 +803,13 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
                               : key === "maybe" ? copy.correlations.verdictMaybe
                               : copy.correlations.verdictNo;
 
-  el.trendBody.textContent = fill(c.trendIntro, {
-    threshold: magLabel(MIN_MAGNITUDE),
-  }) + "\n\n" + fill(
+  // The verdict heading above already says "No."; the paragraph only adds
+  // something when the answer is not no, so an empty template prints nothing.
+  const verdictText = fill(
     key === "probably" ? c.trendProbably : key === "maybe" ? c.trendMaybe : c.trendNo,
     { p: pct(steepest.fit.p), corrected: pct(corrected) });
+  el.trendBody.textContent = fill(c.trendIntro, { threshold: magLabel(MIN_MAGNITUDE) })
+    + (verdictText ? "\n\n" + verdictText : "");
 
   const cc = copy.correlations;
   el.trendTable.replaceChildren(flipTable(
@@ -802,7 +817,7 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
        help: { label: c.trendHelp,
                body: fill(c.trendHelpBody, {
                  years: steepest.fit.years, p: pct(steepest.fit.p),
-                 subject: steepest.title, corrected: pct(corrected),
+                 corrected: pct(corrected),
                  permutations: TREND_PERMUTATIONS.toLocaleString(),
                }) } },
      { label: cc.flipColAnswer }],
@@ -821,10 +836,7 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
     const box = document.createElement("figure");
     box.className = "trend-panel";
 
-    const title = document.createElement("figcaption");
-    title.className = "trend-panel-title";
-    title.textContent = panel.title;
-
+    // No panel title. There is one series and the section's own text names it.
     const host = document.createElement("div");
     host.className = "trend-panel-chart";
     host.append(renderTrendChart(panel, theme, panelWidth));
@@ -838,7 +850,7 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
       p: pct(panel.fit.p),
     });
 
-    box.append(title, host, stat);
+    box.append(host, stat);
     return box;
   }));
 }
@@ -888,10 +900,13 @@ async function update() {
   techValues.from = REFERENCE_START;
 
   const shift = calendarShift();
-  const { year: currentYear } = dayIndex(Date.now(), shift);
-  // The window always ends today, so it is complete: the current "year" runs
-  // the full 365 days, and is compared only against equally complete ones.
-  const today = DAYS - 1;
+  const { year: currentYear, day: dayOfYear } = dayIndex(Date.now(), shift);
+  // A rolling window always ends today, so it is complete: the current "year"
+  // runs the full 365 days and is compared only against equally complete ones.
+  // A calendar year is part-way through, and is compared against the same date
+  // in every past year.
+  const rolling = state.window === "rolling";
+  const today = rolling ? DAYS - 1 : dayOfYear;
 
   const mainshocksOnly = effectiveMainshocksOnly();
   const curves = cumulativeByYear(
