@@ -102,8 +102,8 @@ main {
    What sets them apart is a rule, a wide gap, and a heading larger than
    anything else on the page. */
 .question {
-  margin-top: 2.75rem;
-  padding-top: 1.75rem;
+  margin-top: 4.5rem;
+  padding-top: 2.25rem;
   border-top: 2px solid var(--chip-edge);
 }
 
@@ -327,7 +327,7 @@ main {
 /* One tray per section now, so the gap between them is what says they are
    separate rather than one tray interrupted. */
 .panel {
-  margin-top: 2.5rem;
+  margin-top: 4.5rem;
   background: var(--tray);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -915,9 +915,7 @@ main {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.5rem 2rem;
   align-items: center;
-  margin-top: 0.9rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  margin-top: 1.4rem;
 }
 
 .decade-chart { min-width: 0; }
@@ -962,11 +960,7 @@ main {
 /* The scale of every answer the page can give: part of the answer rather than
    an exhibit, so it stays on the page ground under a rule instead of joining
    the trays below. */
-.decide {
-  margin-top: 2rem;
-  padding-top: 1.6rem;
-  border-top: 1px solid var(--border);
-}
+.decide { margin-top: 2.25rem; }
 
 .section-title { margin: 0 0 0.6rem; }
 
