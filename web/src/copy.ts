@@ -217,9 +217,17 @@ export const copy = {
       "\n\n**How the answer at the top is decided.** One fixed reading, and the controls " +
       "cannot move it: {threshold} earthquakes, aftershocks included, counted over the 365 " +
       "days ending today, and ranked against the same 365-day stretch of every year back to " +
-      "{from}. The histogram beside the answer draws those past windows, so the bar the " +
+      "{from}. The histogram under the answer draws those past windows, so the bar the " +
       "marker sits on is the count the sentence is about. Selecting {major} or mainshocks " +
       "changes the charts below; it does not change the answer." +
+
+      "\n\n**The five answers, and where their edges are.** The table beside the histogram " +
+      "is a fixed scale, not a reading: it says what this page would answer for any count, " +
+      "and the row it marks is the one the last year falls in. The edges are the 5th, 25th, " +
+      "75th and 95th percentiles of the past windows, so the middle band is half of all " +
+      "years and the two outer ones are five years in a hundred each. Because they are " +
+      "percentiles of the record rather than fixed numbers, they move as the record grows. " +
+      "The counts printed in the table are those percentiles rounded to whole earthquakes." +
 
       "\n\n**A year here is 365 days ending today.** Comparing a part-finished calendar " +
       "year against whole ones would flatter or punish it depending on the date, so the " +
@@ -237,8 +245,8 @@ export const copy = {
       "exists. About {mwShare}% of {threshold} events carry an Mw." +
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
-      "hundreds of smaller ones with it. **Mainshocks only**, which the charts open on, " +
-      "removes them — the operation is called declustering — using Gardner-Knopoff windows, " +
+      "hundreds of smaller ones with it. **Mainshocks only** removes them — the operation " +
+      "is called declustering — using Gardner-Knopoff windows, " +
       "widened to twice the Wells and Coppersmith rupture length wherever that is larger: " +
       "53 km at M6, 87 km at M7. The windows run forward in time only, so an earthquake is " +
       "removed if a larger one came before it and never if a larger one followed." +
@@ -251,7 +259,9 @@ export const copy = {
       "\n\n**The shaded ranges.** The default shows where the middle 50% and middle 90% of " +
       "past windows fell on each day of the window. The ±2σ setting uses the mean plus and " +
       "minus two standard deviations, measured over every window of that length anywhere in " +
-      "the record rather than over the {years} windows the other setting uses." +
+      "the record rather than over the {years} windows the other setting uses. The chart of " +
+      "yearly counts carries the ±2σ band alone, as a single on-off toggle: there is no " +
+      "day-by-day spread to draw on a chart whose unit is already a whole year." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
       "their consequences. The two are related, but loosely: an M7 on the Mid-Atlantic Ridge " +
