@@ -1,10 +1,7 @@
 :root {
   color-scheme: light;
   --surface-1: #fcfcfb;
-  /* The page sits behind the panels rather than beside them: a darker ground
-     so the light blocks on top of it read as blocks. Everything the reader
-     looks at is lighter than this. */
-  --plane: #dcdad0;
+  --plane: #f9f9f7;
   --text-primary: #0b0b0b;
   --text-secondary: #52514e;
   --text-muted: #898781;
@@ -30,17 +27,16 @@
      a green tray as well left three tints of one hue fighting each other. The
      neutrals on this page already lean warm (--band-outer, --grid), so the
      tray joins that family and the sage is left to mean something. */
-  --tray: #f3f2ec;
+  --tray: #e9e8e0;
   /* The two questions share a ground, so they read as a pair and the tray
      below reads as a different kind of thing. Sage rather than the tray's
      stone, and light enough that the sage bars in the histograms drawn on it
      still separate from it. */
   --question-ground: #eaf2ee;
-  --panel-edge: #b9b6a8;
-  /* The track behind a segmented control. It used to borrow the page ground,
-     which was near-white; now that the page is a dark stone it needs its own,
-     or every toggle on the page darkens with the background. */
-  --control-track: #edece6;
+  /* The band each question is titled in. Dark enough to carry light type at
+     10:1, and the same hue as the chip ink so the sage below it reads as the
+     pale end of one colour rather than as a second one. */
+  --question-band: #2f5a43;
   --chip: #cfe3d8;
   --chip-edge: #8fb9a3;
   --chip-ink: #2f5a43;
@@ -116,19 +112,25 @@ main {
    anything else on the page. */
 .question {
   margin-top: 1.75rem;
-  padding: 1.6rem 1.4rem 1.5rem;
+  padding: 0 1.4rem 1.5rem;
   background: var(--question-ground);
-  border: 2px solid var(--chip-edge);
+  border: 1px solid var(--range-inner);
   border-radius: 12px;
 }
 
+/* The question is the banner, not a line inside the panel: it runs the full
+   width of the block in light type on the dark end of the same green the
+   panel is the pale end of. */
 .question-title {
-  margin: 0 0 1.1rem;
-  font-size: clamp(1.5rem, 3.4vw, 2.05rem);
+  margin: 0 -1.4rem 1.4rem;
+  padding: 0.85rem 1.4rem 0.9rem;
+  background: var(--question-band);
+  color: #ffffff;
+  border-radius: 11px 11px 0 0;
+  font-size: clamp(1.25rem, 2.8vw, 1.7rem);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
   letter-spacing: -0.015em;
-  color: var(--chip-ink);
   text-wrap: balance;
 }
 
@@ -349,7 +351,7 @@ main {
 .panel {
   margin-top: 1.75rem;
   background: var(--tray);
-  border: 2px solid var(--panel-edge);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1rem 1.25rem 1.25rem;
 }
@@ -393,7 +395,7 @@ main {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: var(--control-track);
+  background: var(--plane);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -912,7 +914,9 @@ main {
 
 /* On the page rather than in a box, so its toggle sits at the top right of
    the section instead of inside a frame. */
-.question > .chart-head { justify-content: flex-end; margin-top: -2.6rem; }
+/* Below the band, not beside the title: the title is the full width of the
+   block now, so there is no room to its right to pull the toggle into. */
+.question > .chart-head { justify-content: flex-end; margin: -0.5rem 0 0.2rem; }
 
 .chart-subtitle {
   font-size: 0.95rem;
