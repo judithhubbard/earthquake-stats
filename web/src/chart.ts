@@ -825,7 +825,8 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
       Plot.text([mean], {
         x: () => counts[0]?.year ?? 0, y: (d: number) => d,
         text: () => `mean ${Math.round(mean).toLocaleString()}`,
-        dy: -7, dx: 2, textAnchor: "start", fill: theme.muted, fontSize: 11,
+        dy: -7, dx: 2, textAnchor: "start", fill: theme.text, fontSize: 11,
+        stroke: theme.surface, strokeWidth: 3,
       }),
     );
   }
@@ -853,7 +854,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     width,
     height: Math.max(230, Math.min(330, width * 0.34)),
     marginLeft: opts.yLabel ? 70 : 44,
-    marginRight: 62,
+    marginRight: 16,
     marginBottom: 30,
     marginTop: 20,
     style: { background: "transparent", color: theme.text, fontSize: "13px" },
