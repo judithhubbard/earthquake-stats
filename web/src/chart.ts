@@ -221,6 +221,15 @@ export interface DistributionOptions {
   compact?: boolean;
   /** How a year is named in the hover list -- "2025" or "2025-26". */
   yearLabel?: (year: number) => string;
+  /**
+   * Draw every bar in one colour.
+   *
+   * The two-tone split is at this year's own value -- sage below, red above --
+   * which pairs with the "N had more" label. Beside a scale that tints its
+   * bands by percentile, the same two colours mean something else, and red
+   * reads as a verdict the answer does not give.
+   */
+  neutral?: boolean;
   theme: Theme;
   width: number;
 }
@@ -354,8 +363,10 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     marks: [
       Plot.rectY(rects, {
         x1: "x0", x2: "x1", y: "n",
-        fill: (d: { above: boolean }) => (d.above ? theme.up : theme.rangeInner),
-        fillOpacity: (d: { above: boolean }) => (d.above ? 0.55 : 1),
+        fill: (d: { above: boolean }) =>
+          (opts.neutral ? theme.rangeInner : d.above ? theme.up : theme.rangeInner),
+        fillOpacity: (d: { above: boolean }) =>
+          (opts.neutral ? 0.9 : d.above ? 0.55 : 1),
         insetLeft: 0.75, insetRight: 0.75,
       }),
       Plot.ruleY([0], { stroke: theme.axis }),

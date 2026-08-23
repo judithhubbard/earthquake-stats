@@ -663,6 +663,7 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
   const higher = peers.filter((d) => d.value > headline.count).length;
   const strip = renderDistribution({
     peers,
+    neutral: true,
     value: headline.count,
     // A count of bars, not a share: the picture is bars, so the label should
     // describe the picture rather than a curve fitted through it.
@@ -775,6 +776,7 @@ function writeDecades(counts: { year: number; count: number }[],
 
   const strip = renderDistribution({
     peers: past,
+    neutral: true,
     value: now.value,
     share: {
       more: fill(copy.home.decadeShareCount, { n: busier }),
