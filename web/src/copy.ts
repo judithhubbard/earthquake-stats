@@ -127,9 +127,21 @@ export const copy = {
     /* The verdict alone. What decides it is in the table beside the histogram,
        where a reader can see the whole range of answers rather than being told
        which one came up. */
-    decadeNo: "<strong>No.</strong>",
-    decadeMaybe: "<strong>Maybe.</strong>",
-    decadeYes: "<strong>Yes.</strong>",
+    /* Never "yes". The section asks whether the rate is changing, and one
+       decade cannot settle that however far from average it lands -- it is one
+       piece of evidence about a question that spans the whole record.
+
+       Five readings, three answers. The table beside the chart is a fixed
+       reference and says only which band a count falls in; the sentence reads
+       the data, so it can say which side of average a decade sat on without
+       the table carrying a row for it. */
+    decadeMaybeMore:
+      "<strong>Maybe.</strong> There have been more earthquakes than expected in the last decade.",
+    decadeBusy: "<strong>No.</strong> It\u2019s been a busy decade, but not unusual.",
+    decadeUsual: "<strong>No.</strong> The rate is about the same as usual.",
+    decadeQuiet: "<strong>No.</strong> It\u2019s been a quiet decade, but not unusual.",
+    decadeMaybeFewer:
+      "<strong>Maybe.</strong> There have been fewer earthquakes than expected in the last decade.",
     decadeCheck:
       "To check, we looked at the rate of earthquakes in the last ten years. Can we see a " +
       "difference in the last decade compared to previous decades?",
@@ -139,14 +151,11 @@ export const copy = {
     decadeColP: "Earthquakes in the last ten years",
     decadeColAnswer: "The answer",
     decadeBandFewest: "{n} or fewer",
-    decadeBandFew: "{lo} to {hi}",
     decadeBandUsual: "{lo} to {hi}",
-    decadeAnsFewer: "Yes — fewer.",
-    decadeAnsMaybe: "Maybe.",
-    decadeBandMany: "{lo} to {hi}",
+    decadeAnsFewer: "Maybe — there have been fewer than expected in the last decade",
     decadeBandMost: "{n} or more",
-    decadeAnsMore: "Yes — more.",
-    decadeAnsNo: "No.",
+    decadeAnsMore: "Maybe — there have been more than expected in the last decade",
+    decadeAnsNo: "No — the last decade is within the expected range",
     decadeNow: "Right now: {value}",
     decadeHelp: "how is this calculated?",
     decadeHelpBody:

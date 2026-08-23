@@ -701,15 +701,23 @@ function writeDecades(counts: { year: number; count: number }[],
     // the record would call it a change. Conditioning on the total makes this
     // the exact two-sample comparison, so the earlier years alone set the
     // ranges and their own rate being an estimate is already paid for.
-    const bands = shareBands(total, DECADE / counts.length, [0.01, 0.05]);
+    //
+    // One cutoff, at 5%: the line the rest of the site grades on, and the one
+    // that makes the middle band a 95% interval. A stricter 1% would widen it
+    // to 854-993 and be slower to notice a change that was real.
+    const bands = shareBands(total, DECADE / counts.length, [0.05]);
     if (!bands) return;
-    const [strong, weak] = bands;
-    const key = p <= 0.01 ? (recent < expected ? 0 : 4)
-              : p <= 0.05 ? (recent < expected ? 1 : 3)
-              : 2;
+    const [band] = bands;
+    const key = p > 0.05 ? 1 : recent < expected ? 2 : 0;
+    // Three rows in the table, five things the sentence can say. A two-sided p
+    // above 0.5 is exactly the central half of what a steady rate produces, so
+    // it is the honest line between "about the same" and "quiet side".
+    const low = recent < expected;
     el.decadeVerdict.innerHTML =
-      [copy.home.decadeYes, copy.home.decadeMaybe, copy.home.decadeNo,
-       copy.home.decadeMaybe, copy.home.decadeYes][key];
+      key !== 1 ? (low ? copy.home.decadeMaybeFewer : copy.home.decadeMaybeMore)
+      : p > 0.5 ? copy.home.decadeUsual
+      : low ? copy.home.decadeQuiet
+      : copy.home.decadeBusy;
     el.decadeCheck.textContent = copy.home.decadeCheck;
 
     const c = copy.home;
@@ -723,11 +731,11 @@ function writeDecades(counts: { year: number; count: number }[],
                    expected: Math.round(expected).toLocaleString(),
                  }) } },
        { label: c.decadeColAnswer }],
-      [[fill(c.decadeBandFewest, { n: strong.low }), c.decadeAnsFewer],
-       [fill(c.decadeBandFew, { lo: strong.low + 1, hi: weak.low }), c.decadeAnsMaybe],
-       [fill(c.decadeBandUsual, { lo: weak.low + 1, hi: weak.high - 1 }), c.decadeAnsNo],
-       [fill(c.decadeBandMany, { lo: weak.high, hi: strong.high - 1 }), c.decadeAnsMaybe],
-       [fill(c.decadeBandMost, { n: strong.high }), c.decadeAnsMore]],
+      // Most at the top, fewest at the bottom, so the column runs the way a
+      // count does rather than the way the bands were computed.
+      [[fill(c.decadeBandMost, { n: band.high }), c.decadeAnsMore],
+       [fill(c.decadeBandUsual, { lo: band.low + 1, hi: band.high - 1 }), c.decadeAnsNo],
+       [fill(c.decadeBandFewest, { n: band.low }), c.decadeAnsFewer]],
       key,
       [fill(c.decadeNow, { value: String(recent) }), null],
     ));
