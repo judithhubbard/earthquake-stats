@@ -879,6 +879,31 @@ main {
    off the plot. */
 .chart-stage { position: relative; margin-top: 0.75rem; }
 
+/* The histogram and the tooltip that names the bar under the pointer. */
+.hist-wrap { position: relative; }
+
+.hist-tip {
+  position: absolute;
+  top: 0;
+  z-index: 20;
+  max-width: 14rem;
+  max-height: 11rem;
+  overflow: auto;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+.hist-tip[hidden] { display: none; }
+
 /* Not ".explore": that class already belongs to the arrow links at the foot of
    the page, and a figure wearing it became an inline-flex box with their
    padding and border. */

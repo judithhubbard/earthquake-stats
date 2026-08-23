@@ -328,7 +328,7 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   }
 
   const compact = opts.compact ?? false;
-  return Plot.plot({
+  const plot = Plot.plot({
     width,
     height: compact ? 104 : 150,
     // Side margins hold a tick label; the first and last ticks sit on the frame
@@ -354,9 +354,6 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     marks: [
       Plot.rectY(rects, {
         x1: "x0", x2: "x1", y: "n",
-        // Native browser tooltip: no library, no state, and it works on the
-        // keyboard-less phone the same way it does anywhere else.
-        title: (d: Rect) => d.label,
         fill: (d: { above: boolean }) => (d.above ? theme.up : theme.rangeInner),
         fillOpacity: (d: { above: boolean }) => (d.above ? 0.55 : 1),
         insetLeft: 0.75, insetRight: 0.75,
@@ -392,6 +389,69 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
       }),
     ],
   });
+
+  return withBarTooltip(plot, rects);
+
+/**
+ * A tooltip that follows the pointer and names the bar under it.
+ *
+ * An SVG <title> needs no code at all, but it only appears once the pointer has
+ * rested on the bar itself for about a second -- and most of this plot is empty
+ * space above short bars, so in practice it almost never fired. This hit-tests
+ * the whole column instead: anywhere above a bin counts as that bin.
+ */
+function withBarTooltip(
+  plot: SVGSVGElement | HTMLElement,
+  rects: { x0: number; x1: number; label: string }[],
+): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.className = "hist-wrap";
+  wrap.append(plot);
+
+  const tip = document.createElement("div");
+  tip.className = "hist-tip";
+  tip.hidden = true;
+  wrap.append(tip);
+
+  // Plot hands back the scales it used, so the pixel-to-value conversion is the
+  // chart's own arithmetic rather than a second guess at its margins.
+  const scale = (plot as unknown as {
+    scale(name: string): { domain: number[]; range: number[] } | undefined;
+  }).scale?.("x");
+  if (!scale?.domain || !scale?.range) return wrap;
+  const [d0, d1] = scale.domain;
+  const [r0, r1] = scale.range;
+
+  const hide = () => { tip.hidden = true; };
+
+  wrap.addEventListener("pointermove", (event) => {
+    const box = plot.getBoundingClientRect();
+    if (!box.width || r1 === r0) { hide(); return; }
+    // The SVG is laid out at the width it was drawn for, so a client pixel is a
+    // plot pixel; the ratio guards against a page that has been zoomed.
+    const px = (event.clientX - box.left) * (plotWidth(plot) / box.width);
+    const value = d0 + ((px - r0) / (r1 - r0)) * (d1 - d0);
+    const hit = rects.find((r) => value >= r.x0 && value <= r.x1 && r.label);
+    if (!hit) { hide(); return; }
+
+    tip.textContent = hit.label;
+    tip.hidden = false;
+    // Kept inside the figure: near the right-hand edge it sits to the left of
+    // the pointer rather than hanging off.
+    const wrapBox = wrap.getBoundingClientRect();
+    const x = event.clientX - wrapBox.left;
+    tip.style.left =
+      `${Math.max(0, Math.min(x + 12, wrapBox.width - tip.offsetWidth))}px`;
+  });
+  wrap.addEventListener("pointerleave", hide);
+  return wrap;
+}
+
+/** The width the plot was drawn at, in its own coordinates. */
+function plotWidth(plot: SVGSVGElement | HTMLElement): number {
+  const attr = Number((plot as SVGSVGElement).getAttribute?.("width"));
+  return Number.isFinite(attr) && attr > 0 ? attr : plot.getBoundingClientRect().width;
+}
 }
 
 export interface Highlight {
