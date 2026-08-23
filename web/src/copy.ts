@@ -135,7 +135,8 @@ export const copy = {
       "{hi} a year, so the recent stretch sits inside the range every earlier one occupied.",
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
-    decadeCaption: "every ten-year stretch since {from}",
+    decadeCaption:
+      "Average annual rate of {threshold} earthquakes in each ten-year stretch since {from}",
     decadeCurrent: "last ten",
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",

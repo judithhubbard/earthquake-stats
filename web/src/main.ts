@@ -709,7 +709,8 @@ function writeDecades(counts: { year: number; count: number }[],
 
   const caption = document.createElement("p");
   caption.className = "answer-caption";
-  caption.textContent = fill(copy.home.decadeCaption, { from: REFERENCE_START });
+  caption.textContent = fill(copy.home.decadeCaption,
+                             { threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START });
   el.decadeChart.replaceChildren(strip, caption);
 }
 
