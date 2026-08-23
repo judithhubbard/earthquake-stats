@@ -831,34 +831,23 @@ main {
   border-radius: 50%;
 }
 
-.question > #annual-chart {
+.question > #annual-chart,
+.question > .answer-figure {
   background: #ffffff;
   border-radius: 10px;
   padding: 0.9rem 1rem;
 }
 
+/* Two boxes stacked, not side by side: the scale is five rows of full
+   sentences, and half a section turns each of them into three lines. The rate
+   question can put its table beside a histogram because that table is three
+   short rows. */
+.question > .answer-figure + .answer-figure { margin-top: 1rem; }
+.question > .answer-figure > .scale { margin: 0; }
+.question .answer-detail { max-width: 26rem; margin: 0 auto; }
+
 .question .answer-detail { min-height: 0; }
 
-/* The scale shares the white box with the histogram it explains, so its rows
-   stack: swatch on the left, then the range, the sentence and the frequency
-   down the remaining column. Four columns across half a section put one word
-   per line, which is what happened the last time a scale was asked to sit in
-   half the width. */
-.decade-row > .scale { margin: 0; min-width: 0; }
-
-.decade-row .scale-rows li {
-  grid-template-columns: 12px minmax(0, 1fr);
-  gap: 0.15rem 0.55rem;
-  align-items: start;
-}
-
-.decade-row .scale-rows .scale-range,
-.decade-row .scale-rows .scale-said,
-.decade-row .scale-rows .scale-often { grid-column: 2; }
-
-.decade-row .scale-rows .scale-range { font-weight: 650; color: var(--text-primary); }
-.decade-row .scale-rows .scale-often { color: var(--text-muted); }
-.decade-row .scale-basis { margin-top: 0.7rem; }
 
 .chart-intro {
   margin: 0.9rem 0 0.2rem;
@@ -1461,16 +1450,27 @@ footer p { margin: 0 0 0.4rem; }
   font-size: 0.8rem;
 }
 
+/* Two columns of meaning, not four in a line: the band on the left with how
+   often it comes up directly under it, and the sentence it earns on the right.
+   The range and the frequency are two facts about the same band, so they read
+   as a pair rather than as the ends of a row. */
 .scale-rows li {
   display: grid;
-  grid-template-columns: 14px 9.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 14px minmax(0, 8.5rem) minmax(0, 1fr);
+  grid-template-rows: auto auto;
   align-items: baseline;
-  gap: 0.6rem;
-  padding: 0.2rem 0.35rem;
+  column-gap: 0.75rem;
+  row-gap: 0.1rem;
+  padding: 0.35rem;
   margin: 0 -0.35rem;
   border-radius: 5px;
   color: var(--text-secondary);
 }
+
+.scale-rows i { grid-column: 1; grid-row: 1; }
+.scale-rows .scale-range { grid-column: 2; grid-row: 1; }
+.scale-rows .scale-often { grid-column: 2; grid-row: 2; text-align: left; }
+.scale-rows .scale-said { grid-column: 3; grid-row: 1 / span 2; }
 
 /* The reading, under the bands, in the same grid so the count lines up with
    the ranges above it. */
@@ -1498,7 +1498,8 @@ footer p { margin: 0 0 0.4rem; }
 
 .scale-range {
   font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
+  font-weight: 650;
+  color: var(--text-primary);
 }
 
 .scale-said strong { color: var(--text-primary); }
@@ -1511,8 +1512,7 @@ footer p { margin: 0 0 0.4rem; }
 
 @media (max-width: 640px) {
   .scale-rows li { grid-template-columns: 14px minmax(0, 1fr); }
-  .scale-rows .scale-range,
-  .scale-rows .scale-often { grid-column: 2; }
+  .scale-rows .scale-said { grid-column: 2; grid-row: 3; }
 }
 
 /* Inline links inside a panel explanation. */
