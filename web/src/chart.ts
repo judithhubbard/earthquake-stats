@@ -720,6 +720,8 @@ export interface AnnualOptions {
   sigma?: { lo: number; hi: number } | null;
   /** How a year is named -- "2025" on calendar years, "2025-26" on rolling. */
   yearLabel?: (year: number) => string;
+  /** Draw the M7+ share as a darker foot to each bar. */
+  showMajor?: boolean;
 }
 
 /**
@@ -744,18 +746,24 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
 
   // Each bar is one hue at two strengths -- the M7+ share is the darker part
   // sitting on the baseline, so composition reads without spending a second
-  // colour that would collide with the highlighted years.
+  // colour that would collide with the highlighted years. Where the section is
+  // about the total alone, the split is dropped and the bar is solid: a second
+  // tone invites a second question the section is not asking.
+  const showMajor = opts.showMajor ?? true;
   const marks: Plot.Markish[] = [
     Plot.rectY(counts, {
-      x: "year", y1: "major", y2: "count",
-      fill, fillOpacity: (d: AnnualCount) => (colorFor.has(d.year) ? 0.45 : 0.3),
+      x: "year", y1: showMajor ? "major" : undefined, y2: "count",
+      fill,
+      fillOpacity: (d: AnnualCount) => (colorFor.has(d.year)
+        ? (showMajor ? 0.45 : 1)
+        : (showMajor ? 0.3 : 0.75)),
       insetLeft: 0.5, insetRight: 0.5,
     }),
-    Plot.rectY(withMajor, {
+    ...(showMajor ? [Plot.rectY(withMajor, {
       x: "year", y: "major",
       fill, fillOpacity: (d: AnnualCount) => (colorFor.has(d.year) ? 1 : 0.75),
       insetLeft: 0.5, insetRight: 0.5,
-    }),
+    })] : []),
     Plot.rectY(partial, {
       x: "year", y1: "count", y2: "projected",
       fill: "none", stroke: fill, strokeWidth: 1, strokeDasharray: "2,2",
@@ -798,7 +806,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
           ? [`${name} (in progress)`, `So far:  ${fmt(d.count)}`,
              `On this pace:  ${fmt(Math.round(d.projected))}`]
           : [`${name}:  ${fmt(d.count)}`];
-        if (d.major > 0) rows.push(`of which M7+:  ${fmt(d.major)}`);
+        if (showMajor && d.major > 0) rows.push(`of which M7+:  ${fmt(d.major)}`);
         return rows.join("\n");
       },
     })),

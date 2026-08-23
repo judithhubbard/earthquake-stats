@@ -943,7 +943,7 @@ async function update() {
   void writeLatest(minMag);
   buildAnswerScale(headlinePct, yearLabel(headlineYear, "rolling"));
   writeNote(refYears.length, liveAdded);
-  writeAnnualNote(aYear, true, true);
+  writeAnnualNote(aYear, false, true);
 
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
     subject, from: REFERENCE_START, to: currentYear - 1,
@@ -1068,6 +1068,7 @@ async function update() {
       counts, highlights: annualHighlights, refYears: aRefYears,
       theme, width: widthOf(el.annualChart),
       yearLabel: (year: number) => yearLabel(year, "rolling"),
+      showMajor: false,
       yLabel: fill(copy.home.axisAnnualCount, { threshold: magLabel(MIN_MAGNITUDE) }),
       wholeNumbers: true,
       sigma: annualSigma,
