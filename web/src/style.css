@@ -117,12 +117,19 @@ main {
   border-radius: 12px;
 }
 
+/* The one place on the site with a face of its own. A serif for the questions
+   and a sans for everything measured marks the boundary the page is organised
+   around: this is what is being asked, everything below it is what was found.
+   Nothing else takes it -- on the answers or the chart labels it would undo
+   the distinction that makes it worth a download. display=swap, so the page
+   answers its question in the fallback if the font is slow. */
 .question-title {
   margin: 0 0 1.1rem;
-  font-size: clamp(1.5rem, 3.4vw, 2.05rem);
-  font-weight: 700;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: clamp(1.55rem, 3.5vw, 2.15rem);
+  font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   color: var(--chip-ink);
   text-wrap: balance;
 }
