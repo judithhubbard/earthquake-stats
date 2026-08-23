@@ -168,12 +168,18 @@ main {
 
 .verdict-cols {
   display: grid;
-  grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
-  gap: 3rem;
+  /* The key column gives ground before the layout does. A fixed 21rem forced a
+     collapse as soon as the window dipped under the page's own width, which is
+     most windows; letting it fall to 14rem keeps two columns roughly 14rem of
+     viewport further down. The gap closes with it. */
+  grid-template-columns: minmax(0, clamp(14rem, 32%, 21rem)) minmax(0, 1fr);
+  gap: clamp(1.25rem, 3.5vw, 3rem);
   align-items: start;
 }
 
-@media (max-width: 58rem) {
+/* 42rem, not 58: below this the key column can no longer hold "153 to 191"
+   beside a sentence, which is the actual thing that breaks. */
+@media (max-width: 42rem) {
   .verdict-cols { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
 }
 
