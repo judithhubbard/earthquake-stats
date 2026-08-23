@@ -3,7 +3,7 @@ import { renderAnnualChart, renderChart, renderDistribution,
          readTheme, type Highlight } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand, shareBands, recentShareP,
+  dayIndex, empiricalBand, quantile, shareBands, recentShareP,
   equivalentMagnitude, seismicMoment,
   rollingWindowBand,
   verdict,
@@ -239,7 +239,14 @@ const BAND_FADES = [1, 0.45, 1, 0.45, 1];
  * width of its band, which is also the number of years in a hundred: the
  * percentile is uniform by construction, so a band 20 points wide is 20 years.
  */
-function buildAnswerScale(pct: number | null, year: string) {
+function buildAnswerScale(pct: number | null, year: string, peers: number[]) {
+  // The band edges as counts, read off the past windows themselves. The
+  // percentile is already in the frequency column on the right -- "5 years in
+  // 100" is what a 0-5th percentile band means -- so the left column can say
+  // the thing a reader cannot work out for themselves.
+  const sorted = [...peers].sort((a, b) => a - b);
+  const edges = ANSWER_BOUNDS.slice(1, -1)
+    .map((b) => Math.round(quantile(sorted, b / 100)));
   const bands = ANSWER_BOUNDS.slice(0, -1).map((low, i) => {
     const high = ANSWER_BOUNDS[i + 1];
     return {
@@ -247,6 +254,11 @@ function buildAnswerScale(pct: number | null, year: string) {
       // The sentences the headline can print, which are now the rolling set.
       text: fill(answerFor((low + high) / 2, true), { year, from: REFERENCE_START }),
       tint: BAND_TINTS[i], fade: BAND_FADES[i],
+      count: sorted.length < 4 ? null
+           : i === 0 ? fill(copy.home.scaleRowLow, { n: edges[0] })
+           : i === ANSWER_BOUNDS.length - 2
+             ? fill(copy.home.scaleRowHigh, { n: edges[edges.length - 1] + 1 })
+             : fill(copy.home.scaleRow, { lo: edges[i - 1] + 1, hi: edges[i] }),
     };
   });
 
@@ -297,7 +309,7 @@ function buildAnswerScale(pct: number | null, year: string) {
 
     const range = document.createElement("span");
     range.className = "scale-range";
-    range.textContent = fill(copy.home.scaleRow, { low: b.low, high: b.high });
+    range.textContent = b.count ?? "";
 
     const said = document.createElement("span");
     said.className = "scale-said";
@@ -994,7 +1006,9 @@ async function update() {
   writeHeadline(result, headlineYear, headlinePct);
   writeHeadlineChart(headlineCurves, headlineRef, headline, headlineYear);
   void writeLatest(minMag);
-  buildAnswerScale(headlinePct, yearLabel(headlineYear, "rolling"));
+  buildAnswerScale(headlinePct, yearLabel(headlineYear, "rolling"),
+                   headlineRef.map((y) => headlineCurves.curves.get(y)![DAYS - 1])
+                     .filter(Number.isFinite));
   writeNote(refYears.length, liveAdded);
   writeAnnualNote(aYear, false, true);
 

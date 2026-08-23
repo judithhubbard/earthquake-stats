@@ -208,11 +208,13 @@ main {
   letter-spacing: -0.02em;
 }
 
+/* The same size as the rate question's verdict: the two questions are equal
+   partners, and the first answer was more than half as large again. */
 .answer {
-  margin: 0 0 0.5rem;
-  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  margin: 0;
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .answer strong { color: var(--series-1); }
@@ -829,6 +831,15 @@ main {
   border-radius: 50%;
 }
 
+/* The answer sits on the section ground, as the rate question's does; only the
+   figure it is read off gets a white bed, half the width, beside it. */
+.answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 22rem);
+  gap: 1.4rem;
+  align-items: center;
+}
+
 .question > #annual-chart,
 .question .answer-figure {
   background: #ffffff;
@@ -836,11 +847,11 @@ main {
   padding: 0.9rem 1rem;
 }
 
-/* The answer sits on the section ground, as the rate question's does, with the
-   figure it is read off in a white box below it. */
-.question > .answer { margin: 0 0 1.2rem; }
-.question .answer-figure { margin-top: 0; }
-.question .answer-detail { max-width: 30rem; min-height: 0; }
+.question .answer-detail { min-height: 0; }
+
+@media (max-width: 52rem) {
+  .answer-row { grid-template-columns: minmax(0, 1fr); }
+}
 
 .chart-intro {
   margin: 0.9rem 0 0.2rem;
@@ -916,9 +927,9 @@ main {
 /* The section's answer, in the headline's voice, directly under its title. */
 .decade-verdict {
   margin: 1.1rem 0 0.15rem;
-  font-size: 1.05rem;
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--text-primary);
 }
 

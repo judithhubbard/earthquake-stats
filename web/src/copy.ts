@@ -220,7 +220,12 @@ export const copy = {
     /* The scale at the foot of the page: every headline the site can print, how
        wide a slice of the percentile range earns it, and how often that is. */
     scaleTitle: "Every answer this page can give",
-    scaleRow: "{low}–{high}th percentile",
+    /* Earthquakes, not percentiles: the frequency column already says what a
+       percentile band means, and "5 years in 100" is easier to hold than "the
+       95th percentile". */
+    scaleRow: "{lo} to {hi}",
+    scaleRowLow: "{n} or fewer",
+    scaleRowHigh: "{n} or more",
     scaleFrequency: "{n} years in 100",
     scaleBasis: "Calculated based on all {threshold} earthquakes worldwide",
     legendSigma: "±2σ — 95.45% under a normal fit",
