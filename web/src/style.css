@@ -179,7 +179,10 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 1.5rem 3rem;
-  align-items: baseline;
+  /* Bottom, not first-baseline. The two blocks run to different line counts,
+     so aligning their first lines left the shorter one floating; sitting them
+     both on the rule underneath makes them one band. */
+  align-items: end;
   padding-bottom: 1.75rem;
   border-bottom: 1px solid var(--axis);
 }
@@ -208,7 +211,21 @@ main {
   display: grid;
   grid-template-columns: minmax(0, clamp(20rem, 50%, 29rem)) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 2.75rem);
-  align-items: center;
+  align-items: start;
+}
+
+/* Both columns open with a heading over a rule, and the two rules have to land
+   on the same line or the pair reads as two unrelated blocks. The headings are
+   different heights -- two lines of mono against one of serif -- so they share
+   a minimum height and sit on its bottom edge, which puts the rules level
+   whatever either one wraps to. */
+.scale-rows .scale-head,
+.figures .chart-subhead {
+  min-height: 3.1rem;
+  align-items: end;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.7rem;
+  border-bottom: 1px solid var(--axis);
 }
 
 /* 44rem, not 60: main is 60rem wide, so a breakpoint near it stacks the row on
@@ -417,6 +434,14 @@ main {
      summary belongs before the thing it summarises -- underneath, it arrived
      after the reader had already worked the chart out. */
   .chart-stage { display: flex; flex-direction: column; }
+
+  .stage-toggle {
+    top: 0.2rem;
+    right: 0.2rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: var(--r-sm);
+    background: color-mix(in srgb, #ffffff 88%, transparent);
+  }
 
   .chart-inset {
     order: -1;
@@ -1013,8 +1038,7 @@ main {
 .answer-detail .hist-wrap > svg { display: block; margin-inline: auto; }
 .question > .annual-figure { margin: 3.5rem 0 0; }
 
-.annual-figure > .chart-subhead,
-.figures .chart-subhead {
+.annual-figure > .chart-subhead {
   margin: 0 0 0.9rem;
   padding-bottom: 0.45rem;
   border-bottom: 1px solid var(--axis);
@@ -1146,6 +1170,18 @@ main {
    whatever sits above the chart -- a control row, a subtitle -- cannot push it
    off the plot. */
 .chart-stage { position: relative; margin-top: 0.75rem; }
+
+/* The range toggle is anchored to the plot, not to the title row. On a wide
+   window it lifts back into the row beside the subtitle, which is where it
+   looks like it lives; on a narrow one it stays down on the plot, so the
+   inset can have the top of the figure without either of them needing a line
+   of their own. */
+.stage-toggle {
+  position: absolute;
+  right: 0;
+  top: -2rem;
+  z-index: 5;
+}
 
 /* The section's answer, in the headline's voice, directly under its title. */
 /* The histogram and the tooltip that names the bar under the pointer. */
@@ -1690,9 +1726,6 @@ footer p { margin: 0 0 0.4rem; }
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--text-muted);
-  padding-bottom: 0.35rem;
-  margin-bottom: 0.15rem;
-  border-bottom: 1px solid var(--axis);
   border-radius: 0;
 }
 

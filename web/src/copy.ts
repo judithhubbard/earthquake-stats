@@ -129,8 +129,8 @@ export const copy = {
     cumulativeSubjectCount: "{threshold} {kind}",
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
     annualBand:
-      "Where does the last year fall? In 90% of years, we expect to see between {lo} and " +
-      "{hi} {threshold} earthquakes. In the last 365 days, there have been {n}.",
+      "In 90% of years, we expect to see between {lo} and {hi} {threshold} earthquakes. " +
+      "In the last 365 days, there have been {n}.",
 
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
