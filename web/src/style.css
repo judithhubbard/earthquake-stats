@@ -1154,13 +1154,11 @@ main {
 
 .chart-toggle-label { font-family: var(--mono); letter-spacing: 0.11em; }
 
-/* Under the table: it reads the same three numbers the table's own rows are
-   built from, so it explains the key rather than introducing the figures. On
-   the full measure it is held to a reading width. */
-.verdict > .chart-explain {
-  margin: 1.4rem 0 0;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--axis);
+/* Under the histogram it describes: the two numbers it quotes are the outer
+   edges of the coloured bands above it, so it reads as that figure's caption
+   rather than as a paragraph the table has to be got past. */
+.figures > .chart-explain {
+  margin: 1.1rem 0 0;
   font-size: var(--t-body);
   line-height: 1.6;
   color: var(--text-secondary);
