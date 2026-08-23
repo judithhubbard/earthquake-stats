@@ -764,3 +764,48 @@ export function verdict(curves: YearCurves, refYears: number[],
     inside90: count >= q(toDate, 0.05) && count <= q(toDate, 0.95),
   };
 }
+
+/**
+ * How often a steady rate would put this many events in the recent share.
+ *
+ * Conditioning on the total, the count in a sub-period of a homogeneous Poisson
+ * process is binomial, with `share` the fraction of the record that period
+ * covers. Exact, and two-sided by summing the probabilities no larger than the
+ * observed one.
+ *
+ * This is what a verdict can rest on. The histogram beside it ranks overlapping
+ * ten-year stretches, which fairly describes where the recent one sits but is
+ * not a test: consecutive stretches share nine of their ten years.
+ */
+export function recentShareP(recent: number, total: number, share: number): number | null {
+  if (!(total > 0) || !(share > 0) || !(share < 1)) return null;
+  if (recent < 0 || recent > total) return null;
+
+  const lgamma = (z: number): number => {
+    const g = [676.5203681218851, -1259.1392167224028, 771.32342877765313,
+               -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+               9.9843695780195716e-6, 1.5056327351493116e-7];
+    if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z);
+    const w = z - 1;
+    let a = 0.99999999999980993;
+    for (let i = 0; i < g.length; i++) a += g[i] / (w + i + 1);
+    const t = w + g.length - 0.5;
+    return 0.5 * Math.log(2 * Math.PI) + (w + 0.5) * Math.log(t) - t + Math.log(a);
+  };
+
+  const logP = Math.log(share);
+  const logQ = Math.log1p(-share);
+  const logC = lgamma(total + 1);
+  const logPmf = (i: number) =>
+    logC - lgamma(i + 1) - lgamma(total - i + 1) + i * logP + (total - i) * logQ;
+
+  // Compared in logs with a whisker of tolerance, so a count symmetric with the
+  // observed one is not dropped by a rounding error in the last bit.
+  const observed = logPmf(recent);
+  let sum = 0;
+  for (let i = 0; i <= total; i++) {
+    const l = logPmf(i);
+    if (l <= observed + 1e-9) sum += Math.exp(l);
+  }
+  return Math.min(1, sum);
+}

@@ -3,8 +3,8 @@ import { renderAnnualChart, renderChart, renderDistribution,
          readTheme, type Highlight } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand,
-  equivalentMagnitude, seismicMoment,
+  dayIndex, empiricalBand, recentShareP,
+  asPercent, equivalentMagnitude, seismicMoment,
   rollingWindowBand,
   verdict,
   type Measure, type YearCurves,
@@ -162,6 +162,7 @@ const el = {
   chartNote: document.getElementById("chart-note")!,
   annualIntro: document.getElementById("annual-intro")!,
   annualChart: document.getElementById("annual-chart")!,
+  decadeVerdict: document.getElementById("decade-verdict")!,
   decadeText: document.getElementById("decade-text")!,
   decadeChart: document.getElementById("decade-chart")!,
   annualTitle: document.getElementById("annual-title")!,
@@ -670,6 +671,7 @@ const DECADE = 10;
 
 function writeDecades(counts: { year: number; count: number }[],
                       theme: ReturnType<typeof readTheme>) {
+  el.decadeVerdict.replaceChildren();
   el.decadeText.textContent = "";
   el.decadeChart.replaceChildren();
   if (counts.length < DECADE * 2) return;
@@ -686,6 +688,28 @@ function writeDecades(counts: { year: number; count: number }[],
 
   const busier = past.filter((w) => w.value > now.value).length;
   const one = (v: number) => v.toFixed(1);
+
+  // The verdict rests on the exact test, not on the ranking above: the drawn
+  // stretches overlap by nine years each, so their order describes where the
+  // recent one sits and cannot be a p-value. Ten years is fixed in advance --
+  // chosen after looking, fifteen would currently read a good deal smaller.
+  const total = counts.reduce((a, c) => a + c.count, 0);
+  const recent = counts.slice(-DECADE).reduce((a, c) => a + c.count, 0);
+  const p = recentShareP(recent, total, DECADE / counts.length);
+  if (p !== null) {
+    const expected = total * (DECADE / counts.length);
+    const off = expected > 0 ? (100 * (recent - expected)) / expected : 0;
+    const template = p < 0.01 ? copy.home.decadeYes
+                   : p < 0.05 ? copy.home.decadeMaybe
+                   : copy.home.decadeNo;
+    // innerHTML, as the headline sentence does: the copy carries a <strong>
+    // lead-in and nothing in it comes from anywhere but copy.ts.
+    el.decadeVerdict.innerHTML = fill(template, {
+      pct: Math.abs(off).toFixed(1),
+      dir: off < 0 ? copy.home.decadeBelow : copy.home.decadeAbove,
+      p: asPercent(p),
+    });
+  }
   el.decadeText.textContent = fill(copy.home.decadeText, {
     now: one(now.value), threshold: magLabel(MIN_MAGNITUDE), peers: past.length,
     busier, from: REFERENCE_START,

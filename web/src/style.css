@@ -903,6 +903,20 @@ main {
   border-top: 1px solid var(--border);
 }
 
+.decade-copy { min-width: 0; }
+
+/* The section's answer, in the headline's voice: the verdict first, the
+   description of where the recent stretch sits underneath it. */
+.decade-verdict {
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.decade-verdict strong { color: var(--series-1); }
+
 .decade-text {
   margin: 0;
   font-size: 0.9rem;
