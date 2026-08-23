@@ -211,7 +211,7 @@ main {
 /* The same size as the rate question's verdict: the two questions are equal
    partners, and the first answer was more than half as large again. */
 .answer {
-  margin: 0;
+  margin: 0 0 1.2rem;
   font-size: clamp(1.15rem, 2.5vw, 1.45rem);
   font-weight: 600;
   line-height: 1.35;
@@ -831,17 +831,7 @@ main {
   border-radius: 50%;
 }
 
-/* The answer sits on the section ground, as the rate question's does; only the
-   figure it is read off gets a white bed, half the width, beside it. */
-.answer-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(270px, 22rem);
-  gap: 1.4rem;
-  align-items: center;
-}
-
-.question > #annual-chart,
-.question .answer-figure {
+.question > #annual-chart {
   background: #ffffff;
   border-radius: 10px;
   padding: 0.9rem 1rem;
@@ -849,9 +839,26 @@ main {
 
 .question .answer-detail { min-height: 0; }
 
-@media (max-width: 52rem) {
-  .answer-row { grid-template-columns: minmax(0, 1fr); }
+/* The scale shares the white box with the histogram it explains, so its rows
+   stack: swatch on the left, then the range, the sentence and the frequency
+   down the remaining column. Four columns across half a section put one word
+   per line, which is what happened the last time a scale was asked to sit in
+   half the width. */
+.decade-row > .scale { margin: 0; min-width: 0; }
+
+.decade-row .scale-rows li {
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 0.15rem 0.55rem;
+  align-items: start;
 }
+
+.decade-row .scale-rows .scale-range,
+.decade-row .scale-rows .scale-said,
+.decade-row .scale-rows .scale-often { grid-column: 2; }
+
+.decade-row .scale-rows .scale-range { font-weight: 650; color: var(--text-primary); }
+.decade-row .scale-rows .scale-often { color: var(--text-muted); }
+.decade-row .scale-basis { margin-top: 0.7rem; }
 
 .chart-intro {
   margin: 0.9rem 0 0.2rem;
@@ -947,6 +954,10 @@ main {
   border-radius: 10px;
 }
 
+@media (max-width: 52rem) {
+  .decade-row { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+}
+
 .decade-chart { min-width: 0; }
 
 .decade-table .correlate-flip { margin: 0; padding-top: 0; border-top: 0; }
@@ -989,13 +1000,6 @@ main {
 /* The scale of every answer the page can give: part of the answer rather than
    an exhibit, so it stays on the page ground under a rule instead of joining
    the trays below. */
-.decide {
-  margin-top: 1.5rem;
-  padding: 1rem 1.1rem 1.1rem;
-  background: #ffffff;
-  border-radius: 10px;
-}
-
 .section-title { margin: 0 0 0.6rem; }
 
 
