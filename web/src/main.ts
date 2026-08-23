@@ -320,7 +320,19 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
   // Highest band at the top, so the list reads the way the question is asked:
   // "are there more?" first. The bar underneath still runs low to high left to
   // right, which is the only direction an axis can sensibly run.
-  el.scaleRows.replaceChildren(...[...bands].reverse().map((b) => {
+  // A heading row, matching the second question's table. Without it the two
+  // boxes present the same object two different ways.
+  const head = document.createElement("li");
+  head.className = "scale-head";
+  const headWhen = document.createElement("span");
+  headWhen.className = "scale-range";
+  headWhen.textContent = copy.home.scaleColCount;
+  const headSays = document.createElement("span");
+  headSays.className = "scale-said";
+  headSays.textContent = copy.home.scaleColAnswer;
+  head.append(document.createElement("i"), headWhen, headSays);
+
+  el.scaleRows.replaceChildren(head, ...[...bands].reverse().map((b) => {
     const li = document.createElement("li");
     const swatch = document.createElement("i");
     swatch.className = `scale-seg scale-${b.tint}`;
@@ -776,6 +788,8 @@ function writeDecades(counts: { year: number; count: number }[],
        [fill(c.decadeBandFewest, { n: band.low }), c.decadeAnsFewer]],
       key,
       [fill(c.decadeNow, { value: String(recent) }), null],
+      // Same order as the rows above, and the same three colours as the bar.
+      ["up", "mid", "down"],
     ));
 
     // The same bar as the first question's, but on a count axis rather than a

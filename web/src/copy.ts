@@ -238,6 +238,8 @@ export const copy = {
     scaleRowHigh: "{n} or more",
     scaleFrequency: "{n} years in 100",
     scaleNow: "{year}, right now",
+    scaleColCount: "Earthquakes in the last 365 days",
+    scaleColAnswer: "The answer",
     scaleBasis: "Calculated based on all {threshold} earthquakes worldwide",
     decadeBasis: "Calculated based on {threshold} earthquakes worldwide, aftershocks removed",
     legendSigma: "±2σ — 95.45% under a normal fit",

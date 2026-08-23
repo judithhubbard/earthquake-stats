@@ -11,12 +11,16 @@ import { copy } from "./copy";
 export interface Column { label: string; help?: { label: string; body: string }; }
 
 export function flipTable(columns: Column[], rows: string[][], current: number,
-                   now: (string | null)[]): HTMLElement {
+                   now: (string | null)[],
+                   /* One tint class per row, keyed to the bar above the table.
+                      Without them the bar's three colours are unexplained; the
+                      other caller passes none and keeps its two columns. */
+                   swatches?: (string | null)[]): HTMLElement {
   const box = document.createElement("div");
   box.className = "correlate-flip";
   // Column widths are set here rather than in the stylesheet because the two
   // kinds of table have different numbers of them.
-  const template = columns
+  const template = (swatches ? "14px " : "") + columns
     .map((_, i) => (i === columns.length - 1 ? "minmax(0, 1fr)" : "minmax(0, 11rem)"))
     .join(" ");
 
@@ -52,10 +56,15 @@ export function flipTable(columns: Column[], rows: string[][], current: number,
   const list = document.createElement("ol");
   list.className = "flip-rows";
 
-  const row = (cells: (string | null)[], cls: string) => {
+  const row = (cells: (string | null)[], cls: string, tint?: string | null) => {
     const li = document.createElement("li");
     li.className = cls;
     li.style.gridTemplateColumns = template;
+    if (swatches) {
+      const swatch = document.createElement("i");
+      if (tint) swatch.className = `scale-seg scale-${tint}`;
+      li.append(swatch);
+    }
     cells.forEach((text, i) => {
       const cell = document.createElement("span");
       cell.className = i === cells.length - 1 ? "flip-says" : "flip-when";
@@ -68,9 +77,11 @@ export function flipTable(columns: Column[], rows: string[][], current: number,
   const head = document.createElement("li");
   head.className = "flip-head";
   head.style.gridTemplateColumns = template;
+  if (swatches) head.append(document.createElement("i"));
   columns.forEach((col) => head.append(heading(col)));
   list.append(head);
-  rows.forEach((cells, i) => list.append(row(cells, i === current ? "is-current" : "")));
+  rows.forEach((cells, i) =>
+    list.append(row(cells, i === current ? "is-current" : "", swatches?.[i])));
   // The readings sit in a row of their own, each under the threshold it is
   // being compared against. Anywhere else and the reader has to work out which
   // number goes with which column.
