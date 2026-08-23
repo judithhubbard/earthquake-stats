@@ -346,12 +346,8 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
     said.className = "scale-said";
     said.innerHTML = b.text;
 
-    const often = document.createElement("span");
-    often.className = "scale-often";
-    often.textContent = fill(copy.home.scaleFrequency, { n: b.width });
-
     if (pct !== null && pct >= b.low && pct <= b.high) li.className = "is-current";
-    li.append(swatch, range, said, often);
+    li.append(swatch, range, said);
     return li;
   }));
 

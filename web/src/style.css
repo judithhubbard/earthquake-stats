@@ -1493,14 +1493,9 @@ footer p { margin: 0 0 0.4rem; }
   font-size: 0.8rem;
 }
 
-/* Two columns of meaning, not four in a line: the band on the left with how
-   often it comes up directly under it, and the sentence it earns on the right.
-   The range and the frequency are two facts about the same band, so they read
-   as a pair rather than as the ends of a row. */
 /* The heading is not a candidate answer; it frames the ones that are, and is
    ruled off from them the same way the second question's table is. */
 .scale-rows .scale-head {
-  grid-template-rows: auto;
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -1512,16 +1507,15 @@ footer p { margin: 0 0 0.4rem; }
   border-radius: 0;
 }
 
-.scale-rows .scale-head .scale-range { grid-row: 1; font-weight: 700; }
-.scale-rows .scale-head .scale-said { grid-row: 1; }
+.scale-rows .scale-head .scale-range { font-weight: 700; }
 
+/* One line per band: swatch, the range it covers, and the sentence it earns --
+   the same three columns the second question's table uses. */
 .scale-rows li {
   display: grid;
   grid-template-columns: 14px minmax(0, 7rem) minmax(0, 1fr);
-  grid-template-rows: auto auto;
   align-items: baseline;
   column-gap: 0.75rem;
-  row-gap: 0.1rem;
   padding: 0.35rem;
   margin: 0 -0.35rem;
   border-radius: 5px;
@@ -1530,8 +1524,7 @@ footer p { margin: 0 0 0.4rem; }
 
 .scale-rows i { grid-column: 1; grid-row: 1; }
 .scale-rows .scale-range { grid-column: 2; grid-row: 1; }
-.scale-rows .scale-often { grid-column: 2; grid-row: 2; text-align: left; }
-.scale-rows .scale-said { grid-column: 3; grid-row: 1 / span 2; }
+.scale-rows .scale-said { grid-column: 3; grid-row: 1; }
 
 /* The reading, under the bands, in the same grid so the count lines up with
    the ranges above it. */
@@ -1564,12 +1557,6 @@ footer p { margin: 0 0 0.4rem; }
 }
 
 .scale-said strong { color: var(--text-primary); }
-
-.scale-often {
-  font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
 
 @media (max-width: 640px) {
   .scale-rows li { grid-template-columns: 14px minmax(0, 1fr); }

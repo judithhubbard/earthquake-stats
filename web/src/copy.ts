@@ -236,7 +236,6 @@ export const copy = {
     scaleRow: "{lo} to {hi}",
     scaleRowLow: "{n} or fewer",
     scaleRowHigh: "{n} or more",
-    scaleFrequency: "{n} years in 100",
     scaleNow: "{year}, right now",
     scaleColCount: "Earthquakes in the last year",
     scaleColAnswer: "The answer",
