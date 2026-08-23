@@ -1054,7 +1054,7 @@ main {
   align-items: stretch;
 }
 
-.answer-row > .scale { margin: 0; min-width: 0; }
+.verdict > .scale { min-width: 0; }
 
 /* The scale is the taller column, so the histogram side stretches to match it
    and centres its own contents; the basis line stays pinned to the top. */
@@ -1615,7 +1615,7 @@ footer p { margin: 0 0 0.4rem; }
    The bar's segments are sized by band width, which is the same number as the
    years-in-a-hundred: percentile is uniform, so 20 points wide is 20 years. */
 .scale {
-  margin: 1.75rem 0 0;
+  margin: 0;
 }
 
 /* Sits above the basis line in the left column now, not over the band table.
