@@ -1,7 +1,10 @@
 :root {
   color-scheme: light;
   --surface-1: #fcfcfb;
-  --plane: #f9f9f7;
+  /* The page sits behind the panels rather than beside them: a darker ground
+     so the light blocks on top of it read as blocks. Everything the reader
+     looks at is lighter than this. */
+  --plane: #dcdad0;
   --text-primary: #0b0b0b;
   --text-secondary: #52514e;
   --text-muted: #898781;
@@ -27,12 +30,17 @@
      a green tray as well left three tints of one hue fighting each other. The
      neutrals on this page already lean warm (--band-outer, --grid), so the
      tray joins that family and the sage is left to mean something. */
-  --tray: #e9e8e0;
+  --tray: #f3f2ec;
   /* The two questions share a ground, so they read as a pair and the tray
      below reads as a different kind of thing. Sage rather than the tray's
      stone, and light enough that the sage bars in the histograms drawn on it
      still separate from it. */
   --question-ground: #eaf2ee;
+  --panel-edge: #b9b6a8;
+  /* The track behind a segmented control. It used to borrow the page ground,
+     which was near-white; now that the page is a dark stone it needs its own,
+     or every toggle on the page darkens with the background. */
+  --control-track: #edece6;
   --chip: #cfe3d8;
   --chip-edge: #8fb9a3;
   --chip-ink: #2f5a43;
@@ -110,7 +118,7 @@ main {
   margin-top: 1.75rem;
   padding: 1.6rem 1.4rem 1.5rem;
   background: var(--question-ground);
-  border: 1px solid var(--range-inner);
+  border: 2px solid var(--chip-edge);
   border-radius: 12px;
 }
 
@@ -341,7 +349,7 @@ main {
 .panel {
   margin-top: 1.75rem;
   background: var(--tray);
-  border: 1px solid var(--border);
+  border: 2px solid var(--panel-edge);
   border-radius: 12px;
   padding: 1rem 1.25rem 1.25rem;
 }
@@ -385,7 +393,7 @@ main {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: var(--plane);
+  background: var(--control-track);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
