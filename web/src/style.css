@@ -23,7 +23,7 @@
   --t-body: 0.9375rem;    /* 15px  -- prose */
   --t-lead: 1.0625rem;    /* 17px  -- figure titles, emphasis */
   --t-answer: 1.35rem;    /* 22px  -- the answer sentence */
-  --t-display: clamp(1.6rem, 3.4vw, 2.15rem);   /* question titles */
+  --t-display: clamp(2rem, 4.4vw, 2.75rem);     /* question titles */
   --t-hero: clamp(2rem, 5vw, 3rem);             /* the correlations masthead */
 
   /* The mono face carries every number that is a measurement rather than
@@ -158,15 +158,23 @@ main {
 
 /* ---------- hero ---------- */
 
-.hero { margin-bottom: 2.25rem; }
+.hero { margin-bottom: 2rem; }
 
 /* The verdict on the left, every figure on the right. The left column is the
    key: the question, the answer, the scale and what each band means, all
    visible while the eye is anywhere in the figures. It is also what fixes the
    measure -- 21rem cannot hold a line too long to read. */
-.question { margin-top: 1.5rem; }
+.question { margin-top: 0; }
+
+/* The question and its answer run the full measure above the columns. Held
+   inside a 21rem key column the headline was a stack of four short lines
+   competing with the table under it; across the page it is one line, and it
+   is the first thing on the page rather than the first thing in a column. */
+.question-title { max-width: 22ch; }
+.answer { max-width: 46ch; }
 
 .verdict-cols {
+  margin-top: 2.5rem;
   display: grid;
   /* The key column gives ground before the layout does. A fixed 21rem forced a
      collapse as soon as the window dipped under the page's own width, which is
@@ -214,8 +222,8 @@ main {
   font-family: var(--serif);
   font-size: var(--t-display);
   font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.028em;
+  line-height: 1.02;
+  letter-spacing: -0.032em;
   /* Near-black. The green was chosen to sit on a green panel that is gone. */
   color: var(--text-primary);
   text-wrap: balance;
@@ -407,17 +415,17 @@ main {
 /* The page's opening line, naming both questions before either is answered.
    Italic and a shade heavier than the prose it sits above, so it reads as the
    page speaking rather than as the first of the answers. */
-/* Standfirst under the rule: serif to match the question it introduces, and
-   held to a readable measure rather than the page's full 60rem. */
+/* Standfirst, and no more than that. Set at lead size and 44ch it was the
+   largest block on the page and it sat above the question it introduces, so
+   the eye met three sentences before the headline. Body size, muted, one
+   line's gap under the rule. */
 .hero-intro {
-  margin: 1.1rem 0 0;
-  max-width: 44ch;
-  color: var(--text-secondary);
-  font-family: var(--serif);
-  font-size: var(--t-lead);
+  margin: 0.85rem 0 0;
+  max-width: 62ch;
+  color: var(--text-muted);
+  font-size: var(--t-body);
   font-style: italic;
-  font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 /* ---------- panel ---------- */
@@ -450,13 +458,13 @@ main {
      label-over-control blocks read as a settings form; four choices on a rule
      read as a caption you can click. */
   align-items: center;
-  gap: 0.5rem 1.75rem;
+  gap: 0.5rem 1.15rem;
   padding-bottom: 1.1rem;
   margin-bottom: 1.4rem;
   border-bottom: 1px solid var(--border);
 }
 
-.controls fieldset { display: flex; align-items: center; gap: 0.45rem; }
+.controls fieldset { display: flex; align-items: center; gap: 0.35rem; }
 
 .controls fieldset {
   border: 0;
@@ -467,7 +475,7 @@ main {
 
 .controls legend {
   float: left;
-  padding: 0 0.45rem 0 0;
+  padding: 0 0.3rem 0 0;
   font-family: var(--mono);
   font-size: var(--t-micro);
   font-weight: 500;
@@ -478,11 +486,11 @@ main {
 
 .segmented {
   display: inline-flex;
-  gap: 2px;
-  padding: 2px;
+  gap: 1px;
+  padding: 1px;
   background: var(--plane);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
 }
 
 .segmented button {
@@ -491,20 +499,20 @@ main {
   background: transparent;
   color: var(--text-secondary);
   font: inherit;
-  font-size: var(--t-fine);
+  font-size: var(--t-cap);
   font-weight: 500;
-  padding: 0.22rem 0.45rem;
-  border-radius: var(--r-sm);
+  padding: 0.18rem 0.4rem;
+  border-radius: 4px;
   cursor: pointer;
-  min-height: 26px;
+  min-height: 22px;
   white-space: nowrap;
 }
 
 .segmented button:hover { background: var(--band-outer); }
 
 .segmented button[aria-pressed="true"] {
-  background: var(--series-1);
-  color: #fff;
+  background: var(--text-primary);
+  color: var(--plane);
   font-weight: 600;
 }
 

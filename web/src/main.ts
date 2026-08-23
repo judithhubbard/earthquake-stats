@@ -167,7 +167,6 @@ const el = {
   annualBand: document.getElementById("annual-band")!,
   range: document.getElementById("range-control")!,
   annualRange: document.getElementById("annual-range-control")!,
-  scaleBar: document.getElementById("scale-bar")!,
   scaleNow: document.getElementById("scale-now")!,
   scaleBasis: document.getElementById("scale-basis")!,
   scaleRows: document.getElementById("scale-rows")!,
@@ -222,15 +221,6 @@ function answerFor(pct: number, rolling: boolean): string {
  */
 const ANSWER_BOUNDS = [0, 5, 25, 75, 95, 100];
 
-/** 1st, 2nd, 3rd, 61st -- the copy used to append a literal "th". */
-function ordinal(n: number): string {
-  const v = Math.round(n);
-  const suffix = v % 100 >= 11 && v % 100 <= 13
-    ? "th"
-    : ["th", "st", "nd", "rd"][v % 10] ?? "th";
-  return `${v}${suffix}`;
-}
-
 
 /** Colour per band, palest in the middle: blue below average, red above. */
 const BAND_TINTS = ["down", "down", "mid", "up", "up"] as const;
@@ -270,37 +260,10 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
   });
 
 
-  el.scaleBar.replaceChildren(...bands.map((b) => {
-    const seg = document.createElement("span");
-    seg.className = `scale-seg scale-${b.tint}`;
-    seg.style.flexGrow = String(b.width);
-    seg.style.opacity = String(b.fade);
-    return seg;
-  }));
-  if (pct !== null) {
-    const marker = document.createElement("span");
-    marker.className = "scale-marker";
-    marker.style.left = `${pct}%`;
-
-    const tag = document.createElement("span");
-    tag.className = "scale-marker-label";
-    tag.textContent = year;
-    // Past the right-hand end the label would run off the figure, so it flips
-    // to sit on the other side of its own line.
-    if (pct > 80) tag.classList.add("is-left");
-
-    // The reading itself, above the line, where it cannot be mistaken for one
-    // of the band boundaries printed underneath.
-    const value = document.createElement("span");
-    value.className = "scale-marker-value";
-    value.textContent = ordinal(pct);
-    if (pct > 90) value.classList.add("is-left");
-    if (pct < 10) value.classList.add("is-right");
-
-    marker.append(value, tag);
-    el.scaleBar.append(marker);
-  }
-
+  // No band bar. Once the histogram's own bars were tinted by percentile it
+  // was drawing the same five colours over the same axis, with real counts
+  // instead of schematic widths -- and the reader was being shown the
+  // distribution twice, side by side, in one row.
   // The reading itself, in the same column as the bands it is being placed
   // among, so the eye can drop straight down from a range to the number.
   el.scaleNow.replaceChildren();
@@ -694,12 +657,15 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
     width: Math.max(200, el.answerAggregate.clientWidth || 260),
   });
 
-  const caption = document.createElement("p");
-  caption.className = "answer-caption";
-  caption.textContent = fill(copy.home.headlineCaption, {
+  const head = document.createElement("div");
+  head.className = "chart-head chart-subhead";
+  const title = document.createElement("span");
+  title.className = "chart-subtitle";
+  title.textContent = fill(copy.home.headlineCaption, {
     threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START,
   });
-  el.answerAggregate.replaceChildren(strip, caption);
+  head.append(title);
+  el.answerAggregate.replaceChildren(head, strip);
 }
 
 /* ---------------- event lookup ---------------- */
