@@ -164,7 +164,7 @@ export const copy = {
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
     decadeCaption:
-      "Average annual rate of {threshold} earthquakes in each ten-year stretch since {from}",
+      "Total {threshold} earthquakes in each ten-year stretch since {from}",
     decadeCurrent: "last ten",
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
@@ -256,9 +256,8 @@ export const copy = {
       "default everywhere is a full twelve months ending today, measured against windows " +
       "that ended on the same date in earlier years. The cumulative chart can be switched to " +
       "the calendar year, which is then compared against the same date in every past year. " +
-      "The chart of yearly counts keeps its own switch and opens on calendar years, where " +
-      "the bar for the year in progress is drawn as far as it has got, with a dashed outline " +
-      "showing where it lands if the rest of the year runs at the usual pace." +
+      "The chart of yearly counts is always 365-day windows, so every bar on it is complete " +
+      "and directly comparable." +
 
       "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
       "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +
@@ -283,6 +282,21 @@ export const copy = {
       "past windows fell on each day of the window. The ±2σ setting uses the mean plus and " +
       "minus two standard deviations, measured over every window of that length anywhere in " +
       "the record rather than over the {years} windows the other setting uses." +
+
+      "\n\n**Is the rate changing?** That section is fixed on {threshold} mainshocks whatever " +
+      "the controls say, because it asserts something about the world rather than describing " +
+      "a selection. The last ten years are compared against the rest of the record: if the " +
+      "rate never changed, every earthquake would be equally likely to have fallen in any " +
+      "year, so the number landing in the last ten follows a binomial distribution. That is " +
+      "exact rather than approximated, and it already pays for the earlier years' rate being " +
+      "an estimate. The ranges beside the chart are where it puts a decade 95% of the time, " +
+      "currently {decadeLow} to {decadeHigh}." +
+
+      "\n\nTen years is fixed in advance, because a window chosen after looking would be " +
+      "chosen for its answer. The histogram ranks every ten-year stretch in the record, which " +
+      "shows where the recent one sits but is not itself a test: consecutive stretches share " +
+      "nine of their ten years. And a single decade cannot settle a question about the whole " +
+      "record, which is why that section never answers yes." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
       "their consequences. The two are related, but loosely: an M7 on the Mid-Atlantic Ridge " +

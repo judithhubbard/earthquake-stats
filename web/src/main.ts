@@ -676,11 +676,13 @@ function writeDecades(counts: { year: number; count: number }[],
   el.decadeChart.replaceChildren();
   if (counts.length < DECADE * 2) return;
 
+  // Totals, not annual averages: the table beside this is in earthquakes, and
+  // a reader should be able to find the same number in both.
   const windows = counts.map((_, i) => i)
     .filter((i) => i + DECADE <= counts.length)
     .map((i) => ({
       year: counts[i].year,
-      value: counts.slice(i, i + DECADE).reduce((a, c) => a + c.count, 0) / DECADE,
+      value: counts.slice(i, i + DECADE).reduce((a, c) => a + c.count, 0),
     }));
   const now = windows[windows.length - 1];
   const past = windows.slice(0, -1);
@@ -708,6 +710,8 @@ function writeDecades(counts: { year: number; count: number }[],
     const bands = shareBands(total, DECADE / counts.length, [0.05]);
     if (!bands) return;
     const [band] = bands;
+    techValues.decadeLow = band.low + 1;
+    techValues.decadeHigh = band.high - 1;
     const key = p > 0.05 ? 1 : recent < expected ? 2 : 0;
     // Three rows in the table, five things the sentence can say. A two-sided p
     // above 0.5 is exactly the central half of what a steady rate produces, so
