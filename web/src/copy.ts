@@ -131,7 +131,8 @@ export const copy = {
     decadeMaybe: "<strong>Maybe.</strong>",
     decadeYes: "<strong>Yes.</strong>",
     decadeCheck:
-      "To check, we looked at the rate of earthquakes in the last ten years.",
+      "To check, we looked at the rate of earthquakes in the last ten years. Can we see a " +
+      "difference in the last decade compared to previous decades?",
     /* Ten years is fixed in advance and cannot be a control: on the current
        catalogue the five-year window reads 28%, the ten 51% and the fifteen
        6.7%, so a window chosen after looking would report the fifteen. */
@@ -146,16 +147,12 @@ export const copy = {
     decadeNow: "Right now: {value}",
     decadeHelp: "how is this calculated?",
     decadeHelpBody:
-      "The {threshold} mainshocks in the last ten years are counted, and compared with what " +
-      "ten years should hold if the rate never changed: one fifth of the {total} events in the " +
-      "record, or {expected}. This stretch holds {recent}." +
-      "\n\nHow surprising that is, is exact rather than approximated. If the rate is steady, " +
-      "each earthquake is equally likely to have fallen anywhere in the fifty years, so the " +
-      "number landing in any ten of them follows a binomial distribution. That gives {p}% — " +
-      "how often a steady rate puts a ten-year stretch at least this far from average." +
-      "\n\nTen years is fixed in advance. The histogram beside this ranks overlapping " +
-      "ten-year stretches, which shows where the recent one sits but cannot be a test: " +
-      "consecutive stretches share nine of their ten years.",
+      "If the rate never changed, each earthquake would be equally likely to have fallen " +
+      "anywhere in the fifty years, so the number landing in the last ten follows a binomial " +
+      "distribution — {expected} of the {total} on record, give or take. This stretch holds " +
+      "{recent}, and a steady rate lands at least this far from average {p}% of the time." +
+      "\n\nTen years is fixed in advance, because a window chosen after looking would be " +
+      "chosen for its answer.",
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
     decadeCaption:
