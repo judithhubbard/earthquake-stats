@@ -1310,17 +1310,20 @@ footer p { margin: 0 0 0.4rem; }
   justify-content: space-between;
   gap: 1.5rem;
   margin: 0;
-  padding: 0.95rem 0;
+  padding: 0.7rem 0;
   border: 0;
   border-top: 1px solid var(--axis);
   border-radius: 0;
   background: none;
   color: var(--text-primary);
   font-family: var(--serif);
-  font-size: var(--t-verdict);
+  /* Lead size, not verdict size. At 1.7rem these were the second-largest type
+     on the page and read as two more headlines rather than as somewhere to go
+     next. */
+  font-size: var(--t-lead);
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.018em;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   text-decoration: none;
   transition: border-color 120ms ease;
 }
@@ -1329,7 +1332,6 @@ footer p { margin: 0 0 0.4rem; }
    a gap between rules that are meant to read as one list. */
 main > p:has(> .explore) { margin: 0; }
 main > p:first-of-type:has(> .explore) { margin-top: 3rem; }
-main > p:last-of-type:has(> .explore) { border-bottom: 1px solid var(--axis); }
 
 .explore:hover { border-top-color: var(--text-primary); }
 .explore .arrow {
