@@ -124,24 +124,38 @@ export const copy = {
       "evaluate whether the rate of earthquakes is changing over time.",
     annualTitleMoment: "Is the rate of moment release changing?",
 
-    /* The verdict, keyed to the exact test rather than to the histogram beside
-       it: the ten-year stretches drawn there overlap by nine years, so their
-       ranking describes where the recent one sits but cannot be a p-value.
-       Ten years is fixed in advance and stated. Chosen after looking, the
-       fifteen-year window would currently read 6.7% and the five-year 28%. */
-    decadeNo:
-      "<strong>No.</strong> The last ten years ran {pct}% {dir} the long-run average. A steady " +
-      "rate produces a ten-year stretch at least this far off {p}% of the time, so there is " +
-      "nothing here to call a change.",
-    decadeMaybe:
-      "<strong>Maybe.</strong> The last ten years ran {pct}% {dir} the long-run average. A " +
-      "steady rate produces a ten-year stretch at least this far off {p}% of the time — worth " +
-      "watching rather than announcing.",
-    decadeYes:
-      "<strong>Yes.</strong> The last ten years ran {pct}% {dir} the long-run average. A steady " +
-      "rate produces a ten-year stretch at least this far off only {p}% of the time.",
-    decadeBelow: "below",
-    decadeAbove: "above",
+    /* The verdict alone. What decides it is in the table beside the histogram,
+       where a reader can see the whole range of answers rather than being told
+       which one came up. */
+    decadeNo: "<strong>No.</strong>",
+    decadeMaybe: "<strong>Maybe.</strong>",
+    decadeYes: "<strong>Yes.</strong>",
+    decadeCheck:
+      "To check, we looked at the rate of earthquakes in the last ten years.",
+    /* Ten years is fixed in advance and cannot be a control: on the current
+       catalogue the five-year window reads 28%, the ten 51% and the fifteen
+       6.7%, so a window chosen after looking would report the fifteen. */
+    decadeColP: "How often a steady rate does this",
+    decadeColAnswer: "The answer",
+    decadeBandStrong: "below 1%",
+    decadeBandWeak: "1% to 5%",
+    decadeBandNone: "above 5%",
+    decadeAnsYes: "Yes.",
+    decadeAnsMaybe: "Maybe.",
+    decadeAnsNo: "No.",
+    decadeNow: "Right now: {value}",
+    decadeHelp: "how is this calculated?",
+    decadeHelpBody:
+      "The {threshold} mainshocks in the last ten years are counted, and compared with what " +
+      "ten years should hold if the rate never changed: one fifth of the {total} events in the " +
+      "record, or {expected}. This stretch holds {recent}." +
+      "\n\nHow surprising that is, is exact rather than approximated. If the rate is steady, " +
+      "each earthquake is equally likely to have fallen anywhere in the fifty years, so the " +
+      "number landing in any ten of them follows a binomial distribution. That gives {p}% — " +
+      "how often a steady rate puts a ten-year stretch at least this far from average." +
+      "\n\nTen years is fixed in advance. The histogram beside this ranks overlapping " +
+      "ten-year stretches, which shows where the recent one sits but cannot be a test: " +
+      "consecutive stretches share nine of their ten years.",
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
     decadeCaption:

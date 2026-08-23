@@ -902,13 +902,24 @@ main {
 
 .decade-verdict strong { color: var(--series-1); }
 
-/* The ten-year histogram under the yearly counts. Held to a width where the
-   bars still read rather than stretched across the whole section. */
-.decade-chart {
-  max-width: 30rem;
-  margin: 1.1rem 0 0;
+/* The ten-year histogram and the range of answers beside it, under a rule. */
+.decade-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem 2rem;
+  align-items: center;
+  margin-top: 0.9rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
+}
+
+.decade-chart { min-width: 0; }
+
+.decade-table .correlate-flip { margin: 0; padding-top: 0; border-top: 0; }
+.decade-table .flip-title { display: none; }
+
+@media (max-width: 52rem) {
+  .decade-row { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* The histogram and the tooltip that names the bar under the pointer. */

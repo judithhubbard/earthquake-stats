@@ -11,7 +11,7 @@ import {
 } from "./stats";
 import { copy, fill } from "./copy";
 import { renderTech } from "./tech";
-import { installHintGuard } from "./verdict";
+import { flipTable, installHintGuard } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 
@@ -163,6 +163,8 @@ const el = {
   annualIntro: document.getElementById("annual-intro")!,
   annualChart: document.getElementById("annual-chart")!,
   decadeVerdict: document.getElementById("decade-verdict")!,
+  decadeCheck: document.getElementById("decade-check")!,
+  decadeTable: document.getElementById("decade-table")!,
   decadeChart: document.getElementById("decade-chart")!,
   annualTitle: document.getElementById("annual-title")!,
   annualNote: document.getElementById("annual-note")!,
@@ -695,17 +697,33 @@ function writeDecades(counts: { year: number; count: number }[],
   const p = recentShareP(recent, total, DECADE / counts.length);
   if (p !== null) {
     const expected = total * (DECADE / counts.length);
-    const off = expected > 0 ? (100 * (recent - expected)) / expected : 0;
-    const template = p < 0.01 ? copy.home.decadeYes
-                   : p < 0.05 ? copy.home.decadeMaybe
-                   : copy.home.decadeNo;
+    const key = p < 0.01 ? 0 : p < 0.05 ? 1 : 2;
     // innerHTML, as the headline sentence does: the copy carries a <strong>
     // lead-in and nothing in it comes from anywhere but copy.ts.
-    el.decadeVerdict.innerHTML = fill(template, {
-      pct: Math.abs(off).toFixed(1),
-      dir: off < 0 ? copy.home.decadeBelow : copy.home.decadeAbove,
-      p: asPercent(p),
-    });
+    el.decadeVerdict.innerHTML =
+      [copy.home.decadeYes, copy.home.decadeMaybe, copy.home.decadeNo][key];
+    el.decadeCheck.textContent = copy.home.decadeCheck;
+
+    // The whole range of answers, so the reader sees which band this landed in
+    // rather than being told the result and asked to take it on trust.
+    const c = copy.home;
+    el.decadeTable.replaceChildren(flipTable(
+      [{ label: c.decadeColP,
+         help: { label: c.decadeHelp,
+                 body: fill(c.decadeHelpBody, {
+                   threshold: magLabel(MIN_MAGNITUDE),
+                   total: total.toLocaleString(),
+                   expected: Math.round(expected).toLocaleString(),
+                   recent: recent.toLocaleString(),
+                   p: asPercent(p),
+                 }) } },
+       { label: c.decadeColAnswer }],
+      [[c.decadeBandStrong, c.decadeAnsYes],
+       [c.decadeBandWeak, c.decadeAnsMaybe],
+       [c.decadeBandNone, c.decadeAnsNo]],
+      key,
+      [fill(c.decadeNow, { value: `${asPercent(p)}%` }), null],
+    ));
   }
   const strip = renderDistribution({
     peers: past,
