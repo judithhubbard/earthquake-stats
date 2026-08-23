@@ -117,6 +117,11 @@ export const copy = {
     cumulativeSubjectCount: "{threshold} {kind}",
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
     annualTitleCount: "Is the rate of earthquakes changing?",
+    /* Fixed, like the headline: this section asserts something about the world,
+       so the reader cannot pick the slice that best supports an answer. */
+    annualIntro:
+      "Here we plot {threshold} earthquakes globally, after removing aftershocks, to " +
+      "evaluate whether the rate of earthquakes is changing over time.",
     annualTitleMoment: "Is the rate of moment release changing?",
 
     /* Ten-year stretches, ranked. Individual years bounce around a great deal

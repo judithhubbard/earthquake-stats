@@ -160,6 +160,7 @@ const el = {
   chart: document.getElementById("chart")!,
   chartTitle: document.getElementById("chart-title")!,
   chartNote: document.getElementById("chart-note")!,
+  annualIntro: document.getElementById("annual-intro")!,
   annualChart: document.getElementById("annual-chart")!,
   decadeText: document.getElementById("decade-text")!,
   decadeChart: document.getElementById("decade-chart")!,
@@ -639,7 +640,7 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
       more: fill(copy.home.headlineShareCount, { n: higher }),
       moreLabel: fill(copy.home.headlineShareMore, { peers: peers.length }),
     },
-    currentLabel: yearLabel(currentYear),
+    currentLabel: yearLabel(currentYear, "rolling"),
     yearLabel: (year: number) => yearLabel(year, "rolling"),
     theme: readTheme(document.body),
     width: Math.max(260, el.answerAggregate.clientWidth || 340),
@@ -853,11 +854,6 @@ async function update() {
   const mainshocksOnly = effectiveMainshocksOnly();
   const curves = cumulativeByYear(
     tier, minMag, REFERENCE_START, mainshocksOnly, state.measure, shift);
-  const splitMajor = minMag < MAJOR_MAGNITUDE;
-  const majorCurves = splitMajor
-    ? cumulativeByYear(
-        tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure, shift)
-    : { curves: new Map<number, Float64Array>(), years: [], matched: 0 };
   const liveAdded = applyLive(curves, tier, minMag, shift, state.measure);
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
@@ -867,38 +863,50 @@ async function update() {
   // the calendar years -- see rollingWindowBand. The percentile view stays as
   // it is: percentiles are robust to a single huge event, so it has no step to
   // remove and "what previous years did" is a claim about years.
-  const windows = state.range === "sigma" || state.annualRange === "sigma"
+  const windows = state.range === "sigma"
     ? rollingWindowBand(tier, minMag, mainshocksOnly, state.measure, REFERENCE_START)
     : null;
   const band = windows && state.range === "sigma"
     ? windows.map((r, i) => ({ ...percentiles[i], mean: r.mean, sdLo: r.sdLo, sdHi: r.sdHi }))
     : percentiles;
-  // A full year's worth is the last window length, so both charts show the same
-  // band rather than two different measurements of the same quantity.
-  const annualSigma = windows && state.annualRange === "sigma"
-    ? { lo: windows[windows.length - 1].sdLo, hi: windows[windows.length - 1].sdHi }
-    : null;
   const result = verdict(curves, refYears, currentYear, today, state.measure);
 
-  // The annual chart carries its own window, so it needs its own curves rather
-  // than a slice of the ones the cumulative chart is drawn from.
-  const annualShift = calendarShift(state.annualWindow);
-  const annualRolling = state.annualWindow === "rolling";
-  const sameWindow = state.annualWindow === state.window;
+  // A fixed series, like the headline: M6+ mainshocks over a rolling window,
+  // whatever the controls below are set to. The question this section asks is
+  // about the world -- is the rate changing -- and letting a reader pick the
+  // slice that best supports an answer is the failure mode the page exists to
+  // avoid. Always the M6 tier, because with M7+ selected the loaded tier holds
+  // only M7+ events and "M6+" computed from it would be a different question.
+  const annualShift = calendarShift("rolling");
+  let annualTier = tier;
+  if (minMag !== MIN_MAGNITUDE) {
+    try {
+      annualTier = await store.load(MIN_MAGNITUDE);
+    } catch {
+      annualTier = tier;
+    }
+  }
   const annualCurvesFor = (threshold: number) => {
     const c = cumulativeByYear(
-      tier, threshold, REFERENCE_START, mainshocksOnly, state.measure, annualShift);
-    applyLive(c, tier, threshold, annualShift, state.measure);
+      annualTier, threshold, REFERENCE_START, true, "count", annualShift);
+    applyLive(c, annualTier, threshold, annualShift, "count");
     return c;
   };
-  const aCurves = sameWindow ? curves : annualCurvesFor(minMag);
-  const aMajor = !splitMajor ? majorCurves
-               : sameWindow ? majorCurves : annualCurvesFor(MAJOR_MAGNITUDE);
-  const { year: aYear, day: aDay } = dayIndex(Date.now(), annualShift);
-  const aToday = annualRolling ? DAYS - 1 : aDay;
+  const aCurves = annualCurvesFor(MIN_MAGNITUDE);
+  const aMajor = annualCurvesFor(MAJOR_MAGNITUDE);
+  const { year: aYear } = dayIndex(Date.now(), annualShift);
+  const aToday = DAYS - 1;
   const aRefYears = aCurves.years.filter((y) => y >= REFERENCE_START && y < aYear);
-  const counts = annualCounts(aCurves, aMajor, aYear, aToday, aRefYears,
-                             state.measure);
+  const counts = annualCounts(aCurves, aMajor, aYear, aToday, aRefYears, "count");
+  // Its own band, measured on the same fixed series.
+  const annualWindows = state.annualRange === "sigma"
+    ? rollingWindowBand(annualTier, MIN_MAGNITUDE, true, "count", REFERENCE_START)
+    : null;
+  const annualSigma = annualWindows
+    ? { lo: annualWindows[annualWindows.length - 1].sdLo,
+        hi: annualWindows[annualWindows.length - 1].sdHi }
+    : null;
+
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const subject = state.measure === "moment"
     ? fill(copy.home.cumulativeSubjectMoment, { threshold: magLabel(minMag) })
@@ -916,27 +924,33 @@ async function update() {
       headlineTier = tier;
     }
   }
+  // Its own window too, not the one the cumulative chart is set to. Taking
+  // `shift` from the control counted the calendar year to date and then ranked
+  // it against the full totals of past years, which put the marker at 95
+  // against peers of 110 and up.
+  const headlineShift = calendarShift("rolling");
+  const { year: headlineYear } = dayIndex(Date.now(), headlineShift);
   const headlineCurves = cumulativeByYear(
-    headlineTier, MIN_MAGNITUDE, REFERENCE_START, false, "count", shift);
-  applyLive(headlineCurves, headlineTier, MIN_MAGNITUDE, shift, "count");
+    headlineTier, MIN_MAGNITUDE, REFERENCE_START, false, "count", headlineShift);
+  applyLive(headlineCurves, headlineTier, MIN_MAGNITUDE, headlineShift, "count");
   const headlineRef = headlineCurves.years.filter(
-    (y) => y >= REFERENCE_START && y < currentYear);
-  const headline = verdict(headlineCurves, headlineRef, currentYear, today, "count");
+    (y) => y >= REFERENCE_START && y < headlineYear);
+  const headline = verdict(headlineCurves, headlineRef, headlineYear, DAYS - 1, "count");
   const headlinePct = headline ? headline.percentile * 100 : null;
 
-  writeHeadline(result, currentYear, headlinePct);
-  writeHeadlineChart(headlineCurves, headlineRef, headline, currentYear);
+  writeHeadline(result, headlineYear, headlinePct);
+  writeHeadlineChart(headlineCurves, headlineRef, headline, headlineYear);
   void writeLatest(minMag);
-  buildAnswerScale(headlinePct, yearLabel(currentYear));
+  buildAnswerScale(headlinePct, yearLabel(headlineYear, "rolling"));
   writeNote(refYears.length, liveAdded);
-  writeAnnualNote(aYear, splitMajor, annualRolling);
+  writeAnnualNote(aYear, true, true);
 
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
     subject, from: REFERENCE_START, to: currentYear - 1,
   });
-  el.annualTitle.textContent = state.measure === "moment"
-    ? copy.home.annualTitleMoment
-    : fill(copy.home.annualTitleCount, { threshold: magLabel(minMag), kind });
+  el.annualTitle.textContent = copy.home.annualTitleCount;
+  el.annualIntro.textContent = fill(copy.home.annualIntro,
+                                    { threshold: magLabel(MIN_MAGNITUDE) });
 
   lastRender = () => {
     const theme = readTheme(document.body);
@@ -961,19 +975,18 @@ async function update() {
     // different number there: with the cumulative chart on a rolling window the
     // year in progress is 2025, while the calendar chart beside it is drawing
     // 2026. Highlighting by number alone put the blue bar one to the left.
-    const annualHighlights: Highlight[] = sameWindow ? highlights
-      : [...state.highlights.entries()]
-          .sort((a, b) => a[1] - b[1])
-          .map(([year, slot]) => {
-            const own = year === currentYear ? aYear : year;
-            return {
-              year: own,
-              label: yearLabel(own, state.annualWindow),
-              color: theme.series[slot % theme.series.length],
-              through: own === aYear ? aToday : DAYS - 1,
-            };
-          })
-          .filter((h) => aCurves.curves.has(h.year));
+    const annualHighlights: Highlight[] = [...state.highlights.entries()]
+      .sort((a, b) => a[1] - b[1])
+      .map(([year, slot]) => {
+        const own = year === currentYear ? aYear : year;
+        return {
+          year: own,
+          label: yearLabel(own, "rolling"),
+          color: theme.series[slot % theme.series.length],
+          through: DAYS - 1,
+        };
+      })
+      .filter((h) => aCurves.curves.has(h.year));
 
     // Day 0 of the window is 1 January only in the calendar view; the rolling
     // view starts it on today's date, so the axis has to be told.
@@ -1054,11 +1067,9 @@ async function update() {
     el.annualChart.replaceChildren(renderAnnualChart({
       counts, highlights: annualHighlights, refYears: aRefYears,
       theme, width: widthOf(el.annualChart),
-      yearLabel: (year: number) => yearLabel(year, state.annualWindow),
-      yLabel: state.measure === "moment"
-        ? copy.home.axisAnnualMoment
-        : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
-      wholeNumbers: state.measure === "count",
+      yearLabel: (year: number) => yearLabel(year, "rolling"),
+      yLabel: fill(copy.home.axisAnnualCount, { threshold: magLabel(MIN_MAGNITUDE) }),
+      wholeNumbers: true,
       sigma: annualSigma,
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
