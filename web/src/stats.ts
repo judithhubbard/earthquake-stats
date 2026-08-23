@@ -809,3 +809,36 @@ export function recentShareP(recent: number, total: number, share: number): numb
   }
   return Math.min(1, sum);
 }
+
+/**
+ * The counts a recent stretch could hold before the record calls it a change.
+ *
+ * Given the total, the count in the recent stretch is binomial under a steady
+ * rate -- which is the exact two-sample Poisson comparison, so the earlier
+ * years alone say what the stretch should hold, and the fact that their rate is
+ * itself an estimate is already paid for.
+ *
+ * Returns the last count on each side that is still at least as surprising as
+ * the level asked for, so the caller can print the bands in earthquakes rather
+ * than in probabilities.
+ */
+export function shareBands(total: number, share: number,
+                           levels: number[]): { low: number; high: number }[] | null {
+  if (!(total > 0) || !(share > 0) || !(share < 1)) return null;
+  const mean = total * share;
+  const out: { low: number; high: number }[] = [];
+  for (const level of levels) {
+    let low = -1;
+    for (let k = Math.floor(mean); k >= 0; k--) {
+      const p = recentShareP(k, total, share);
+      if (p !== null && p <= level) { low = k; break; }
+    }
+    let high = total + 1;
+    for (let k = Math.ceil(mean); k <= total; k++) {
+      const p = recentShareP(k, total, share);
+      if (p !== null && p <= level) { high = k; break; }
+    }
+    out.push({ low, high });
+  }
+  return out;
+}

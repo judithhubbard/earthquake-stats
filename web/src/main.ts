@@ -3,8 +3,8 @@ import { renderAnnualChart, renderChart, renderDistribution,
          readTheme, type Highlight } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand, recentShareP,
-  asPercent, equivalentMagnitude, seismicMoment,
+  dayIndex, empiricalBand, shareBands, recentShareP,
+  equivalentMagnitude, seismicMoment,
   rollingWindowBand,
   verdict,
   type Measure, type YearCurves,
@@ -697,32 +697,42 @@ function writeDecades(counts: { year: number; count: number }[],
   const p = recentShareP(recent, total, DECADE / counts.length);
   if (p !== null) {
     const expected = total * (DECADE / counts.length);
-    const key = p < 0.01 ? 0 : p < 0.05 ? 1 : 2;
-    // innerHTML, as the headline sentence does: the copy carries a <strong>
-    // lead-in and nothing in it comes from anywhere but copy.ts.
+    // The bands as counts, not probabilities: what a decade could hold before
+    // the record would call it a change. Conditioning on the total makes this
+    // the exact two-sample comparison, so the earlier years alone set the
+    // ranges and their own rate being an estimate is already paid for.
+    const bands = shareBands(total, DECADE / counts.length, [0.01, 0.05]);
+    if (!bands) return;
+    const [strong, weak] = bands;
+    const key = p <= 0.01 ? (recent < expected ? 0 : 4)
+              : p <= 0.05 ? (recent < expected ? 1 : 3)
+              : 2;
     el.decadeVerdict.innerHTML =
-      [copy.home.decadeYes, copy.home.decadeMaybe, copy.home.decadeNo][key];
+      [copy.home.decadeYes, copy.home.decadeMaybe, copy.home.decadeNo,
+       copy.home.decadeMaybe, copy.home.decadeYes][key];
     el.decadeCheck.textContent = copy.home.decadeCheck;
 
-    // The whole range of answers, so the reader sees which band this landed in
-    // rather than being told the result and asked to take it on trust.
     const c = copy.home;
+    const earlier = total - recent;
+    const earlierYears = counts.length - DECADE;
     el.decadeTable.replaceChildren(flipTable(
       [{ label: c.decadeColP,
          help: { label: c.decadeHelp,
                  body: fill(c.decadeHelpBody, {
+                   rate: (earlier / earlierYears).toFixed(0),
                    expected: Math.round(expected).toLocaleString(),
-                   recent: recent.toLocaleString(),
-                   p: asPercent(p),
                  }) } },
        { label: c.decadeColAnswer }],
-      [[c.decadeBandStrong, c.decadeAnsYes],
-       [c.decadeBandWeak, c.decadeAnsMaybe],
-       [c.decadeBandNone, c.decadeAnsNo]],
+      [[fill(c.decadeBandFewest, { n: strong.low }), c.decadeAnsFewer],
+       [fill(c.decadeBandFew, { lo: strong.low + 1, hi: weak.low }), c.decadeAnsMaybe],
+       [fill(c.decadeBandUsual, { lo: weak.low + 1, hi: weak.high - 1 }), c.decadeAnsNo],
+       [fill(c.decadeBandMany, { lo: weak.high, hi: strong.high - 1 }), c.decadeAnsMaybe],
+       [fill(c.decadeBandMost, { n: strong.high }), c.decadeAnsMore]],
       key,
-      [fill(c.decadeNow, { value: `${asPercent(p)}%` }), null],
+      [fill(c.decadeNow, { value: String(recent) }), null],
     ));
   }
+
   const strip = renderDistribution({
     peers: past,
     value: now.value,

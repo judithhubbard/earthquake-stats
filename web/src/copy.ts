@@ -136,19 +136,22 @@ export const copy = {
     /* Ten years is fixed in advance and cannot be a control: on the current
        catalogue the five-year window reads 28%, the ten 51% and the fifteen
        6.7%, so a window chosen after looking would report the fifteen. */
-    decadeColP: "Chance of a gap this big",
+    decadeColP: "Earthquakes in the last ten years",
     decadeColAnswer: "The answer",
-    decadeBandStrong: "below 1%",
-    decadeBandWeak: "1% to 5%",
-    decadeBandNone: "above 5%",
-    decadeAnsYes: "Yes.",
+    decadeBandFewest: "{n} or fewer",
+    decadeBandFew: "{lo} to {hi}",
+    decadeBandUsual: "{lo} to {hi}",
+    decadeAnsFewer: "Yes — fewer.",
     decadeAnsMaybe: "Maybe.",
+    decadeBandMany: "{lo} to {hi}",
+    decadeBandMost: "{n} or more",
+    decadeAnsMore: "Yes — more.",
     decadeAnsNo: "No.",
     decadeNow: "Right now: {value}",
     decadeHelp: "how is this calculated?",
     decadeHelpBody:
-      "An average decade would hold {expected} earthquakes. This one holds {recent}. " +
-      "Gaps that size happen {p}% of the time by chance.",
+      "The earlier years of the record average {rate} a year, so a decade should hold about " +
+      "{expected}. These ranges are how far from that a decade can land by chance alone.",
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
     decadeCaption:
