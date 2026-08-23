@@ -410,12 +410,85 @@ main {
      --sec-pad-x so they cannot drift apart again. The vertical figure also
      absorbs the header having shrunk, the title having left the flow to become
      a chip on the border. */
-  position: absolute;
-  top: 0.9rem;
-  right: 0;
-  left: auto;
-  width: 16.5rem;
-  max-width: calc(100% - 9rem);
+  /* In the heading row beside the title, not floating on the plot. Over the
+     chart it covered the lines it was summarising; here it sits above them. */
+  width: 20rem;
+  max-width: 100%;
+  padding: 0.45rem 0.55rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: #ffffff;
+  box-shadow: var(--lift-2);
+}
+
+/* Below this the chart is too narrow to give a corner away, so the histogram
+   drops underneath it and the layout goes back to stacking.
+
+   48rem, not the 60rem this used to be. The inset needs 21.1rem of room --
+   4.6rem of offset plus 16.5rem of width -- and the old breakpoint dropped it
+   on any window under 960px, which is an ordinary laptop half-screen. The
+   difference it was guarding against is small: the inset covers 28% of the
+   chart at 960px, where it was allowed, and 34% at 768px, where it now is. */
+@media (max-width: 48rem) {
+  /* The heading row stacks, so the inset lands under the title at full width
+     -- still above the plot, which is where it belongs either way. */
+  .chart-subhead { align-items: flex-start; }
+
+  .chart-inset { width: 100%; margin-top: 0.75rem; }
+
+  /* The plot's left margin shrinks with it, so an absolute offset that clears
+     the axis labels on a wide window will not on a narrow one. Right-aligned
+     over the plot's top instead, where there is nothing to collide with. */
+  .stage-toggle {
+    left: auto;
+    right: 0;
+    padding: 0.15rem 0.3rem;
+    border-radius: var(--r-sm);
+    background: color-mix(in srgb, #ffffff 88%, transparent);
+  }
+}
+
+@media (max-width: 52rem) {
+}
+
+/* The correlations hero carries the headline alone. On the front page the
+   answer sits in a two-column row beside the histogram, vertically centred,
+   and takes its presence from that; here it is a bare paragraph with a grey
+   sentence and two dense tables directly beneath, so it has to hold the top of
+   the page on its own type. Same rules otherwise -- only the sizes move. */
+.page-correlations .hero h1 {
+  font-size: var(--t-hero);
+  margin-bottom: 1.15rem;
+}
+
+.page-correlations .hero > .answer {
+  font-size: var(--t-display);
+  margin-bottom: 0.7rem;
+}
+
+.page-correlations .hero > .answer-detail { font-size: var(--t-lead); }
+
+/* Only on the front page, where this holds the histogram: the correlations
+   page reuses the class for a sentence, and was reserving 150px for a figure
+   that is not there. */
+/* The histogram of this year against past years sits in the top-left of the
+   cumulative chart. That corner is empty by construction -- every line starts
+   at zero on 1 January and only rises -- and the histogram describes whichever
+   setting the controls are on, so it belongs with the chart that follows them
+   rather than beside a headline that no longer moves with them. */
+.has-inset { position: relative; }
+
+.chart-inset {
+  /* Offsets run from the section's padding edge, which is not where the chart
+     starts: the box's own padding pushes the SVG right and down but leaves an
+     absolutely positioned child where it was. The horizontal pair is locked to
+     --sec-pad-x so they cannot drift apart again. The vertical figure also
+     absorbs the header having shrunk, the title having left the flow to become
+     a chip on the border. */
+  /* In the heading row beside the title, not floating on the plot. Over the
+     chart it covered the lines it was summarising; here it sits above them. */
+  width: 20rem;
+  max-width: 100%;
   padding: 0.45rem 0.55rem 0.3rem;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -1153,7 +1226,7 @@ main {
 /* The controls live inside "Explore the data" now, so the chart's own title is
    a subtitle under them: it names the current selection rather than the
    section, and the chip on the border carries the section name. */
-.chart-subhead { margin-top: 1.1rem; justify-content: space-between; }
+.chart-subhead { margin-top: 1.1rem; justify-content: space-between; align-items: flex-end; }
 
 .chart-subtitle {
   font-size: var(--t-lead);
@@ -1183,10 +1256,12 @@ main {
    looks like it lives; on a narrow one it stays down on the plot, so the
    inset can have the top of the figure without either of them needing a line
    of their own. */
+/* On the plot, clear of the axis labels -- the cumulative chart reserves 70px
+   on the left for them, so the toggle starts outside that. */
 .stage-toggle {
   position: absolute;
-  top: 0.9rem;
-  left: 3.6rem;
+  top: 0.6rem;
+  left: 5.5rem;
   z-index: 5;
 }
 
