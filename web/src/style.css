@@ -179,7 +179,7 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 1.5rem 3rem;
-  align-items: start;
+  align-items: baseline;
   padding-bottom: 1.75rem;
   border-bottom: 1px solid var(--axis);
 }
@@ -421,6 +421,8 @@ main {
     padding: 0;
     margin-top: 0.75rem;
     background: none;
+    border: 0;
+    box-shadow: none;
   }
 }
 
