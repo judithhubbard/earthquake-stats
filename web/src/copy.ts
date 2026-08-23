@@ -244,8 +244,8 @@ export const copy = {
     trendQuestion: "Is the rate of earthquakes changing?",
     trendIntro:
       "We fit a straight line through the yearly counts for four different series — {threshold} " +
-      "and {major}, each with aftershocks left in and taken out — and ask whether any of the " +
-      "four slopes can be told apart from no slope at all." +
+      "and {major}, each with aftershocks left in and taken out — and ask: can we see a " +
+      "statistically meaningful change?" +
       "\n\nIt is tempting to pick and choose \u2014 find the correlation that works, discard " +
       "the rest. That is a common statistical trap known as p-hacking: choosing the test after " +
       "you look at the results. Here, we first calculate the p-value for each test, which tells " +
