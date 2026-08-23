@@ -226,6 +226,7 @@ export const copy = {
     scaleRowLow: "{n} or fewer",
     scaleRowHigh: "{n} or more",
     scaleFrequency: "{n} years in 100",
+    scaleNow: "{year}, right now",
     scaleBasis: "Calculated based on all {threshold} earthquakes worldwide",
     legendSigma: "±2σ — 95.45% under a normal fit",
     yearsNone: "None",

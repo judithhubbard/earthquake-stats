@@ -1468,6 +1468,19 @@ footer p { margin: 0 0 0.4rem; }
   color: var(--text-secondary);
 }
 
+/* The reading, under the bands, in the same grid so the count lines up with
+   the ranges above it. */
+.scale-rows .scale-reading {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--axis);
+  border-radius: 0;
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+#scale-now { margin-top: 0; }
+
 .scale-rows li.is-current {
   background: var(--range-outer);
   color: var(--text-primary);

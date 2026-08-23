@@ -171,6 +171,7 @@ const el = {
   range: document.getElementById("range-control")!,
   annualRange: document.getElementById("annual-range-control")!,
   scaleBar: document.getElementById("scale-bar")!,
+  scaleNow: document.getElementById("scale-now")!,
   scaleBasis: document.getElementById("scale-basis")!,
   scaleRows: document.getElementById("scale-rows")!,
   generated: document.getElementById("generated")!,
@@ -238,7 +239,8 @@ const BAND_FADES = [1, 0.45, 1, 0.45, 1];
  * width of its band, which is also the number of years in a hundred: the
  * percentile is uniform by construction, so a band 20 points wide is 20 years.
  */
-function buildAnswerScale(pct: number | null, year: string, peers: number[]) {
+function buildAnswerScale(pct: number | null, year: string, peers: number[],
+                          current: number | null) {
   // The band edges as counts, read off the past windows themselves. The
   // percentile is already in the frequency column on the right -- "5 years in
   // 100" is what a 0-5th percentile band means -- so the left column can say
@@ -291,6 +293,22 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[]) {
 
     marker.append(value, tag);
     el.scaleBar.append(marker);
+  }
+
+  // The reading itself, in the same column as the bands it is being placed
+  // among, so the eye can drop straight down from a range to the number.
+  el.scaleNow.replaceChildren();
+  if (current !== null) {
+    const li = document.createElement("li");
+    li.className = "scale-reading";
+    const label = document.createElement("span");
+    label.className = "scale-range";
+    label.textContent = String(current);
+    const said = document.createElement("span");
+    said.className = "scale-said";
+    said.textContent = fill(copy.home.scaleNow, { year });
+    li.append(document.createElement("i"), label, said);
+    el.scaleNow.append(li);
   }
 
   el.scaleBasis.textContent = fill(copy.home.scaleBasis,
@@ -1006,7 +1024,8 @@ async function update() {
   void writeLatest(minMag);
   buildAnswerScale(headlinePct, yearLabel(headlineYear, "rolling"),
                    headlineRef.map((y) => headlineCurves.curves.get(y)![DAYS - 1])
-                     .filter(Number.isFinite));
+                     .filter(Number.isFinite),
+                   headline ? headline.count : null);
   writeNote(refYears.length, liveAdded);
   writeAnnualNote(aYear, false, true);
 
