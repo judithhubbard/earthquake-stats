@@ -840,9 +840,10 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
         const fmt = (v: number) => (Number.isInteger(v) ? v.toLocaleString()
           : v.toLocaleString(undefined, { maximumFractionDigits: 1 }));
         const name = opts.yearLabel ? opts.yearLabel(d.year) : String(d.year);
+        // No pace line. The window is a complete twelve months, so there is
+        // nothing left of it to project into.
         const rows = d.partial
-          ? [`${name} (in progress)`, `So far:  ${fmt(d.count)}`,
-             `On this pace:  ${fmt(Math.round(d.projected))}`]
+          ? [`${name} (in progress)`, `So far:  ${fmt(d.count)}`]
           : [`${name}:  ${fmt(d.count)}`];
         if (showMajor && d.major > 0) rows.push(`of which M7+:  ${fmt(d.major)}`);
         return rows.join("\n");
