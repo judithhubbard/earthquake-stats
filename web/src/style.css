@@ -1328,10 +1328,9 @@ footer p { margin: 0 0 0.4rem; }
   transition: border-color 120ms ease;
 }
 
-/* The paragraphs only exist to wrap the links; their default margin would put
-   a gap between rules that are meant to read as one list. */
-main > p:has(> .explore) { margin: 0; }
-main > p:first-of-type:has(> .explore) { margin-top: 3rem; }
+/* A real container, so the spacing above the group does not depend on :has()
+   resolving against paragraphs that exist only to wrap a link. */
+.read-next { margin-top: 4rem; }
 
 .explore:hover { border-top-color: var(--text-primary); }
 .explore .arrow {
