@@ -433,9 +433,16 @@ main {
      after the reader had already worked the chart out. */
   .chart-stage { display: flex; flex-direction: column; }
 
+  /* Back into the flow, between the inset and the plot, then pulled down over
+     the plot's own top margin. Absolutely positioned it was measured from the
+     top of the stage, which is where the inset now sits -- so it landed on the
+     histogram instead of on the chart. As a flex item it lands on the chart by
+     construction, and costs no line of its own. */
   .stage-toggle {
-    top: 0.2rem;
-    right: 0.2rem;
+    position: static;
+    order: 0;
+    align-self: flex-end;
+    margin-bottom: -1.9rem;
     padding: 0.15rem 0.3rem;
     border-radius: var(--r-sm);
     background: color-mix(in srgb, #ffffff 88%, transparent);
