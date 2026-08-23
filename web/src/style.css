@@ -217,18 +217,6 @@ main {
 
 .answer strong { color: var(--series-1); }
 
-/* The answer, and beside it the histogram it is read off. Two columns while
-   there is room for both; below that the figure drops under the sentence
-   rather than being squeezed to a width where the bars stop meaning anything. */
-.answer-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.answer-row .answer-detail { min-height: 150px; }
-
 .answer-caption {
   margin: 0.1rem 0 0;
   font-size: 0.72rem;
@@ -238,10 +226,6 @@ main {
 }
 
 @media (max-width: 52rem) {
-  .answer-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.5rem;
-  }
 }
 
 /* The correlations hero carries the headline alone. On the front page the
@@ -308,10 +292,6 @@ main {
 }
 
 @media (max-width: 52rem) {
-  .answer-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.5rem;
-  }
 }
 
 /* That sentence, on the correlations page. */
@@ -850,11 +830,17 @@ main {
 }
 
 .question > #annual-chart,
-.question .answer-row {
+.question .answer-figure {
   background: #ffffff;
   border-radius: 10px;
   padding: 0.9rem 1rem;
 }
+
+/* The answer sits on the section ground, as the rate question's does, with the
+   figure it is read off in a white box below it. */
+.question > .answer { margin: 0 0 1.2rem; }
+.question .answer-figure { margin-top: 0; }
+.question .answer-detail { max-width: 30rem; min-height: 0; }
 
 .chart-intro {
   margin: 0.9rem 0 0.2rem;
