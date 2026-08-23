@@ -35,129 +35,127 @@
           the USGS. The answers here are calculated automatically from that data.
         </p>
 
+        <div class="decide">
+        <h2 class="decide-title">How do we decide if this year is normal?</h2>
+        <p class="feels-close">
+          If you hear that the rate of earthquakes is increasing from some source, ask
+          yourself: what data do they have that isn&rsquo;t on this page? This is an
+          automatically generated page. In years when the rate is unusually low or high,
+          the answer shown here will flip &mdash; it&rsquo;s in the code.
+        </p>
+
+        <figure class="scale" id="scale">
+          <figcaption id="scale-title"></figcaption>
+          <div class="scale-bar" id="scale-bar"></div>
+          <ol class="scale-rows" id="scale-rows"></ol>
+          <p class="scale-basis" id="scale-basis"></p>
+        </figure>
+        </div>
       </header>
 
       <section class="panel">
-
-        <figure class="chart decide">
-          <figcaption id="decide-title">How do we decide if this year is normal?</figcaption>
-          <p class="feels-close">
-            If you hear that the rate of earthquakes is increasing from some source, ask
-            yourself: what data do they have that isn&rsquo;t on this page? This is an
-            automatically generated page. In years when the rate is unusually low or high,
-            the answer shown here will flip &mdash; it&rsquo;s in the code.
-          </p>
-
-          <figure class="scale" id="scale">
-            <figcaption id="scale-title"></figcaption>
-            <div class="scale-bar" id="scale-bar"></div>
-            <ol class="scale-rows" id="scale-rows"></ol>
-            <p class="scale-basis" id="scale-basis"></p>
+          <figure class="chart">
+            <figcaption class="chart-head">
+              <span id="annual-title"></span>
+              <span class="chart-toggle">
+                <span class="chart-toggle-label">Period</span>
+                <span class="segmented segmented-sm" id="annual-window-control"></span>
+              </span>
+              <span class="chart-toggle">
+                <span class="chart-toggle-label">Range</span>
+                <span class="segmented segmented-sm" id="annual-range-control"></span>
+              </span>
+            </figcaption>
+            <div id="annual-chart"></div>
+            <p class="chart-note" id="annual-note"></p>
           </figure>
-        </figure>
+      </section>
 
-        <figure class="chart">
-          <figcaption class="chart-head">
-            <span id="annual-title"></span>
-            <span class="chart-toggle">
-              <span class="chart-toggle-label">Period</span>
-              <span class="segmented segmented-sm" id="annual-window-control"></span>
-            </span>
-            <span class="chart-toggle">
-              <span class="chart-toggle-label">Range</span>
-              <span class="segmented segmented-sm" id="annual-range-control"></span>
-            </span>
-          </figcaption>
-          <div id="annual-chart"></div>
-          <p class="chart-note" id="annual-note"></p>
-        </figure>
-
-
-        <figure class="chart explorer">
-          <figcaption><span id="explore-title">Explore the data</span></figcaption>
-          <div class="controls" id="controls">
+      <section class="panel">
+          <figure class="chart explorer">
+            <figcaption><span id="explore-title">Explore the data</span></figcaption>
+            <div class="controls" id="controls">
+            <fieldset>
+              <legend>
+                Magnitude
+                <span class="hint">
+                  <button type="button" class="hint-button" id="magnitude-hint"
+                          aria-describedby="magnitude-tip" aria-label="What is this?">?</button>
+                  <span class="hint-tip" role="tooltip" id="magnitude-tip">
+                    <strong>M6+</strong> counts every earthquake of magnitude 6.0 and up.
+                    <strong>M7+</strong> counts only 7.0 and up.
+                    <br /><br />
+                    We don&rsquo;t show any smaller earthquakes, because the catalog becomes
+                    less reliable for smaller events as you step back in time.
+                  </span>
+                </span>
+              </legend>
+              <div class="segmented" id="mag-control"></div>
+            </fieldset>
           <fieldset>
             <legend>
-              Magnitude
+              Period
               <span class="hint">
-                <button type="button" class="hint-button" id="magnitude-hint"
-                        aria-describedby="magnitude-tip" aria-label="What is this?">?</button>
-                <span class="hint-tip" role="tooltip" id="magnitude-tip">
-                  <strong>M6+</strong> counts every earthquake of magnitude 6.0 and up.
-                  <strong>M7+</strong> counts only 7.0 and up.
+                <button type="button" class="hint-button" id="period-hint"
+                        aria-describedby="period-tip" aria-label="What is this?">?</button>
+                <span class="hint-tip" role="tooltip" id="period-tip">
+                  <strong>This year</strong> counts from January 1, and compares against
+                  the same stretch of every earlier year back to 1976.
                   <br /><br />
-                  We don&rsquo;t show any smaller earthquakes, because the catalog becomes
-                  less reliable for smaller events as you step back in time.
+                  <strong>Last 365 days</strong> shows a full twelve months, ending today,
+                  with matching time windows from previous years.
                 </span>
               </span>
             </legend>
-            <div class="segmented" id="mag-control"></div>
+            <div class="segmented" id="window-control"></div>
           </fieldset>
-        <fieldset>
-          <legend>
-            Period
-            <span class="hint">
-              <button type="button" class="hint-button" id="period-hint"
-                      aria-describedby="period-tip" aria-label="What is this?">?</button>
-              <span class="hint-tip" role="tooltip" id="period-tip">
-                <strong>This year</strong> counts from January 1, and compares against
-                the same stretch of every earlier year back to 1976.
-                <br /><br />
-                <strong>Last 365 days</strong> shows a full twelve months, ending today,
-                with matching time windows from previous years.
-              </span>
-            </span>
-          </legend>
-          <div class="segmented" id="window-control"></div>
-        </fieldset>
-          <fieldset id="catalog-field">
-            <legend>
-              Catalog
-              <span class="hint">
-                <button type="button" class="hint-button" id="decluster-hint"
-                        aria-describedby="decluster-tip" aria-label="What is this?">?</button>
-                <span class="hint-tip" role="tooltip" id="decluster-tip">
-                  A big earthquake is followed by hundreds of smaller aftershocks &mdash; so
-                  a year with one great earthquake might appear to be much busier than
-                  usual. Select <strong>Mainshocks only</strong> to remove these
-                  aftershocks. This is called declustering.
+            <fieldset id="catalog-field">
+              <legend>
+                Catalog
+                <span class="hint">
+                  <button type="button" class="hint-button" id="decluster-hint"
+                          aria-describedby="decluster-tip" aria-label="What is this?">?</button>
+                  <span class="hint-tip" role="tooltip" id="decluster-tip">
+                    A big earthquake is followed by hundreds of smaller aftershocks &mdash; so
+                    a year with one great earthquake might appear to be much busier than
+                    usual. Select <strong>Mainshocks only</strong> to remove these
+                    aftershocks. This is called declustering.
+                  </span>
                 </span>
-              </span>
-            </legend>
-            <div class="segmented" id="catalog-control"></div>
-          </fieldset>
-          <fieldset>
-            <legend>Highlighted years</legend>
-            <div class="picker" id="year-picker">
-              <button type="button" class="picker-button" id="year-toggle"
-                      aria-expanded="false" aria-controls="year-panel">
-                <span id="year-summary">—</span>
-              </button>
-              <div class="picker-panel" id="year-panel" role="group"
-                   aria-label="Years to highlight" hidden>
-                <div class="picker-head">
-                  <span id="year-count"></span>
-                  <button type="button" class="picker-clear" id="year-clear">Clear all</button>
+              </legend>
+              <div class="segmented" id="catalog-control"></div>
+            </fieldset>
+            <fieldset>
+              <legend>Highlighted years</legend>
+              <div class="picker" id="year-picker">
+                <button type="button" class="picker-button" id="year-toggle"
+                        aria-expanded="false" aria-controls="year-panel">
+                  <span id="year-summary">—</span>
+                </button>
+                <div class="picker-panel" id="year-panel" role="group"
+                     aria-label="Years to highlight" hidden>
+                  <div class="picker-head">
+                    <span id="year-count"></span>
+                    <button type="button" class="picker-clear" id="year-clear">Clear all</button>
+                  </div>
+                  <div class="picker-list" id="year-list"></div>
                 </div>
-                <div class="picker-list" id="year-list"></div>
               </div>
+            </fieldset>
             </div>
-          </fieldset>
-          </div>
-          <div class="chart-head chart-subhead">
-            <span class="chart-subtitle" id="chart-title"></span>
-            <span class="chart-toggle">
-              <span class="chart-toggle-label">Range</span>
-              <span class="segmented segmented-sm" id="range-control"></span>
-            </span>
-          </div>
-          <div class="chart-stage has-inset">
-            <div id="chart"></div>
-            <div class="answer-detail chart-inset" id="answer-detail"></div>
-          </div>
-          <p class="chart-note" id="chart-note"></p>
-        </figure>
-
+            <div class="chart-head chart-subhead">
+              <span class="chart-subtitle" id="chart-title"></span>
+              <span class="chart-toggle">
+                <span class="chart-toggle-label">Range</span>
+                <span class="segmented segmented-sm" id="range-control"></span>
+              </span>
+            </div>
+            <div class="chart-stage has-inset">
+              <div id="chart"></div>
+              <div class="answer-detail chart-inset" id="answer-detail"></div>
+            </div>
+            <p class="chart-note" id="chart-note"></p>
+          </figure>
       </section>
 
       <p>
