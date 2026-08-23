@@ -200,13 +200,24 @@ main {
   margin-bottom: 0.25rem;
 }
 
-/* One column. The key reads first at the full measure, then the figures below
-   it -- which is the order a reader takes them in anyway, and it gives both
-   the charts the whole 60rem instead of two thirds of it. The two-column
-   version is stored in attic/verdict-columns. */
-.verdict-cols { margin-top: 2.5rem; }
+/* The key and the distribution it describes, side by side: they are two
+   readings of one thing, so they belong in the same band. The yearly chart is
+   a different question and takes the full measure below them. */
+.verdict-cols {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, clamp(20rem, 50%, 29rem)) minmax(0, 1fr);
+  gap: clamp(1.5rem, 3vw, 2.75rem);
+  align-items: center;
+}
 
-.verdict { min-width: 0; margin-bottom: 3.25rem; }
+/* 44rem, not 60: main is 60rem wide, so a breakpoint near it stacks the row on
+   most windows rather than on narrow ones. */
+@media (max-width: 44rem) {
+  .verdict-cols { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+}
+
+.verdict { min-width: 0; }
 .figures { min-width: 0; }
 
 /* The one place on the site with a face of its own. A serif for the questions
@@ -995,12 +1006,12 @@ main {
    frame round a frame, and each one cost 2rem of padding. A hairline under the
    heading does the same work in 1px, and every figure now starts on the same
    left edge as the text above it. */
-.figures > .answer-detail { margin: 0 0 3rem; }
+.figures > .answer-detail { margin: 0; }
 
 /* Centred whatever width it was drawn at, so a stale measurement shows as a
    smaller figure rather than a figure pushed against the left edge. */
 .answer-detail .hist-wrap > svg { display: block; margin-inline: auto; }
-.figures > .annual-figure { margin: 0; }
+.question > .annual-figure { margin: 3.5rem 0 0; }
 
 .annual-figure > .chart-subhead,
 .figures .chart-subhead {
@@ -1126,7 +1137,6 @@ main {
   margin: 1.4rem 0 0;
   padding-top: 1.1rem;
   border-top: 1px solid var(--axis);
-  max-width: 60ch;
   font-size: var(--t-body);
   line-height: 1.6;
   color: var(--text-secondary);
@@ -1701,9 +1711,9 @@ footer p { margin: 0 0 0.4rem; }
    the same three columns the second question's table uses. */
 .scale-rows li {
   display: grid;
-  grid-template-columns: 14px minmax(0, 11rem) minmax(0, 1fr);
+  grid-template-columns: 14px minmax(0, 8rem) minmax(0, 1fr);
   align-items: start;
-  column-gap: 1.25rem;
+  column-gap: 0.9rem;
   padding: 0.35rem;
   margin: 0 -0.35rem;
   border-radius: var(--r-sm);
@@ -1719,7 +1729,7 @@ footer p { margin: 0 0 0.4rem; }
   font-size: var(--t-cap);
   white-space: nowrap;
 }
-.scale-rows .scale-said { grid-column: 3; grid-row: 1; max-width: 46ch; }
+.scale-rows .scale-said { grid-column: 3; grid-row: 1; }
 
 /* The reading, under the bands, in the same grid so the count lines up with
    the ranges above it. */
