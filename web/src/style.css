@@ -24,7 +24,7 @@
   --t-lead: 1.0625rem;    /* 17px  -- figure titles, emphasis */
   --t-answer: 1.35rem;    /* 22px  -- the answer sentence */
   --t-display: min(2.35rem, 5.6vw);             /* question titles, one line */
-  --t-verdict: clamp(1.5rem, 3.4vw, 1.95rem);   /* the answer under it */
+  --t-verdict: clamp(1.35rem, 2.8vw, 1.7rem);   /* the answer beside it */
   --t-hero: clamp(2rem, 5vw, 3rem);             /* the correlations masthead */
 
   /* The mono face carries every number that is a measurement rather than
@@ -171,8 +171,34 @@ main {
    inside a 21rem key column the headline was a stack of four short lines
    competing with the table under it; across the page it is one line, and it
    is the first thing on the page rather than the first thing in a column. */
-.question-title { max-width: none; }
-.answer { max-width: 46ch; }
+/* Question left, verdict right, on one band across the top. The question gets
+   the two lines it wants at display size instead of being squeezed to one, and
+   the answer stops being a caption under a headline and becomes the other half
+   of the same statement. */
+.question-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 1.5rem 3rem;
+  align-items: start;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--axis);
+}
+
+@media (max-width: 46rem) {
+  .question-head { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+}
+
+.question-title { max-width: 20ch; }
+.answer { max-width: 24ch; }
+
+/* The word itself, at headline scale. Everything after it is the qualifier. */
+.answer strong {
+  display: block;
+  font-size: 2.05em;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  margin-bottom: 0.25rem;
+}
 
 .verdict-cols {
   margin-top: 2.5rem;
@@ -311,7 +337,7 @@ main {
    1.35rem it was closer to the body text under it than to the question above
    it -- a caption on its own headline. */
 .answer {
-  margin: 0.9rem 0 0;
+  margin: 0;
   font-family: var(--serif);
   font-size: var(--t-verdict);
   font-weight: 400;
