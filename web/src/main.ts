@@ -32,10 +32,6 @@ const CATALOG_MODES = [
   { id: "all", label: "All earthquakes" },
   { id: "mainshocks", label: "Mainshocks only" },
 ] as const;
-const MEASURES = [
-  { id: "count", label: "Count" },
-  { id: "moment", label: "Moment" },
-] as const;
 const WINDOWS = [
   { id: "calendar", label: "This year" },
   { id: "rolling", label: "Last 365 days" },
@@ -93,6 +89,8 @@ interface State {
 const state: State = {
   minMag: MIN_MAGNITUDE,
   window: "calendar",
+  // Pinned. The Count/Moment control is parked in attic/measure-control;
+  // the moment branches downstream are unreachable but still present.
   measure: "count",
   sortMode: "largest",
   range: "percentile",
@@ -147,10 +145,8 @@ const el = {
   answerDetail: document.getElementById("answer-detail")!,
   answerSummary: document.getElementById("answer-summary")!,
   latest: document.getElementById("latest")!,
-  measure: document.getElementById("measure-control")!,
   mag: document.getElementById("mag-control")!,
   window: document.getElementById("window-control")!,
-  catalogField: document.getElementById("catalog-field") as HTMLFieldSetElement,
   sort: document.getElementById("sort-control")!,
   catalog: document.getElementById("catalog-control")!,
   yearPicker: document.getElementById("year-picker")!,
@@ -182,10 +178,7 @@ const el = {
   trendQuestion: document.getElementById("trend-question")!,
   trendVerdict: document.getElementById("trend-verdict")!,
   trendBody: document.getElementById("trend-body")!,
-  spread: document.getElementById("spread") as HTMLElement,
   answerAggregate: document.getElementById("answer-aggregate")!,
-  spreadAggregate: document.getElementById("spread-aggregate")!,
-  spreadChart: document.getElementById("spread-chart")!,
   trendTable: document.getElementById("trend-table")!,
   trendGrid: document.getElementById("trend-grid")!,
   techTitle: document.getElementById("tech-title")!,
@@ -435,25 +428,6 @@ function wireYearPicker() {
   });
 }
 
-/**
- * Greys out the controls moment mode ignores -- and, importantly, repoints
- * their highlight at what is actually being used.
- *
- * Disabling alone is not enough: a greyed control still showing "M6+" reads as
- * "moment is being summed over M6+", which would be false. In moment mode the
- * highlight moves to M4.5+ and "All earthquakes", which is the truth, and moves
- * back to the reader's own choice when they return to counts.
- */
-function syncControlAvailability() {
-  const off = state.measure === "moment";
-  el.catalogField.classList.toggle("is-off", off);
-  for (const button of el.catalog.querySelectorAll<HTMLButtonElement>("button.segmented-option")) {
-    button.disabled = off;
-    button.setAttribute("aria-pressed",
-      String(button.dataset.id === (off ? "all" : state.catalogMode)));
-  }
-}
-
 function buildControls() {
   buildSegmented(el.mag, MAGNITUDES.map((m) => ({ id: String(m), label: magLabel(m) })),
     () => String(state.minMag), (id) => { state.minMag = Number(id); });
@@ -469,17 +443,11 @@ function buildControls() {
       state.highlights.clear();
       claimSlot(dayIndex(Date.now(), calendarShift()).year);
     });
-  buildSegmented(el.measure, MEASURES.map((m) => ({ id: m.id, label: m.label })),
-    () => state.measure, (id) => {
-      state.measure = id as Measure;
-      syncControlAvailability();
-    });
   buildSegmented(el.catalog, CATALOG_MODES.map((c) => ({ id: c.id, label: c.label })),
     () => state.catalogMode, (id) => { state.catalogMode = id as State["catalogMode"]; });
   buildSegmented(el.sort, SORT_MODES.map((s) => ({ id: s.id, label: s.label })),
     () => state.sortMode, (id) => { state.sortMode = id as State["sortMode"]; });
   wireYearPicker();
-  syncControlAvailability();
 }
 
 /* ---------------- live feed ---------------- */
@@ -828,70 +796,27 @@ function writeTech() {
   renderTech(copy.home.techTitle, body, el.techTitle, el.techBody);
 }
 
+/**
+ * The spread block -- the "Nth percentile, so far" sentence and the table of
+ * ways of counting -- is parked in attic/spread-table. What is left is the
+ * part nothing else could do without: the range quoted by the technical
+ * summary, and the pooled score the hero histogram is drawn from.
+ */
 function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number) {
   const { rows, aggregate } = spread;
-  if (rows.length < 2) { el.spread.hidden = true; return; }
-  el.spread.hidden = false;
+  if (rows.length < 2) return;
 
-  const c = copy.home;
   const all = rows.flatMap((r) => r.cells.map((cell) => cell.percentile));
   techValues.spreadLow = ordinal(Math.min(...all));
   techValues.spreadHigh = ordinal(Math.max(...all));
-  el.spreadAggregate.replaceChildren();
   if (aggregate) {
     techValues.ways = aggregate.tests;
     techValues.waysWord = numberWord(aggregate.tests);
     techValues.effective = aggregate.effective.toFixed(1);
     techValues.peers = aggregate.peers;
-    // No tooltip. It walked through Stouffer, the divisor and the ranking --
-    // all of which the technical summary now says, and says better -- while
-    // its live numbers, the six percentiles and this year's score, are in the
-    // table underneath and the histogram above.
-    el.spreadAggregate.append(fill(c.spreadAggregate, {
-      year: yearLabel(currentYear),
-      percentile: ordinal(100 * (1 - aggregate.p)),
-    }));
   }
 
   writeAggregateChart(spread, currentYear);
-
-  const box = document.createElement("div");
-  box.className = "correlate-flip spread-box";
-  const list = document.createElement("ol");
-  list.className = "flip-rows";
-  const template = "minmax(0, 1fr) minmax(0, 7.5rem) minmax(0, 7.5rem)";
-
-  const row = (cells: string[], cls: string) => {
-    const li = document.createElement("li");
-    li.className = cls;
-    li.style.gridTemplateColumns = template;
-    cells.forEach((text, i) => {
-      const cell = document.createElement("span");
-      cell.className = i === 0 ? "flip-when" : "flip-when flip-num";
-      cell.textContent = text;
-      li.append(cell);
-    });
-    return li;
-  };
-
-  list.append(row([c.spreadColWay, c.spreadCalendar, c.spreadRolling], "flip-head"));
-  for (const r of rows) {
-    list.append(row(
-      [r.label, ...r.cells.map((cell) => ordinal(cell.percentile))], ""));
-  }
-  // The same figure the headline quotes, one per column -- not the mean of the
-  // rows above it. A plain mean would treat six slicings that correlate at up
-  // to 0.99 as six independent readings and land several points away from the
-  // number at the top of the section, inviting the reader to wonder which of
-  // the two the page believes.
-  if (spread.columns.every((col) => col)) {
-    list.append(row([
-      fill(c.spreadCombined, { waysWord: numberWord(rows.length) }),
-      ...spread.columns.map((col) => ordinal(100 * (1 - col!.p))),
-    ], "spread-average"));
-  }
-  box.append(list);
-  el.spreadChart.replaceChildren(box);
 }
 
 /* ---------------- map ---------------- */

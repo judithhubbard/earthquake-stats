@@ -1,0 +1,30 @@
+.spread {
+  margin: 1.75rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.spread-aggregate {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  max-width: 46rem;
+}
+
+.spread-box { margin: 0; padding-top: 0; border-top: 0; }
+
+.spread-box .flip-title { display: none; }
+
+/* A summary of the rows above rather than another candidate answer, so it takes
+   the same rule-above treatment as .flip-reading, with italics to mark it as
+   derived from the table rather than measured alongside it. */
+.flip-rows .spread-average {
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--axis);
+  border-radius: 0;
+  font-style: italic;
+  font-weight: 650;
+  color: var(--text-primary);
+}

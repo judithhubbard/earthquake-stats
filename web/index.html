@@ -35,10 +35,6 @@
           the USGS. The answers here are calculated automatically from that data.
         </p>
 
-        <figure class="spread" id="spread" hidden>
-          <p class="spread-aggregate" id="spread-aggregate"></p>
-          <div id="spread-chart"></div>
-        </figure>
 
       </header>
 
@@ -77,23 +73,6 @@
               </span>
             </legend>
             <div class="segmented" id="window-control"></div>
-          </fieldset>
-          <fieldset>
-            <legend>
-              Measure
-              <span class="hint">
-                <button type="button" class="hint-button" id="measure-hint"
-                        aria-describedby="measure-tip" aria-label="What is this?">?</button>
-                <span class="hint-tip" role="tooltip" id="measure-tip">
-                  <strong>Count</strong> treats every earthquake as a data point of equal
-                  weight. <strong>Moment</strong> weights each earthquake by how much rock moved.
-                  Each step up in the magnitude scale is about 32 times more moment, so one
-                  M8 is equivalent to one thousand M6s. A single great earthquake can
-                  dominate a whole year.
-                </span>
-              </span>
-            </legend>
-            <div class="segmented" id="measure-control"></div>
           </fieldset>
           <fieldset id="catalog-field">
             <legend>

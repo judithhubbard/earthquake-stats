@@ -1,0 +1,4 @@
+/* Greyed the Catalog fieldset while Moment was selected. Removed from
+   src/style.css when the control was parked. */
+.controls fieldset.is-off { opacity: 0.4; }
+.controls fieldset.is-off .segmented { background: transparent; }
