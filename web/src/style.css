@@ -950,13 +950,23 @@ main {
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.6rem 1.1rem;
   margin: 0.5rem 0 0;
   font-size: var(--t-data);
+  line-height: 1.3;
   color: var(--text-secondary);
 }
 
-.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+/* Each entry is capped, so its label wraps to two short lines and all five
+   entries fit on one row. Set on one line each they ran to a second row that
+   held a single item -- the same total height, spent worse. */
+.legend span {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  max-width: 9.5rem;
+}
 
 .legend i {
   display: inline-block;
@@ -964,6 +974,9 @@ main {
   height: 3px;
   border-radius: var(--r-xs);
   flex: none;
+  /* The labels wrap now, so the swatch has to be placed against the first
+     line rather than centred on a two-line block. */
+  margin-top: 0.5em;
 }
 
 /* Swatches mirror the mark they stand for: a solid accent, a faint hairline,
@@ -971,7 +984,7 @@ main {
    different marks look like the same thing. */
 .legend .swatch-faint { height: 1.5px; opacity: 0.55; }
 .legend .swatch-dashed { height: 2px; border-radius: 0; background: none; }
-.legend .swatch-band { height: 12px; border-radius: var(--r-xs); }
+.legend .swatch-band { height: 12px; border-radius: var(--r-xs); margin-top: 0.15em; }
 
 .legend .dot-swatch {
   width: 10px;

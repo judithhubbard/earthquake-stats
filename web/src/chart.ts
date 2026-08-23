@@ -857,7 +857,10 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     marginBottom: 30,
     marginTop: 20,
     style: { background: "transparent", color: theme.text, fontSize: "13px" },
-    x: { label: null, tickSize: 0, tickPadding: 8, interval: 1, ticks: 8, tickFormat: "d" },
+    // Year labels are four digits wide, so a fixed count collides as soon as
+    // the chart is narrow: at 700px eight of them ran together into one string.
+    x: { label: null, tickSize: 0, tickPadding: 8, interval: 1, tickFormat: "d",
+         ticks: Math.max(3, Math.min(8, Math.floor(width / 105))) },
     y: {
       label: opts.yLabel || null,
       labelAnchor: "center",
