@@ -166,7 +166,7 @@ export function renderTrend(opts: TrendOptions): SVGSVGElement | HTMLElement {
     marginTop: compact ? 10 : 18,
     style: {
       background: "transparent", color: theme.text,
-      fontSize: compact ? "11px" : "12px",
+      fontSize: compact ? "11px" : "13px",
     },
     x: {
       label: null, tickFormat: "d", ticks: compact ? 4 : 6,
@@ -194,7 +194,7 @@ export function renderTrend(opts: TrendOptions): SVGSVGElement | HTMLElement {
       Plot.ruleY([0], { stroke: theme.axis }),
       Plot.tip(points, Plot.pointerX({
         x: "year", y: "value",
-        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 13,
         title: (d: { year: number; value: number }) =>
           `${d.year}\n${d.value.toLocaleString()}`,
       })),
@@ -405,7 +405,7 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
         x: "x", y: "y", text: () => opts.currentLabel,
         textAnchor: place < 0.14 ? "start" : place > 0.86 ? "end" : "middle",
         fill: theme.series[0], stroke: theme.surface, strokeWidth: 4,
-        fontWeight: 650, fontSize: compact ? 11 : 12.5,
+        fontWeight: 650, fontSize: compact ? 11 : 13,
       }),
       Plot.text([{}], {
         text: () => opts.share.more,
@@ -422,7 +422,7 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
         text: () => opts.share.moreLabel,
         frameAnchor: flip ? "top-left" : "top-right",
         dy: compact ? 15 : 26, dx: flip ? 2 : -2,
-        fill: theme.muted, fontSize: compact ? 9.5 : 10.5,
+        fill: theme.muted, fontSize: compact ? 10 : 11,
       }),
     ],
   });
@@ -637,7 +637,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
       x: "day", y: "value",
       text: (d: EndPoint) => d.label,
       dx: 9, dy: -9, textAnchor: "start",
-      fill: theme.text, fontWeight: 650, fontSize: 12.5,
+      fill: theme.text, fontWeight: 650, fontSize: 13,
     }),
   ];
 
@@ -656,7 +656,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
   marks.push(
     Plot.tip(history, Plot.pointer({
       x: "day", y: "value", maxRadius: 10,
-      fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+      fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 13,
       title: (d: { year: number; value: number; day: number }) =>
         `${d.year}\n${d.value.toLocaleString()} by ${formatDay(d.day, dayToDate)}`,
     })),
@@ -672,7 +672,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
         x: "day", y: "tipY",
         // 12px is the charts' own axis size. The tip is meant to read as part
         // of the figure, not as a caption pasted over it.
-        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 13,
         title: (d: Record<string, number>) => {
           const out = [formatDay(d.day, dayToDate)];
           for (const h of highlights) {
@@ -707,7 +707,7 @@ export function renderChart(opts: ChartOptions): SVGSVGElement | HTMLElement {
     marginRight,
     marginBottom: 34,
     marginTop: 16,
-    style: { background: "transparent", color: theme.text, fontSize: "12px" },
+    style: { background: "transparent", color: theme.text, fontSize: "13px" },
     x: {
       domain: [0, DAYS - 1],
       // A month label is about 34px wide; the plot area is the width less the
@@ -834,7 +834,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     Plot.ruleY([0], { stroke: theme.axis, strokeWidth: 1 }),
     Plot.tip(counts, Plot.pointerX({
       x: "year", y: "count",
-      fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12,
+      fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 13,
       title: (d: AnnualCount) => {
         const fmt = (v: number) => (Number.isInteger(v) ? v.toLocaleString()
           : v.toLocaleString(undefined, { maximumFractionDigits: 1 }));
@@ -856,7 +856,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     marginRight: 62,
     marginBottom: 30,
     marginTop: 20,
-    style: { background: "transparent", color: theme.text, fontSize: "12px" },
+    style: { background: "transparent", color: theme.text, fontSize: "13px" },
     x: { label: null, tickSize: 0, tickPadding: 8, interval: 1, ticks: 8, tickFormat: "d" },
     y: {
       label: opts.yLabel || null,
