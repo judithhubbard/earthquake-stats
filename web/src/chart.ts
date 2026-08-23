@@ -363,10 +363,13 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     marks: [
       Plot.rectY(rects, {
         x1: "x0", x2: "x1", y: "n",
+        // Grey rather than the sage: sage is a data colour on this page -- it is
+        // the range band on the charts and the middle band on the scales -- so
+        // a bar wearing it still looks like a category.
         fill: (d: { above: boolean }) =>
-          (opts.neutral ? theme.rangeInner : d.above ? theme.up : theme.rangeInner),
+          (opts.neutral ? theme.history : d.above ? theme.up : theme.rangeInner),
         fillOpacity: (d: { above: boolean }) =>
-          (opts.neutral ? 0.9 : d.above ? 0.55 : 1),
+          (opts.neutral ? 0.45 : d.above ? 0.55 : 1),
         insetLeft: 0.75, insetRight: 0.75,
       }),
       Plot.ruleY([0], { stroke: theme.axis }),
