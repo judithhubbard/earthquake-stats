@@ -1008,6 +1008,10 @@ main {
    heading does the same work in 1px, and every figure now starts on the same
    left edge as the text above it. */
 .figures > .answer-detail { margin: 0 0 2.25rem; }
+
+/* Centred whatever width it was drawn at, so a stale measurement shows as a
+   smaller figure rather than a figure pushed against the left edge. */
+.answer-detail .hist-wrap > svg { display: block; margin-inline: auto; }
 .figures > .annual-figure { margin: 0; }
 
 .annual-figure > .chart-subhead,

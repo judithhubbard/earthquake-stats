@@ -671,7 +671,7 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
     currentLabel: yearLabel(currentYear, "rolling"),
     yearLabel: (year: number) => yearLabel(year, "rolling"),
     theme: readTheme(document.body),
-    width: Math.max(200, el.answerAggregate.clientWidth || 260),
+    width: Math.max(240, el.answerAggregate.clientWidth || 320),
   });
 
   const head = document.createElement("div");
@@ -912,7 +912,6 @@ async function update() {
   const headlinePct = headline ? headline.percentile * 100 : null;
 
   writeHeadline(result, headlineYear, headlinePct);
-  writeHeadlineChart(headlineCurves, headlineRef, headline, headlineYear);
   void writeLatest(minMag);
   const headlinePeers = headlineRef
     .map((y) => headlineCurves.curves.get(y)![DAYS - 1])
@@ -1074,7 +1073,13 @@ async function update() {
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
-      writeTech();
+      // Inside the render loop, so it measures the column after the grid has
+    // resolved and re-measures on resize. Called once from update() it drew at
+    // whatever width the container reported before layout settled, and then
+    // kept that width for the life of the page.
+    writeHeadlineChart(headlineCurves, headlineRef, headline, headlineYear);
+
+    writeTech();
 
   };
   lastRender();
