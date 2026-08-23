@@ -593,7 +593,11 @@ export const copy = {
       "affect the rate of earthquakes. While these things can affect earthquakes, the effects " +
       "are very small. Right now, though, the data show a correlation larger than we would " +
       "usually put down to chance.",
-    climateCloseNo: "As expected, we see no change. {stat}",
+    /* Empty on purpose. The verdict above the panel already says no, and the
+       chart shows the scatter; restating it with a correlation coefficient
+       added nothing a reader of this panel had asked for. climateStatNull is
+       kept because the technical summary still quotes the same figures. */
+    climateCloseNo: "",
     climateCloseFlipped: "That is not what we expected. {stat}",
     climateStatNull:
       "The correlation coefficient over {years} years is {r} — a result that unrelated numbers " +

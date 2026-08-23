@@ -686,8 +686,8 @@ async function boot() {
             ? copy.correlations.weekdayTail
             : [copy.correlations.weekdayFlipped,
                ...closing(weekdayOut.key, copy.correlations.maybeBin,
-                          copy.correlations.probablyBin)].join("\n\n"),
-         ].join("\n\n"), {
+                          copy.correlations.probablyBin)].filter(Boolean).join("\n\n"),
+         ].filter(Boolean).join("\n\n"), {
       p: asPercent(weekdayOut.p),
       noBin: fill(copy.correlations.noBin,
                   { p: asPercent(weekdayOut.p), subject: "the day of the week" }),
@@ -727,7 +727,7 @@ async function boot() {
            ...closing(monthOut.key, copy.correlations.maybeBin,
                       copy.correlations.probablyBin)]
             .map((t) => fill(t, { p: asPercent(monthOut.p) })).join("\n\n"),
-    ].join("\n\n"),
+    ].filter(Boolean).join("\n\n"),
     (w) => binChart(month, w), undefined,
     fill(copy.correlations.monthSubtitle, { since }), legend, binFlip(month)));
 
@@ -750,8 +750,8 @@ async function boot() {
               })
             : [copy.correlations.moonFlipped,
                ...closing(moonOut.key, copy.correlations.maybeBin,
-                          copy.correlations.probablyBin)].join("\n\n"),
-          copy.correlations.moonRest].join("\n\n"), {
+                          copy.correlations.probablyBin)].filter(Boolean).join("\n\n"),
+          copy.correlations.moonRest].filter(Boolean).join("\n\n"), {
       article: TIDES_ARTICLE, count: kept, p: asPercent(moonOut.p),
     }),
     (w) => binChart(moon, w, {
@@ -782,7 +782,7 @@ async function boot() {
             ...closing(c ? outcomeFor(correlationP(c.r, c.n)) : "no",
                        copy.correlations.maybeScatter,
                        copy.correlations.probablyScatter),
-           ].join("\n\n"), {
+           ].filter(Boolean).join("\n\n"), {
         threshold: `M${MIN_MAGNITUDE}+`, p: asPercent(correlationP(c!.r, c!.n)),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
@@ -814,7 +814,7 @@ async function boot() {
             ...closing(c ? outcomeFor(correlationP(c.r, c.n)) : "no",
                        copy.correlations.maybeScatter,
                        copy.correlations.probablyScatter),
-           ].join("\n\n"), {
+           ].filter(Boolean).join("\n\n"), {
         threshold: `M${MIN_MAGNITUDE}+`, p: asPercent(correlationP(c!.r, c!.n)),
         tierRaw: annual.raw.toLocaleString(), tierCount: annual.kept.toLocaleString(),
         years: lastComplete - FIRST_YEAR + 1, from: FIRST_YEAR,
