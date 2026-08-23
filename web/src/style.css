@@ -26,6 +26,26 @@
   --t-display: clamp(1.6rem, 3.4vw, 2.15rem);   /* question titles */
   --t-hero: clamp(2rem, 5vw, 3rem);             /* the correlations masthead */
 
+  /* Surface.
+     --------
+     One container idiom in three weights, instead of three idioms. Figures sit
+     ON the page: white, a hairline, a 1px lift. The tool sits IN it: a well,
+     recessed, no heavier edge than anything else. That difference in kind used
+     to be carried by a 2px border and a darker ground, which made the tool the
+     heaviest object on the page and the answer the lightest -- backwards.
+
+     Four radii. There were nine (1, 2, 3, 5, 6, 8, 10, 12px and 50%), which is
+     what makes a set of boxes look assembled rather than designed. 50% stays
+     for actual circles and 1px for the marker's cap; neither is a container. */
+  --r-xs: 3px;    /* swatches and band segments */
+  --r-sm: 5px;    /* buttons and table rows -- things that get pressed */
+  --r-md: 8px;    /* cards, figures, popovers, the well */
+  --r-pill: 99px;
+
+  --lift-1: 0 1px 2px rgba(11, 11, 11, 0.045);
+  --lift-2: 0 1px 3px rgba(11, 11, 11, 0.07);
+  --well-shadow: inset 0 1px 3px rgba(11, 11, 11, 0.085);
+
   --surface-1: #fcfcfb;
   --plane: #f9f9f7;
   --text-primary: #0b0b0b;
@@ -53,6 +73,9 @@
      a green tray as well left three tints of one hue fighting each other. The
      neutrals on this page already lean warm (--band-outer, --grid), so the
      tray joins that family and the sage is left to mean something. */
+  /* The well the tool sits in. Kept darker than the page, as asked -- what
+     changes is that it is now recessed rather than raised, which is carried by
+     the inset shadow and the hairline instead of by a 2px edge. */
   --tray: #e8e7df;
   /* The two questions share a ground, so they read as a pair and the tray
      below reads as a different kind of thing. Sage rather than the tray's
@@ -63,7 +86,7 @@
   --chip-edge: #8fb9a3;
   /* A 2px edge needs a colour that reads at that weight; --border is an alpha
      black for hairlines and goes muddy when thickened. */
-  --panel-edge: #b0afa2;
+  --panel-edge: var(--border);
   --chip-ink: #2f5a43;
 
   /* The cumulative chart's two nested ranges. Separate from --band-* because
@@ -292,7 +315,7 @@ main {
   width: 16.5rem;
   max-width: calc(100% - 6rem);
   padding: 0.1rem 0.15rem 0;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: color-mix(in srgb, var(--surface-1) 88%, transparent);
 }
 
@@ -358,8 +381,9 @@ main {
      a bigger step than anything within either. */
   margin-top: 7rem;
   background: var(--tray);
-  border: 2px solid var(--panel-edge);
-  border-radius: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--well-shadow);
   padding: 1rem 1.25rem 1.25rem;
 }
 
@@ -404,7 +428,7 @@ main {
   padding: 2px;
   background: var(--plane);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-md);
 }
 
 .segmented button {
@@ -416,7 +440,7 @@ main {
   font-size: var(--t-fine);
   font-weight: 500;
   padding: 0.22rem 0.45rem;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   min-height: 26px;
   white-space: nowrap;
@@ -481,7 +505,7 @@ main {
   padding: 0.7rem 0.8rem;
   background: var(--surface-1);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
   font-size: var(--t-data);
   font-weight: 400;
@@ -507,13 +531,13 @@ main {
 /* ---------- map + largest events ---------- */
 
 /* A compact variant of the segmented control, for use inside a panel header. */
-.segmented-sm { padding: 1px; border-radius: 6px; }
+.segmented-sm { padding: 1px; border-radius: var(--r-sm); }
 
 .segmented-sm button {
   font-size: var(--t-cap);
   padding: 0.15rem 0.4rem;
   min-height: 22px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
 }
 
 /* A chip hanging off a border needs room either side of it. On a narrow screen
@@ -537,7 +561,7 @@ main {
   padding: 0.85rem 0.9rem;
   background: var(--tray);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
 }
 
 .largest-head {
@@ -593,7 +617,7 @@ main {
   /* Padding is always here so lighting a row cannot shift the ones below it. */
   padding: 0.15rem 0.35rem;
   margin: -0.15rem -0.35rem;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
 }
 
 /* Lit from the other side: hovering a row raises its dot on the map, and
@@ -659,7 +683,7 @@ main {
   min-height: 26px;
   min-width: 8rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background-color: var(--plane);
   color: var(--text-primary);
   background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
@@ -681,7 +705,7 @@ main {
   width: 13rem;
   background: var(--surface-1);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
   overflow: hidden;
 }
@@ -722,7 +746,7 @@ main {
   align-items: center;
   gap: 0.55rem;
   padding: 0.3rem 0.45rem;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: var(--t-data);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
@@ -750,7 +774,7 @@ main {
   padding: 0.4rem 2rem 0.4rem 0.65rem;
   min-height: 34px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background-color: var(--plane);
   color: var(--text-primary);
   background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
@@ -774,8 +798,9 @@ main {
   margin: 2.25rem 0 0;
   padding: var(--sec-pad-top) var(--sec-pad-x) 1.05rem;
   background: #ffffff;
-  border: 1px solid var(--chip-edge);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--lift-1);
 }
 
 .chart figcaption {
@@ -839,7 +864,7 @@ main {
   display: inline-block;
   width: 18px;
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--r-xs);
   flex: none;
 }
 
@@ -848,7 +873,7 @@ main {
    different marks look like the same thing. */
 .legend .swatch-faint { height: 1.5px; opacity: 0.55; }
 .legend .swatch-dashed { height: 2px; border-radius: 0; background: none; }
-.legend .swatch-band { height: 12px; border-radius: 3px; }
+.legend .swatch-band { height: 12px; border-radius: var(--r-xs); }
 
 .legend .dot-swatch {
   width: 10px;
@@ -864,7 +889,8 @@ main {
 .question > .answer-figure {
   background: #ffffff;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
+  box-shadow: var(--lift-1);
   padding: 0.9rem 1rem;
 }
 
@@ -954,10 +980,12 @@ main {
   max-width: calc(100% - 1.7rem);
   padding: 0.14rem 0.7rem;
   font-size: var(--t-lead);
-  color: var(--chip-ink);
-  background: var(--chip);
-  border: 1px solid var(--chip-edge);
-  border-radius: 99px;
+  /* The well's own ground, so the chip reads as the tray showing through the
+     card rather than as a third kind of object with its own colour. */
+  color: var(--text-primary);
+  background: var(--tray);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
 }
 
 /* The title is out of flow, so the row that held it only carries the toggle. */
@@ -992,7 +1020,7 @@ main {
   overflow: auto;
   padding: 0.4rem 0.55rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: var(--surface-1);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
   font-size: var(--t-cap);
@@ -1081,7 +1109,7 @@ main {
   padding: 0.9rem 1.1rem;
   border: 1px solid var(--up);
   border-left: 4px solid var(--up);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: var(--surface-1);
   color: var(--text-primary);
   font-size: var(--t-data);
@@ -1140,7 +1168,7 @@ footer p { margin: 0 0 0.4rem; }
 
 .error {
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: var(--band-outer);
   color: var(--text-secondary);
   font-size: var(--t-body);
@@ -1170,7 +1198,7 @@ footer p { margin: 0 0 0.4rem; }
   margin-top: 1.5rem;
   padding: 0.6rem 1rem;
   border: 1px solid var(--chip-edge);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: var(--chip);
   color: var(--chip-ink);
   font-size: var(--t-lead);
@@ -1281,7 +1309,7 @@ footer p { margin: 0 0 0.4rem; }
   gap: 0.75rem;
   padding: 0.25rem 0.4rem;
   margin: 0 -0.4rem;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   line-height: 1.45;
 }
 
@@ -1373,7 +1401,7 @@ footer p { margin: 0 0 0.4rem; }
   padding: 0.9rem 1rem;
   border: 1px solid var(--border);
   border-left: 3px solid var(--text-muted);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: var(--surface-1);
   font-size: var(--t-body);
   color: var(--text-secondary);
@@ -1402,7 +1430,7 @@ footer p { margin: 0 0 0.4rem; }
 }
 
 .scale-seg {
-  border-radius: 3px;
+  border-radius: var(--r-xs);
   flex: none;
   display: block;
 }
@@ -1505,7 +1533,7 @@ footer p { margin: 0 0 0.4rem; }
   column-gap: 0.75rem;
   padding: 0.35rem;
   margin: 0 -0.35rem;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   color: var(--text-secondary);
 }
 
