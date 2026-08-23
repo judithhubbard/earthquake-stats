@@ -1166,7 +1166,6 @@ function renderTrendChart(panel: TrendPanel, theme: ReturnType<typeof readTheme>
     band, theme, width,
     yLabel: panel.axis,
     wholeNumbers: true,
-    compact: true,
   });
 }
 
