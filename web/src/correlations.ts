@@ -521,7 +521,8 @@ function writePageAnswer(tests: { p: number; subject: string; label: string;
     [{ label: fill(c.pageColCombined, { testsWord: numberWord(family.length) }),
        help: { label: c.pageHelp,
                body: fill(c.pageHelpBody, {
-                 tests: family.length, anyFlag: ANY_FLAG,
+                 tests: family.length, testsWord: numberWord(family.length),
+                 anyFlag: ANY_FLAG,
                  subject: closest.subject, p: asPercent(closest.p),
                  corrected: asPercent(corrected),
                }) } },

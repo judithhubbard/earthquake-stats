@@ -219,6 +219,8 @@ export interface DistributionOptions {
   tickFormat?: (n: number) => string;
   /** Smaller, for the one tucked into the corner of the cumulative chart. */
   compact?: boolean;
+  /** How a year is named in the hover list -- "2025" or "2025-26". */
+  yearLabel?: (year: number) => string;
   theme: Theme;
   width: number;
 }
@@ -241,6 +243,8 @@ function niceStep(raw: number): number {
  */
 export function renderDistribution(opts: DistributionOptions): SVGSVGElement | HTMLElement {
   const { peers, value, theme, width } = opts;
+  const fmtValue = opts.tickFormat ?? ((n: number) =>
+    Number.isInteger(n) ? String(n) : n.toFixed(1));
   // Non-finite peers are dropped rather than binned. A reference year with no
   // moment yet is a legitimate 0.0, which survives the caller's finite check
   // and only becomes NaN under equivalentMagnitude -- one of those made lo, hi
@@ -267,11 +271,16 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     : Math.floor(lo / step) * step;
   const count = Math.max(1, Math.ceil((hi - start) / step) + 1);
 
+  // Each bin remembers which years it holds, so a bar can say so on hover.
   const bins = Array.from({ length: count }, (_, i) => ({
     x0: start + i * step, x1: start + (i + 1) * step, n: 0,
+    members: [] as { year: number; value: number }[],
   }));
-  for (const v of values) {
-    bins[Math.min(bins.length - 1, Math.floor((v - start) / step))].n += 1;
+  for (const peer of peers) {
+    if (!Number.isFinite(peer.value)) continue;
+    const bin = bins[Math.min(bins.length - 1, Math.floor((peer.value - start) / step))];
+    bin.n += 1;
+    bin.members.push(peer);
   }
   const tallest = Math.max(1, ...bins.map((b) => b.n));
   // Where the rule falls across the frame, 0 to 1, so labels near an edge can be
@@ -295,13 +304,26 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   // cut at the line and each half takes its own side's colour. Cutting the
   // integer case too would leave a half-bin slice narrower than the gap between
   // bars, which renders as nothing at all.
-  const rects: { x0: number; x1: number; n: number; above: boolean }[] = [];
+  type Rect = { x0: number; x1: number; n: number; above: boolean; label: string };
+  // Oldest first, and the value beside each year: the bar says how many, the
+  // tooltip says which, and on a wide bin the values differ from one another.
+  const nameThem = (members: { year: number; value: number }[]) => members
+    .slice()
+    .sort((a, b) => a.year - b.year)
+    .map((m) => `${opts.yearLabel ? opts.yearLabel(m.year) : m.year}: ${fmtValue(m.value)}`)
+    .join("\n");
+
+  const rects: Rect[] = [];
   for (const bin of bins) {
     if (!integral && value > bin.x0 && value < bin.x1) {
-      rects.push({ x0: bin.x0, x1: value, n: bin.n, above: false });
-      rects.push({ x0: value, x1: bin.x1, n: bin.n, above: true });
+      // The bin is cut at the line, so each half lists only its own years.
+      const below = bin.members.filter((m) => m.value <= value);
+      const above = bin.members.filter((m) => m.value > value);
+      rects.push({ x0: bin.x0, x1: value, n: bin.n, above: false, label: nameThem(below) });
+      rects.push({ x0: value, x1: bin.x1, n: bin.n, above: true, label: nameThem(above) });
     } else {
-      rects.push({ ...bin, above: (bin.x0 + bin.x1) / 2 > value });
+      rects.push({ x0: bin.x0, x1: bin.x1, n: bin.n,
+                   above: (bin.x0 + bin.x1) / 2 > value, label: nameThem(bin.members) });
     }
   }
 
@@ -332,6 +354,9 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     marks: [
       Plot.rectY(rects, {
         x1: "x0", x2: "x1", y: "n",
+        // Native browser tooltip: no library, no state, and it works on the
+        // keyboard-less phone the same way it does anywhere else.
+        title: (d: Rect) => d.label,
         fill: (d: { above: boolean }) => (d.above ? theme.up : theme.rangeInner),
         fillOpacity: (d: { above: boolean }) => (d.above ? 0.55 : 1),
         insetLeft: 0.75, insetRight: 0.75,

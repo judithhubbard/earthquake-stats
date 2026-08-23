@@ -645,6 +645,7 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
       moreLabel: fill(copy.home.headlineShareMore, { peers: peers.length }),
     },
     currentLabel: yearLabel(currentYear),
+    yearLabel: (year: number) => yearLabel(year, "rolling"),
     theme: readTheme(document.body),
     width: Math.max(260, el.answerAggregate.clientWidth || 340),
   });
@@ -1078,6 +1079,7 @@ async function update() {
         : peers;
       const strip = renderDistribution({
         peers: peerValues,
+        yearLabel: (year: number) => yearLabel(year),
         value: moment ? asMagnitude(result.count) : result.count,
         share: {
           more: fill(copy.home.stripShare, { share: above }),
