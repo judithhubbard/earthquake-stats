@@ -163,7 +163,6 @@ const el = {
   annualIntro: document.getElementById("annual-intro")!,
   annualChart: document.getElementById("annual-chart")!,
   decadeVerdict: document.getElementById("decade-verdict")!,
-  decadeText: document.getElementById("decade-text")!,
   decadeChart: document.getElementById("decade-chart")!,
   annualTitle: document.getElementById("annual-title")!,
   annualNote: document.getElementById("annual-note")!,
@@ -672,7 +671,6 @@ const DECADE = 10;
 function writeDecades(counts: { year: number; count: number }[],
                       theme: ReturnType<typeof readTheme>) {
   el.decadeVerdict.replaceChildren();
-  el.decadeText.textContent = "";
   el.decadeChart.replaceChildren();
   if (counts.length < DECADE * 2) return;
 
@@ -687,7 +685,6 @@ function writeDecades(counts: { year: number; count: number }[],
   if (past.length < 3) return;
 
   const busier = past.filter((w) => w.value > now.value).length;
-  const one = (v: number) => v.toFixed(1);
 
   // The verdict rests on the exact test, not on the ranking above: the drawn
   // stretches overlap by nine years each, so their order describes where the
@@ -710,13 +707,6 @@ function writeDecades(counts: { year: number; count: number }[],
       p: asPercent(p),
     });
   }
-  el.decadeText.textContent = fill(copy.home.decadeText, {
-    now: one(now.value), threshold: magLabel(MIN_MAGNITUDE), peers: past.length,
-    busier, from: REFERENCE_START,
-    lo: one(Math.min(...past.map((w) => w.value))),
-    hi: one(Math.max(...past.map((w) => w.value))),
-  });
-
   const strip = renderDistribution({
     peers: past,
     value: now.value,

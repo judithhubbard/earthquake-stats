@@ -124,15 +124,6 @@ export const copy = {
       "evaluate whether the rate of earthquakes is changing over time.",
     annualTitleMoment: "Is the rate of moment release changing?",
 
-    /* Ten-year stretches, ranked. Individual years bounce around a great deal
-       -- 71 to 119 over this record -- so a reader comparing one year with the
-       last cannot see a rate change through the noise. Ten-year averages move
-       far less, which is what makes them worth ranking. The stretches overlap,
-       so this is a description of where the recent one sits, not a p-value. */
-    decadeText:
-      "The last ten years averaged {now} {threshold} mainshocks a year. Of the {peers} " +
-      "earlier ten-year stretches since {from}, {busier} were busier. They ran from {lo} to " +
-      "{hi} a year, so the recent stretch sits inside the range every earlier one occupied.",
     /* The verdict, keyed to the exact test rather than to the histogram beside
        it: the ten-year stretches drawn there overlap by nine years, so their
        ranking describes where the recent one sits but cannot be a p-value.
