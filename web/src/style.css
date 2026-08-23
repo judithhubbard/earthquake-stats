@@ -832,15 +832,13 @@ main {
 }
 
 .question > #annual-chart,
+.question > #rate-chart,
 .question > .answer-figure {
   background: #ffffff;
   border-radius: 10px;
   padding: 0.9rem 1rem;
 }
 
-/* The histogram takes a narrow column and the scale takes the rest -- not half
-   each. Half a section left the scale's sentences three lines deep; at 17rem
-   the histogram still reads, and the scale gets two thirds of the width. */
 /* Close to even. The scale had two thirds and the histogram was squeezed into
    a column its bars could not fill; the sentences wrap one line more at this
    width, which costs less than an unreadable figure. */
@@ -868,6 +866,17 @@ main {
   line-height: 1.6;
   color: var(--text-secondary);
 }
+
+/* The reading under the first chart. Body-sized and in the primary ink, not
+   caption grey: it carries the answer's numbers, so it is not an aside. */
+.chart-explain {
+  margin: 0.9rem 0 0.2rem;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.chart-explain:empty { display: none; }
 
 .chart-note {
   margin: 0.9rem 0 0;

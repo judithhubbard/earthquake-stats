@@ -168,6 +168,9 @@ const el = {
   decadeChart: document.getElementById("decade-chart")!,
   annualTitle: document.getElementById("annual-title")!,
   annualNote: document.getElementById("annual-note")!,
+  annualBand: document.getElementById("annual-band")!,
+  rateIntro: document.getElementById("rate-intro")!,
+  rateChart: document.getElementById("rate-chart")!,
   range: document.getElementById("range-control")!,
   annualRange: document.getElementById("annual-range-control")!,
   scaleBar: document.getElementById("scale-bar")!,
@@ -969,21 +972,25 @@ async function update() {
       annualTier = tier;
     }
   }
-  const annualCurvesFor = (threshold: number) => {
+  const annualCurvesFor = (threshold: number, declustered: boolean) => {
     const c = cumulativeByYear(
-      annualTier, threshold, REFERENCE_START, true, "count", annualShift);
+      annualTier, threshold, REFERENCE_START, declustered, "count", annualShift);
     applyLive(c, annualTier, threshold, annualShift, "count");
     return c;
   };
-  const aCurves = annualCurvesFor(MIN_MAGNITUDE);
-  const aMajor = annualCurvesFor(MAJOR_MAGNITUDE);
+  const aCurves = annualCurvesFor(MIN_MAGNITUDE, true);
+  const aMajor = annualCurvesFor(MAJOR_MAGNITUDE, true);
+  const aCurvesAll = annualCurvesFor(MIN_MAGNITUDE, false);
+  const aMajorAll = annualCurvesFor(MAJOR_MAGNITUDE, false);
   const { year: aYear } = dayIndex(Date.now(), annualShift);
   const aToday = DAYS - 1;
   const aRefYears = aCurves.years.filter((y) => y >= REFERENCE_START && y < aYear);
   const counts = annualCounts(aCurves, aMajor, aYear, aToday, aRefYears, "count");
-  // Its own band, measured on the same fixed series.
+  const countsAll = annualCounts(aCurvesAll, aMajorAll, aYear, aToday, aRefYears, "count");
+  // Its own band, measured on the series the first question's chart draws --
+  // the one with aftershocks kept, which is what the answer above it counts.
   const annualWindows = state.annualRange === "sigma"
-    ? rollingWindowBand(annualTier, MIN_MAGNITUDE, true, "count", REFERENCE_START)
+    ? rollingWindowBand(annualTier, MIN_MAGNITUDE, false, "count", REFERENCE_START)
     : null;
   const annualSigma = annualWindows
     ? { lo: annualWindows[annualWindows.length - 1].sdLo,
@@ -1024,10 +1031,22 @@ async function update() {
   writeHeadline(result, headlineYear, headlinePct);
   writeHeadlineChart(headlineCurves, headlineRef, headline, headlineYear);
   void writeLatest(minMag);
+  const headlinePeers = headlineRef
+    .map((y) => headlineCurves.curves.get(y)![DAYS - 1])
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
   buildAnswerScale(headlinePct, yearLabel(headlineYear, "rolling"),
-                   headlineRef.map((y) => headlineCurves.curves.get(y)![DAYS - 1])
-                     .filter(Number.isFinite),
-                   headline ? headline.count : null);
+                   headlinePeers, headline ? headline.count : null);
+  // The same 5th and 95th percentiles the outer bands of the scale are drawn
+  // from, said as a sentence. A reader should not have to reconstruct what an
+  // ordinary year looks like from a table of bands.
+  el.annualBand.textContent = headlinePeers.length < 4 || !headline ? "" : fill(
+    copy.home.annualBand, {
+      lo: Math.round(quantile(headlinePeers, 0.05)) + 1,
+      hi: Math.round(quantile(headlinePeers, 0.95)),
+      threshold: magLabel(MIN_MAGNITUDE),
+      n: headline.count,
+    });
   writeNote(refYears.length, liveAdded);
   writeAnnualNote(aYear, false, true);
 
@@ -1037,6 +1056,8 @@ async function update() {
   el.annualTitle.textContent = copy.home.annualTitleCount;
   el.annualIntro.textContent = fill(copy.home.annualIntro,
                                     { threshold: magLabel(MIN_MAGNITUDE) });
+  el.rateIntro.textContent = fill(copy.home.rateIntro,
+                                  { threshold: magLabel(MIN_MAGNITUDE) });
 
   lastRender = () => {
     const theme = readTheme(document.body);
@@ -1151,13 +1172,28 @@ async function update() {
     writeDecades(counts, theme);
 
     el.annualChart.replaceChildren(renderAnnualChart({
-      counts, highlights: annualHighlights, refYears: aRefYears,
+      counts: countsAll, highlights: annualHighlights, refYears: aRefYears,
       theme, width: widthOf(el.annualChart),
       yearLabel: (year: number) => yearLabel(year, "rolling"),
       showMajor: false,
       yLabel: fill(copy.home.axisAnnualCount, { threshold: magLabel(MIN_MAGNITUDE) }),
       wholeNumbers: true,
       sigma: annualSigma,
+      yMax: Math.max(0, ...countsAll.map((c) => Math.max(c.count, c.projected))),
+    }));
+
+    // The same chart with aftershocks removed. The second question needs the
+    // declustered series -- one great earthquake can add a hundred events to a
+    // year -- and showing both makes the difference the paragraph describes
+    // something the reader can see rather than take on trust.
+    el.rateChart.replaceChildren(renderAnnualChart({
+      counts, highlights: annualHighlights, refYears: aRefYears,
+      theme, width: widthOf(el.rateChart),
+      yearLabel: (year: number) => yearLabel(year, "rolling"),
+      showMajor: false,
+      yLabel: fill(copy.home.axisAnnualMainshocks, { threshold: magLabel(MIN_MAGNITUDE) }),
+      wholeNumbers: true,
+      sigma: null,
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 

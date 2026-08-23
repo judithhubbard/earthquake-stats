@@ -119,7 +119,17 @@ export const copy = {
     annualTitleCount: "Is the rate of earthquakes changing?",
     /* Fixed, like the headline: this section asserts something about the world,
        so the reader cannot pick the slice that best supports an answer. */
+    /* Box one counts every earthquake, aftershocks included, because that is
+       the series its answer is read from. Box two removes them, because one
+       great earthquake can add a hundred events to a decade and no decade can
+       be compared with another while that is true. */
     annualIntro:
+      "This chart shows every {threshold} earthquake recorded worldwide, aftershocks " +
+      "included, in each twelve-month window since 1976.",
+    annualBand:
+      "Where does the last year fall? In 90% of years, we expect to see between {lo} and " +
+      "{hi} {threshold} earthquakes. In the last 365 days, there have been {n}.",
+    rateIntro:
       "This chart shows {threshold} earthquakes globally, after removing aftershocks, to " +
       "evaluate whether the rate of earthquakes is changing over time. Because we have removed " +
       "aftershocks, the annual numbers are lower than in the previous plot. One large " +
@@ -172,6 +182,7 @@ export const copy = {
     axisCumulativeCount: "{threshold} events this year",
     axisCumulativeMoment: "Moment this year, as a single earthquake",
     axisAnnualCount: "{threshold} events per year",
+    axisAnnualMainshocks: "{threshold} mainshocks per year",
     axisAnnualMoment: "Moment per year, as a single earthquake",
 
     /* The small print under the cumulative chart. */
