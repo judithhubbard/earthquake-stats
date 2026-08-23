@@ -23,7 +23,8 @@
   --t-body: 0.9375rem;    /* 15px  -- prose */
   --t-lead: 1.0625rem;    /* 17px  -- figure titles, emphasis */
   --t-answer: 1.35rem;    /* 22px  -- the answer sentence */
-  --t-display: clamp(2rem, 4.4vw, 2.75rem);     /* question titles */
+  --t-display: min(2.35rem, 5.6vw);             /* question titles, one line */
+  --t-verdict: clamp(1.5rem, 3.4vw, 1.95rem);   /* the answer under it */
   --t-hero: clamp(2rem, 5vw, 3rem);             /* the correlations masthead */
 
   /* The mono face carries every number that is a measurement rather than
@@ -170,7 +171,7 @@ main {
    inside a 21rem key column the headline was a stack of four short lines
    competing with the table under it; across the page it is one line, and it
    is the first thing on the page rather than the first thing in a column. */
-.question-title { max-width: 22ch; }
+.question-title { max-width: none; }
 .answer { max-width: 46ch; }
 
 .verdict-cols {
@@ -306,13 +307,16 @@ main {
    partners, and the first answer was more than half as large again. */
 /* Serif, and weight rather than colour for the verdict: the question and its
    answer are one utterance, and blue is reserved for "now" on the figures. */
+/* Nearly the headline's size. The answer is what the reader came for, and at
+   1.35rem it was closer to the body text under it than to the question above
+   it -- a caption on its own headline. */
 .answer {
-  margin: 0.8rem 0 0;
+  margin: 0.9rem 0 0;
   font-family: var(--serif);
-  font-size: var(--t-answer);
+  font-size: var(--t-verdict);
   font-weight: 400;
-  line-height: 1.22;
-  letter-spacing: -0.012em;
+  line-height: 1.2;
+  letter-spacing: -0.018em;
   color: var(--text-secondary);
 }
 
@@ -1067,14 +1071,16 @@ main {
 
 .chart-toggle-label { font-family: var(--mono); letter-spacing: 0.11em; }
 
-/* The lead line above the figures, in the reading size the left column is not
-   set at -- it is the one piece of prose in this column. */
-.figures > .chart-explain {
-  margin: 0 0 1.6rem;
-  font-size: var(--t-lead);
-  line-height: 1.5;
+/* Under the table, where it belongs: it reads the same three numbers the
+   table's own rows are built from, so it explains the key rather than
+   introducing the figures. */
+.verdict > .chart-explain {
+  margin: 1.4rem 0 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--axis);
+  font-size: var(--t-body);
+  line-height: 1.6;
   color: var(--text-secondary);
-  max-width: 52ch;
 }
 
 /* The inset is positioned against this rather than against the figure, so
@@ -1592,6 +1598,7 @@ footer p { margin: 0 0 0.4rem; }
 /* The heading is not a candidate answer; it frames the ones that are, and is
    ruled off from them the same way the second question's table is. */
 .scale-rows .scale-head {
+  align-items: end;
   font-family: var(--mono);
   font-size: var(--t-micro);
   font-weight: 500;
@@ -1658,15 +1665,18 @@ footer p { margin: 0 0 0.4rem; }
 
 #scale-now { margin-top: 0; }
 
-/* Knocked out, not tinted. This row is the answer -- the whole table exists to
-   point at it -- and a pale green wash asks the reader to find it. */
+/* Marked, not inverted. A black block was louder than the answer above it and
+   read as an error state; the warm grey with a rule down its edge says "this
+   row" without shouting, and keeps the row's text in the same ink as its
+   neighbours so the five can still be compared. */
 .scale-rows li.is-current {
-  background: var(--text-primary);
-  color: #c9c7bd;
+  background: var(--tray);
+  color: var(--text-secondary);
+  box-shadow: inset 2px 0 0 var(--text-primary);
 }
 
 .scale-rows li.is-current .scale-said strong,
-.scale-rows li.is-current .scale-range { color: #ffffff; }
+.scale-rows li.is-current .scale-range { color: var(--text-primary); }
 
 .scale-rows li.was-current {
   background: var(--range-outer);
