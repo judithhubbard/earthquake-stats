@@ -915,17 +915,8 @@ main {
 
 .decade-chart { min-width: 0; }
 
-/* The rate scale sits beside the histogram, so it needs no rule of its own and
-   no margin above -- the row already gives it both. */
-/* Beside the histogram rather than across the page, so its rows get their own
-   column widths: the full-width scale reserves 9.5rem for the range and lets
-   the sentence take the rest, which in half a column left one word per line. */
-#rate-scale { margin: 0; min-width: 0; }
-#rate-scale .scale-rows li { grid-template-columns: 12px 4.2rem minmax(0, 1fr) auto; }
-#rate-scale .scale-range,
-#rate-scale .scale-often,
-#rate-scale .scale-said { font-size: 0.78rem; }
-#rate-scale .scale-often { white-space: nowrap; }
+.decade-table .correlate-flip { margin: 0; padding-top: 0; border-top: 0; }
+.decade-table .flip-title { display: none; }
 
 @media (max-width: 52rem) {
   .decade-row { grid-template-columns: minmax(0, 1fr); }

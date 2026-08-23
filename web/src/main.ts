@@ -3,15 +3,15 @@ import { renderAnnualChart, renderChart, renderDistribution,
          readTheme, type Highlight } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand,
-  binomialPosition, equivalentMagnitude, seismicMoment,
+  dayIndex, empiricalBand, recentShareP,
+  asPercent, equivalentMagnitude, seismicMoment,
   rollingWindowBand,
   verdict,
   type Measure, type YearCurves,
 } from "./stats";
 import { copy, fill } from "./copy";
 import { renderTech } from "./tech";
-import { installHintGuard } from "./verdict";
+import { flipTable, installHintGuard } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 
@@ -164,10 +164,7 @@ const el = {
   annualChart: document.getElementById("annual-chart")!,
   decadeVerdict: document.getElementById("decade-verdict")!,
   decadeCheck: document.getElementById("decade-check")!,
-  rateScaleTitle: document.getElementById("rate-scale-title")!,
-  rateScaleBar: document.getElementById("rate-scale-bar")!,
-  rateScaleRows: document.getElementById("rate-scale-rows")!,
-  rateScaleBasis: document.getElementById("rate-scale-basis")!,
+  decadeTable: document.getElementById("decade-table")!,
   decadeChart: document.getElementById("decade-chart")!,
   annualTitle: document.getElementById("annual-title")!,
   annualNote: document.getElementById("annual-note")!,
@@ -230,12 +227,6 @@ function ordinal(n: number): string {
 
 
 /** Colour per band, palest in the middle: blue below average, red above. */
-/* Two-tailed, unlike ANSWER_BOUNDS: both ends mean the rate has changed, so
-   the outer bands sit at 2.5 rather than 5. At 5 the section would announce a
-   change ten times in a hundred when nothing was happening. */
-const RATE_BOUNDS = [0, 2.5, 25, 75, 97.5, 100];
-const RATE_TINTS = ["down", "down", "mid", "up", "up"] as const;
-
 const BAND_TINTS = ["down", "down", "mid", "up", "up"] as const;
 const BAND_FADES = [1, 0.45, 1, 0.45, 1];
 
@@ -703,20 +694,36 @@ function writeDecades(counts: { year: number; count: number }[],
   // chosen after looking, fifteen would currently read a good deal smaller.
   const total = counts.reduce((a, c) => a + c.count, 0);
   const recent = counts.slice(-DECADE).reduce((a, c) => a + c.count, 0);
-  {
-    // Where the count sits among what a steady rate produces, on a 0-100
-    // scale: the exact binomial CDF, with half the probability at the observed
-    // count so a discrete distribution does not bias the position downwards.
-    const position = binomialPosition(recent, total, DECADE / counts.length);
-    if (position !== null) {
-      const key = RATE_BOUNDS.slice(0, -1)
-        .findIndex((low, i) => position >= low && position <= RATE_BOUNDS[i + 1]);
-      el.decadeVerdict.innerHTML =
-        [copy.home.decadeYes, copy.home.decadeNo, copy.home.decadeNo,
-         copy.home.decadeNo, copy.home.decadeYes][Math.max(0, key)];
-      el.decadeCheck.textContent = copy.home.decadeCheck;
-    }
-    buildRateScale(position);
+  const p = recentShareP(recent, total, DECADE / counts.length);
+  if (p !== null) {
+    const expected = total * (DECADE / counts.length);
+    const key = p < 0.01 ? 0 : p < 0.05 ? 1 : 2;
+    // innerHTML, as the headline sentence does: the copy carries a <strong>
+    // lead-in and nothing in it comes from anywhere but copy.ts.
+    el.decadeVerdict.innerHTML =
+      [copy.home.decadeYes, copy.home.decadeMaybe, copy.home.decadeNo][key];
+    el.decadeCheck.textContent = copy.home.decadeCheck;
+
+    // The whole range of answers, so the reader sees which band this landed in
+    // rather than being told the result and asked to take it on trust.
+    const c = copy.home;
+    el.decadeTable.replaceChildren(flipTable(
+      [{ label: c.decadeColP,
+         help: { label: c.decadeHelp,
+                 body: fill(c.decadeHelpBody, {
+                   threshold: magLabel(MIN_MAGNITUDE),
+                   total: total.toLocaleString(),
+                   expected: Math.round(expected).toLocaleString(),
+                   recent: recent.toLocaleString(),
+                   p: asPercent(p),
+                 }) } },
+       { label: c.decadeColAnswer }],
+      [[c.decadeBandStrong, c.decadeAnsYes],
+       [c.decadeBandWeak, c.decadeAnsMaybe],
+       [c.decadeBandNone, c.decadeAnsNo]],
+      key,
+      [fill(c.decadeNow, { value: `${asPercent(p)}%` }), null],
+    ));
   }
   const strip = renderDistribution({
     peers: past,
@@ -737,80 +744,6 @@ function writeDecades(counts: { year: number; count: number }[],
   caption.textContent = fill(copy.home.decadeCaption,
                              { threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START });
   el.decadeChart.replaceChildren(strip, caption);
-}
-
-/**
- * Every answer the rate section can give, and where this decade fell.
- *
- * The same figure as the headline scale, two-tailed: the outer bands mean the
- * rate has changed, one falling and one rising, and the three between them all
- * mean no. The frequencies beside each band are how often a steady rate lands
- * there, so a reader can see what the outer bands cost.
- */
-function buildRateScale(position: number | null) {
-  const texts = [copy.home.rateFalling, copy.home.rateQuiet, copy.home.rateUsual,
-                 copy.home.rateBusy, copy.home.rateRising];
-  const bands = RATE_BOUNDS.slice(0, -1).map((low, i) => ({
-    low, high: RATE_BOUNDS[i + 1], width: RATE_BOUNDS[i + 1] - low,
-    text: texts[i], tint: RATE_TINTS[i], fade: BAND_FADES[i],
-  }));
-
-  el.rateScaleTitle.textContent = copy.home.rateScaleTitle;
-
-  el.rateScaleBar.replaceChildren(...bands.map((b) => {
-    const seg = document.createElement("span");
-    seg.className = `scale-seg scale-${b.tint}`;
-    seg.style.flexGrow = String(b.width);
-    seg.style.opacity = String(b.fade);
-    return seg;
-  }));
-  if (position !== null) {
-    const marker = document.createElement("span");
-    marker.className = "scale-marker";
-    marker.style.left = `${position}%`;
-
-    const tag = document.createElement("span");
-    tag.className = "scale-marker-label";
-    tag.textContent = copy.home.rateMarker;
-    if (position > 80) tag.classList.add("is-left");
-
-    const value = document.createElement("span");
-    value.className = "scale-marker-value";
-    value.textContent = position.toFixed(0);
-    if (position > 90) value.classList.add("is-left");
-    if (position < 10) value.classList.add("is-right");
-
-    marker.append(value, tag);
-    el.rateScaleBar.append(marker);
-  }
-
-  el.rateScaleBasis.textContent = fill(copy.home.rateScaleBasis,
-                                       { threshold: magLabel(MIN_MAGNITUDE) });
-
-  el.rateScaleRows.replaceChildren(...[...bands].reverse().map((b) => {
-    const li = document.createElement("li");
-    const swatch = document.createElement("i");
-    swatch.className = `scale-seg scale-${b.tint}`;
-    swatch.style.opacity = String(b.fade);
-
-    const range = document.createElement("span");
-    range.className = "scale-range";
-    range.textContent = fill(copy.home.rateScaleRow, { low: b.low, high: b.high });
-
-    const said = document.createElement("span");
-    said.className = "scale-said";
-    said.innerHTML = b.text;
-
-    const often = document.createElement("span");
-    often.className = "scale-often";
-    often.textContent = fill(copy.home.rateScaleFrequency, { n: Math.round(b.width) });
-
-    if (position !== null && position >= b.low && position <= b.high) {
-      li.className = "is-current";
-    }
-    li.append(swatch, range, said, often);
-    return li;
-  }));
 }
 
 /* ---------------- event lookup ---------------- */
