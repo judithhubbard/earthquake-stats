@@ -209,7 +209,10 @@ main {
 .verdict-cols {
   margin-top: 2.5rem;
   display: grid;
-  grid-template-columns: minmax(0, clamp(20rem, 50%, 29rem)) minmax(0, 1fr);
+  /* Narrowed until the rules stop short of the text's own right edge. Half the
+     row left them running some 4rem past the longest answer, and the width
+     goes to the histogram instead. */
+  grid-template-columns: minmax(0, clamp(19rem, 43%, 25rem)) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 2.75rem);
   align-items: start;
 }
