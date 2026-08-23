@@ -26,6 +26,12 @@
   --t-display: clamp(1.6rem, 3.4vw, 2.15rem);   /* question titles */
   --t-hero: clamp(2rem, 5vw, 3rem);             /* the correlations masthead */
 
+  /* The mono face carries every number that is a measurement rather than
+     prose -- kickers, band ranges, axis labels, the two big counts. It is
+     doing as much of the page's voice as the rules are. */
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+
   /* Surface.
      --------
      One container idiom in three weights, instead of three idioms. Figures sit
@@ -154,13 +160,25 @@ main {
 
 .hero { margin-bottom: 2.25rem; }
 
-/* One question now, so it takes the page rather than a box. The frame existed
-   to say "these two are a pair and neither is the tool below"; with a single
-   question the heading and the gap say that on their own, and a frame would
-   only file the page's own answer with "Explore the data". */
-.question {
-  margin-top: 1.75rem;
+/* The verdict on the left, every figure on the right. The left column is the
+   key: the question, the answer, the scale and what each band means, all
+   visible while the eye is anywhere in the figures. It is also what fixes the
+   measure -- 21rem cannot hold a line too long to read. */
+.question { margin-top: 1.5rem; }
+
+.verdict-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
 }
+
+@media (max-width: 58rem) {
+  .verdict-cols { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+}
+
+.verdict { min-width: 0; }
+.figures { min-width: 0; }
 
 /* The one place on the site with a face of its own. A serif for the questions
    and a sans for everything measured marks the boundary the page is organised
@@ -168,14 +186,32 @@ main {
    Nothing else takes it -- on the answers or the chart labels it would undo
    the distinction that makes it worth a download. display=swap, so the page
    answers its question in the fallback if the font is slow. */
+/* Kicker over a 3px rule. One element, and it does more for the page's
+   character than any amount of card styling did. */
+.hero { padding-bottom: 0; }
+
+.masthead {
+  align-items: baseline;
+  padding-bottom: 0.55rem;
+  border-bottom: 3px solid var(--text-primary);
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
 .question-title {
   margin: 0 0 1.1rem;
-  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-family: var(--serif);
   font-size: var(--t-display);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: var(--chip-ink);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.028em;
+  /* Near-black. The green was chosen to sit on a green panel that is gone. */
+  color: var(--text-primary);
   text-wrap: balance;
 }
 
@@ -255,14 +291,19 @@ main {
 
 /* The same size as the rate question's verdict: the two questions are equal
    partners, and the first answer was more than half as large again. */
+/* Serif, and weight rather than colour for the verdict: the question and its
+   answer are one utterance, and blue is reserved for "now" on the figures. */
 .answer {
-  margin: 0 0 1.2rem;
+  margin: 0.8rem 0 0;
+  font-family: var(--serif);
   font-size: var(--t-answer);
-  font-weight: 600;
-  line-height: 1.35;
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -0.012em;
+  color: var(--text-secondary);
 }
 
-.answer strong { color: var(--series-1); }
+.answer strong { font-weight: 700; color: var(--text-primary); }
 
 .answer-caption {
   margin: 0.1rem 0 0;
@@ -361,36 +402,36 @@ main {
 /* The page's opening line, naming both questions before either is answered.
    Italic and a shade heavier than the prose it sits above, so it reads as the
    page speaking rather than as the first of the answers. */
+/* Standfirst under the rule: serif to match the question it introduces, and
+   held to a readable measure rather than the page's full 60rem. */
 .hero-intro {
   margin: 1.1rem 0 0;
-  max-width: 46rem;
-  color: var(--text-primary);
+  max-width: 44ch;
+  color: var(--text-secondary);
+  font-family: var(--serif);
   font-size: var(--t-lead);
   font-style: italic;
-  font-weight: 500;
-  line-height: 1.6;
+  font-weight: 400;
+  line-height: 1.55;
 }
 
 /* ---------- panel ---------- */
 
 /* One tray per section now, so the gap between them is what says they are
    separate rather than one tray interrupted. */
+/* A 3px rule, the same weight as the masthead's, says "a different kind of
+   thing starts here" without a tray, a border and a shadow all saying it at
+   once. The gap above it is what makes it a seam rather than a divider. */
 .panel {
-  /* Wider than the gaps inside the question above it. This is the seam between
-     the page's own answer and the tool for checking it, and it should read as
-     a bigger step than anything within either. */
-  margin-top: 7rem;
-  background: var(--tray);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  box-shadow: var(--well-shadow);
-  padding: 1rem 1.25rem 1.25rem;
+  margin-top: 4.5rem;
+  border-top: 3px solid var(--text-primary);
+  padding: 1.1rem 0 0;
 }
 
 /* A tray holds one box, so .chart's top margin -- which used to separate
    stacked boxes -- is now just space. Enough is left for the chip to straddle
    the border without touching the tray's edge. */
-.panel .chart:first-child { margin-top: 0.85rem; }
+.panel .chart:first-child { margin-top: 0; }
 
 .controls {
   display: flex;
@@ -400,11 +441,17 @@ main {
      reader should see the whole set of controls at once. A fieldset can never
      be narrower than its own legend, so the "what's this?" links are part of
      what has to fit, not decoration on top of it. */
-  gap: 0.85rem 1rem;
-  padding-bottom: 1.25rem;
-  margin-bottom: 0.5rem;
+  /* One line, label beside control, not above it. Five stacked
+     label-over-control blocks read as a settings form; four choices on a rule
+     read as a caption you can click. */
+  align-items: center;
+  gap: 0.5rem 1.75rem;
+  padding-bottom: 1.1rem;
+  margin-bottom: 1.4rem;
   border-bottom: 1px solid var(--border);
 }
+
+.controls fieldset { display: flex; align-items: center; gap: 0.45rem; }
 
 .controls fieldset {
   border: 0;
@@ -414,10 +461,12 @@ main {
 }
 
 .controls legend {
-  padding: 0 0 0.35rem;
+  float: left;
+  padding: 0 0.45rem 0 0;
+  font-family: var(--mono);
   font-size: var(--t-micro);
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -792,15 +841,11 @@ main {
    Range toggle to the right on its own; the box's top padding is what reserves
    room for the chip rather than the title's own margin. ---- */
 .chart {
-  --sec-pad-x: 1rem;
-  --sec-pad-top: 1.55rem;
+  --sec-pad-x: 0rem;
+  --sec-pad-top: 0rem;
   position: relative;
-  margin: 2.25rem 0 0;
-  padding: var(--sec-pad-top) var(--sec-pad-x) 1.05rem;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  box-shadow: var(--lift-1);
+  margin: 0;
+  padding: 0;
 }
 
 .chart figcaption {
@@ -885,16 +930,19 @@ main {
    explorer's chart carries, so the two figures are framed the same way. */
 .annual-figure > .chart-subhead { margin: 0 0 0.35rem; }
 
-.question > .annual-figure,
-.question > .answer-figure {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  box-shadow: var(--lift-1);
-  padding: 0.9rem 1rem;
-}
+/* No beds. A white card round a figure that is already visually distinct is a
+   frame round a frame, and each one cost 2rem of padding. A hairline under the
+   heading does the same work in 1px, and every figure now starts on the same
+   left edge as the text above it. */
+.figures > .answer-detail { margin: 0 0 2.25rem; }
+.figures > .annual-figure { margin: 0; }
 
-.question > .answer-figure { margin-top: 1.4rem; }
+.annual-figure > .chart-subhead,
+.figures .chart-subhead {
+  margin: 0 0 0.9rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--axis);
+}
 
 /* Close to even. The scale had two thirds and the histogram was squeezed into
    a column its bars could not fill; the sentences wrap one line more at this
@@ -972,23 +1020,25 @@ main {
 
 .section-title { font-size: var(--t-answer); }
 
+/* No longer a chip on a border -- there is no border. It is the label on the
+   rule above it, in the same mono the other section labels use. */
 #explore-title {
-  position: absolute;
-  top: 0;
-  left: 0.85rem;
-  transform: translateY(-50%);
-  max-width: calc(100% - 1.7rem);
-  padding: 0.14rem 0.7rem;
-  font-size: var(--t-lead);
-  /* The well's own ground, so the chip reads as the tray showing through the
-     card rather than as a third kind of object with its own colour. */
+  position: static;
+  transform: none;
+  max-width: none;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
   color: var(--text-primary);
-  background: var(--tray);
-  border: 1px solid var(--border);
-  border-radius: var(--r-pill);
+  background: none;
+  border: 0;
 }
 
-/* The title is out of flow, so the row that held it only carries the toggle. */
+.chart figcaption { margin-bottom: 1.1rem; }
+
 .chart-head { justify-content: flex-end; }
 
 /* The controls live inside "Explore the data" now, so the chart's own title is
@@ -1000,6 +1050,18 @@ main {
   font-size: var(--t-lead);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.chart-toggle-label { font-family: var(--mono); letter-spacing: 0.11em; }
+
+/* The lead line above the figures, in the reading size the left column is not
+   set at -- it is the one piece of prose in this column. */
+.figures > .chart-explain {
+  margin: 0 0 1.6rem;
+  font-size: var(--t-lead);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 52ch;
 }
 
 /* The inset is positioned against this rather than against the figure, so
@@ -1425,8 +1487,8 @@ footer p { margin: 0 0 0.4rem; }
   position: relative;
   display: flex;
   gap: 2px;
-  height: 14px;
-  margin: 1.4rem 0 0.9rem;
+  height: 12px;
+  margin: 2.4rem 0 0;
 }
 
 .scale-seg {
@@ -1455,6 +1517,7 @@ footer p { margin: 0 0 0.4rem; }
    the side of the marker already carry the year, and a second one there read
    as part of the same phrase. */
 .scale-marker-value {
+  font-family: var(--mono);
   position: absolute;
   left: 50%;
   bottom: calc(100% + 4px);
@@ -1473,11 +1536,16 @@ footer p { margin: 0 0 0.4rem; }
 /* Top left of the row, in the space the histogram leaves above itself, rather
    than trailing the scale's last row -- where it read as a footnote to the
    table instead of a statement about the whole figure. */
+/* Under the table now, not over the histogram: it describes the scale, and the
+   scale is what it sits beneath. Mono and uppercase, like every other label
+   that names rather than states. */
 .scale-basis {
-  margin: 0 0 0.75rem;
-  font-size: var(--t-data);
-  font-style: italic;
-  color: var(--text-secondary);
+  margin: 0.9rem 0 0;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .scale-marker-label {
@@ -1511,9 +1579,10 @@ footer p { margin: 0 0 0.4rem; }
 /* The heading is not a candidate answer; it frames the ones that are, and is
    ruled off from them the same way the second question's table is. */
 .scale-rows .scale-head {
+  font-family: var(--mono);
   font-size: var(--t-micro);
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  font-weight: 500;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--text-muted);
   padding-bottom: 0.35rem;
@@ -1538,23 +1607,46 @@ footer p { margin: 0 0 0.4rem; }
 }
 
 .scale-rows i { grid-column: 1; grid-row: 1; }
-.scale-rows .scale-range { grid-column: 2; grid-row: 1; }
+.scale-rows .scale-range {
+  grid-column: 2;
+  grid-row: 1;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: var(--t-cap);
+  white-space: nowrap;
+}
 .scale-rows .scale-said { grid-column: 3; grid-row: 1; }
 
 /* The reading, under the bands, in the same grid so the count lines up with
    the ranges above it. */
 .scale-rows .scale-reading {
-  margin-top: 0.35rem;
-  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.6rem;
   border-top: 1px solid var(--axis);
   border-radius: 0;
   color: var(--text-primary);
-  font-weight: 650;
+  align-items: center;
+}
+
+.scale-rows .scale-reading .scale-range {
+  font-size: var(--t-answer);
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 #scale-now { margin-top: 0; }
 
+/* Knocked out, not tinted. This row is the answer -- the whole table exists to
+   point at it -- and a pale green wash asks the reader to find it. */
 .scale-rows li.is-current {
+  background: var(--text-primary);
+  color: #c9c7bd;
+}
+
+.scale-rows li.is-current .scale-said strong,
+.scale-rows li.is-current .scale-range { color: #ffffff; }
+
+.scale-rows li.was-current {
   background: var(--range-outer);
   color: var(--text-primary);
 }
