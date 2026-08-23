@@ -830,7 +830,19 @@ main {
   border-radius: 50%;
 }
 
-.question > #annual-chart,
+/* The range toggle sits in the chart's own top-left corner, in the strip the
+   plot leaves above its frame -- the heading has the right-hand end of it. Off
+   the chart it read as a page control rather than as this figure's setting. */
+.annual-figure { position: relative; }
+
+.annual-figure > .chart-head {
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  z-index: 2;
+}
+
+.question > .annual-figure > #annual-chart,
 .question > .answer-figure {
   background: #ffffff;
   border: 1px solid var(--border);
