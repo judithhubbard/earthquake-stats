@@ -1,0 +1,43 @@
+.trend-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  margin: 1.5rem 0 1.1rem;
+}
+
+.trend-panel { margin: 0; min-width: 0; }
+
+/* Subtitles, not titles: they name a series inside the section the green
+   heading above already named. */
+.trend-panel-title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+}
+
+.trend-panel-chart { min-height: 150px; overflow-x: auto; }
+
+.trend-panel-stat {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-verdict {
+  margin: 0 0 0.7rem;
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.trend-body {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  white-space: pre-line;
+}

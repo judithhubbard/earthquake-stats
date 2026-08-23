@@ -1,19 +1,160 @@
-import { CatalogStore, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, renderDistribution,
-         readTheme, type Highlight } from "./chart";
-import {
-  DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  dayIndex, empiricalBand,
-  equivalentMagnitude, seismicMoment,
-  rollingWindowBand,
-  verdict,
-  type Measure, type YearCurves,
-} from "./stats";
-import { copy, fill } from "./copy";
-import { renderTech } from "./tech";
-import { installHintGuard } from "./verdict";
-import { checkCatalog, showProblem } from "./integrity";
-import { startAnalytics } from "./analytics";
+const TREND_SERIES = [
+  { threshold: MIN_MAGNITUDE, mainshocksOnly: true },
+];
+
+
+interface TrendPanel {
+  title: string;
+  axis: string;
+  points: { year: number; value: number }[];
+  fit: Trend;
+}
+
+
+function signedPct(v: number): string {
+  return `${v >= 0 ? "+" : "\u2212"}${Math.abs(v).toFixed(1)}%`;
+}
+
+
+function combinedFor(panels: { points: { year: number; value: number }[] }[]): number | null {
+  const key = panels
+    .map((p) => `${p.points.length}:${p.points.at(-1)?.year}:`
+              + p.points.reduce((a, c) => a + c.value, 0))
+    .join("|");
+  const hit = jointCache.get(key);
+  if (hit !== undefined) return hit;
+  const value = combinedTrendP(panels.map((p) => p.points));
+  if (value === null) return null;
+  jointCache.set(key, value);
+  return value;
+}
+
+
+function trendPoints(tier: Tier, threshold: number, mainshocksOnly: boolean,
+                     currentYear: number): { year: number; value: number }[] {
+  const curves = cumulativeByYear(tier, threshold, REFERENCE_START, mainshocksOnly, "count", 0);
+  return curves.years
+    .filter((y) => y >= REFERENCE_START && y < currentYear)
+    .map((y) => ({ year: y, value: curves.curves.get(y)![DAYS - 1] }));
+}
+
+
+async function writeTrend(currentYear: number, theme: ReturnType<typeof readTheme>,
+                          width: number) {
+  const c = copy.home;
+  let tier: Tier;
+  try {
+    // Always the M6 tier, whatever is selected above: it holds every M7+ event
+    // too, so both thresholds come from one load, and the store caches it.
+    tier = await store.load(MIN_MAGNITUDE);
+  } catch {
+    el.trendQuestion.textContent = "";
+    return;
+  }
+
+  const panels: TrendPanel[] = [];
+  for (const spec of TREND_SERIES) {
+    const points = trendPoints(tier, spec.threshold, spec.mainshocksOnly, currentYear);
+    const fit = trend(points);
+    if (!fit) continue;
+    const threshold = magLabel(spec.threshold);
+    panels.push({
+      title: fill(spec.mainshocksOnly ? c.trendPanelMainshocks : c.trendPanelAll, { threshold }),
+      axis: fill(c.trendPanelAxis, { threshold }),
+      points, fit,
+    });
+  }
+  if (!panels.length) { el.trendQuestion.textContent = ""; return; }
+
+  const outcome = (p: number) => (p < 0.01 ? "probably" : p < 0.05 ? "maybe" : "no");
+  const steepest = panels.reduce((a, b) => (b.fit.p < a.fit.p ? b : a));
+  // From shuffled years rather than the t-distribution, so it does not assume
+  // the counts are normal. With one series there is nothing to correct for --
+  // this is that series' own p-value. See combinedTrendP.
+  const corrected = combinedFor(panels);
+  if (corrected === null) { el.trendQuestion.textContent = ""; return; }
+  const key = outcome(corrected);
+  const pct = asPercent;
+
+  techValues.joint = pct(corrected);
+  techValues.shuffles = TREND_PERMUTATIONS.toLocaleString();
+
+  el.trendQuestion.textContent = c.trendQuestion;
+  el.trendVerdict.textContent = key === "probably" ? copy.correlations.verdictProbably
+                              : key === "maybe" ? copy.correlations.verdictMaybe
+                              : copy.correlations.verdictNo;
+
+  // The verdict heading above already says "No."; the paragraph only adds
+  // something when the answer is not no, so an empty template prints nothing.
+  const verdictText = fill(
+    key === "probably" ? c.trendProbably : key === "maybe" ? c.trendMaybe : c.trendNo,
+    { p: pct(steepest.fit.p), corrected: pct(corrected) });
+  el.trendBody.textContent = fill(c.trendIntro, { threshold: magLabel(MIN_MAGNITUDE) })
+    + (verdictText ? "\n\n" + verdictText : "");
+
+  const cc = copy.correlations;
+  el.trendTable.replaceChildren(flipTable(
+    [{ label: c.trendColCombined,
+       help: { label: c.trendHelp,
+               body: fill(c.trendHelpBody, {
+                 years: steepest.fit.years, p: pct(steepest.fit.p),
+                 corrected: pct(corrected),
+                 permutations: TREND_PERMUTATIONS.toLocaleString(),
+               }) } },
+     { label: cc.flipColAnswer }],
+    [
+      [cc.flipPStrong, cc.verdictProbably],
+      [cc.flipPWeak, cc.verdictMaybe],
+      [cc.flipPNone, cc.verdictNo],
+    ],
+    key === "probably" ? 0 : key === "maybe" ? 1 : 2,
+    [fill(cc.flipNow, { value: `${pct(corrected)}%` }), null],
+  ));
+
+  // One panel now, so it takes the section width rather than half of it.
+  const panelWidth = Math.max(240, width);
+  el.trendGrid.replaceChildren(...panels.map((panel) => {
+    const box = document.createElement("figure");
+    box.className = "trend-panel";
+
+    // No panel title. There is one series and the section's own text names it.
+    const host = document.createElement("div");
+    host.className = "trend-panel-chart";
+    host.append(renderTrendChart(panel, theme, panelWidth));
+
+    const stat = document.createElement("p");
+    stat.className = "trend-panel-stat";
+    const share = (v: number) => (100 * v) / panel.fit.mean;
+    stat.textContent = fill(c.trendPanelStat, {
+      low: signedPct(share(panel.fit.perDecade - panel.fit.margin)),
+      high: signedPct(share(panel.fit.perDecade + panel.fit.margin)),
+      p: pct(panel.fit.p),
+    });
+
+    box.append(host, stat);
+    return box;
+  }));
+}
+
+
+function renderTrendChart(panel: TrendPanel, theme: ReturnType<typeof readTheme>,
+                          width: number) {
+  const t = panel.fit;
+  const mid = (t.first + t.last) / 2;
+  const at = (year: number) => t.mean + (t.perDecade / 10) * (year - mid);
+  const halfAt = (year: number) => (t.margin / 10) * Math.abs(year - mid);
+  const band = panel.points.map((p) => ({
+    year: p.year, lo: at(p.year) - halfAt(p.year), hi: at(p.year) + halfAt(p.year),
+  }));
+  return renderTrend({
+    points: panel.points,
+    line: [{ year: t.first, value: at(t.first) }, { year: t.last, value: at(t.last) }],
+    band, theme, width,
+    yLabel: panel.axis,
+    wholeNumbers: true,
+  });
+}
+
 
 /**
  * First year of the reference window, and the earliest year shown anywhere.
@@ -532,13 +673,13 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
  * year can find one by clicking, and a reader who does not know that will take
  * whichever slice happens to load as the whole story.
  *
- * The controls stay. The difference is what is being claimed. A section that
- * asserts something about the world -- that the rate is or is not changing --
- * cannot let the reader pick the series that best supports it; that is
- * p-hacking. This question is descriptive: how does this year compare, on the
- * measure you care about? Picking M7+ over M6+ is a legitimate interest, not a
- * fishing trip. So the fix is to show what the choice is worth rather than to
- * take it away.
+ * The controls stay, unlike on the trend section, where the four series were
+ * fixed. The difference is what is being claimed. The trend section asserts
+ * something about the world -- that the rate is or is not changing -- and
+ * letting the reader pick the series that best supports it is p-hacking. This
+ * question is descriptive: how does this year compare, on the measure you care
+ * about? Picking M7+ over M6+ is a legitimate interest, not a fishing trip. So
+ * the fix is to show what the choice is worth rather than to take it away.
  */
 /**
  * One percentile. Deliberately carries no "is this the selected one" flag.
@@ -589,8 +730,8 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
  * both were written by hand at different times. They are interpolated now, so
  * a number on the page is the number the page computed.
  *
- * Filled as the page computes them, so a number in the summary is the number
- * the page drew. writeTech runs once they are all in.
+ * Filled from two places, the spread table and the trend section, neither of
+ * which knows about the other, so writeTech runs after both.
  */
 const techValues: Record<string, string | number> = {};
 
@@ -741,485 +882,8 @@ async function writeLatest(minMag: number) {
  * resize re-renders, and the catalogue has not changed in between, so it is
  * held against a signature of the data rather than recomputed.
  */
+const jointCache = new Map<string, number>();
 
 
 
-
-/**
- * Whole-year totals for one series, on the calendar, ignoring every toggle.
- *
- * Deliberately not derived from the annual chart's numbers: those follow the
- * measure, the magnitude, the decluster switch and the rolling-window shift,
- * which is exactly the dependence this section exists to remove.
- */
-
-
-/** The fitted line and its 95% band, as marks. */
-
-/* ---------------- render ---------------- */
-
-let lastRender: (() => void) | null = null;
-
-async function update() {
-  const minMag = state.minMag;
-
-  let tier: Tier;
-  try {
-    tier = await store.load(minMag);
-  } catch (err) {
-    el.chart.replaceChildren(errorBox(fill(copy.home.errorCatalog,
-      { message: (err as Error).message })));
-    return;
-  }
-
-  // Counted by the pipeline and carried in meta.json, so the figure the page
-  // quotes is the one the catalogue actually has. See build.py, which prints
-  // the same ratio when it emits the tier.
-  const base = store.tierFor(MIN_MAGNITUDE);
-  techValues.mwShare = base.count
-    ? (100 * base.homogenised / base.count).toFixed(1) : "0";
-  techValues.threshold = magLabel(MIN_MAGNITUDE);
-  techValues.from = REFERENCE_START;
-  techValues.major = magLabel(MAJOR_MAGNITUDE);
-
-  const shift = calendarShift();
-  const { year: currentYear, day: dayOfYear } = dayIndex(Date.now(), shift);
-  // A rolling window always ends today, so it is complete: the current "year"
-  // runs the full 365 days and is compared only against equally complete ones.
-  // A calendar year is part-way through, and is compared against the same date
-  // in every past year.
-  const rolling = state.window === "rolling";
-  const today = rolling ? DAYS - 1 : dayOfYear;
-
-  const mainshocksOnly = effectiveMainshocksOnly();
-  const curves = cumulativeByYear(
-    tier, minMag, REFERENCE_START, mainshocksOnly, state.measure, shift);
-  const splitMajor = minMag < MAJOR_MAGNITUDE;
-  const majorCurves = splitMajor
-    ? cumulativeByYear(
-        tier, MAJOR_MAGNITUDE, REFERENCE_START, mainshocksOnly, state.measure, shift)
-    : { curves: new Map<number, Float64Array>(), years: [], matched: 0 };
-  const liveAdded = applyLive(curves, tier, minMag, shift, state.measure);
-
-  const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
-  const percentiles = empiricalBand(curves, refYears, state.measure);
-  techValues.years = refYears.length;
-  // The sigma view takes its spread from every window in the record, not from
-  // the calendar years -- see rollingWindowBand. The percentile view stays as
-  // it is: percentiles are robust to a single huge event, so it has no step to
-  // remove and "what previous years did" is a claim about years.
-  const windows = state.range === "sigma" || state.annualRange === "sigma"
-    ? rollingWindowBand(tier, minMag, mainshocksOnly, state.measure, REFERENCE_START)
-    : null;
-  const band = windows && state.range === "sigma"
-    ? windows.map((r, i) => ({ ...percentiles[i], mean: r.mean, sdLo: r.sdLo, sdHi: r.sdHi }))
-    : percentiles;
-  // A full year's worth is the last window length, so both charts show the same
-  // band rather than two different measurements of the same quantity.
-  const annualSigma = windows && state.annualRange === "sigma"
-    ? { lo: windows[windows.length - 1].sdLo, hi: windows[windows.length - 1].sdHi }
-    : null;
-  const result = verdict(curves, refYears, currentYear, today, state.measure);
-
-  // The annual chart carries its own window, so it needs its own curves rather
-  // than a slice of the ones the cumulative chart is drawn from.
-  const annualShift = calendarShift(state.annualWindow);
-  const annualRolling = state.annualWindow === "rolling";
-  const sameWindow = state.annualWindow === state.window;
-  const annualCurvesFor = (threshold: number) => {
-    const c = cumulativeByYear(
-      tier, threshold, REFERENCE_START, mainshocksOnly, state.measure, annualShift);
-    applyLive(c, tier, threshold, annualShift, state.measure);
-    return c;
-  };
-  const aCurves = sameWindow ? curves : annualCurvesFor(minMag);
-  const aMajor = !splitMajor ? majorCurves
-               : sameWindow ? majorCurves : annualCurvesFor(MAJOR_MAGNITUDE);
-  const { year: aYear, day: aDay } = dayIndex(Date.now(), annualShift);
-  const aToday = annualRolling ? DAYS - 1 : aDay;
-  const aRefYears = aCurves.years.filter((y) => y >= REFERENCE_START && y < aYear);
-  const counts = annualCounts(aCurves, aMajor, aYear, aToday, aRefYears,
-                             state.measure);
-  const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
-  const subject = state.measure === "moment"
-    ? fill(copy.home.cumulativeSubjectMoment, { threshold: magLabel(minMag) })
-    : fill(copy.home.cumulativeSubjectCount, { threshold: magLabel(minMag), kind });
-
-  // The one reading the controls cannot move: M6+, all earthquakes, counted,
-  // over the same 365-day window. Always the M6 tier, whatever is selected
-  // above -- with M7+ chosen, the selected tier holds only M7+ events, and
-  // computing "M6+" from it would silently answer a different question.
-  let headlineTier = tier;
-  if (minMag !== MIN_MAGNITUDE) {
-    try {
-      headlineTier = await store.load(MIN_MAGNITUDE);
-    } catch {
-      headlineTier = tier;
-    }
-  }
-  const headlineCurves = cumulativeByYear(
-    headlineTier, MIN_MAGNITUDE, REFERENCE_START, false, "count", shift);
-  applyLive(headlineCurves, headlineTier, MIN_MAGNITUDE, shift, "count");
-  const headlineRef = headlineCurves.years.filter(
-    (y) => y >= REFERENCE_START && y < currentYear);
-  const headline = verdict(headlineCurves, headlineRef, currentYear, today, "count");
-  const headlinePct = headline ? headline.percentile * 100 : null;
-
-  writeHeadline(result, currentYear, headlinePct);
-  writeHeadlineChart(headlineCurves, headlineRef, headline, currentYear);
-  void writeLatest(minMag);
-  buildAnswerScale(headlinePct, yearLabel(currentYear));
-  writeNote(refYears.length, liveAdded);
-  writeAnnualNote(aYear, splitMajor, annualRolling);
-
-  el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
-    subject, from: REFERENCE_START, to: currentYear - 1,
-  });
-  el.annualTitle.textContent = state.measure === "moment"
-    ? copy.home.annualTitleMoment
-    : fill(copy.home.annualTitleCount, { threshold: magLabel(minMag), kind });
-
-  lastRender = () => {
-    const theme = readTheme(document.body);
-    buildYearPicker(curves.years, theme);
-
-    if (band.length === 0 || refYears.length === 0) {
-      el.chart.replaceChildren(errorBox(copy.home.errorNoHistory));
-      return;
-    }
-
-    const highlights: Highlight[] = [...state.highlights.entries()]
-      .filter(([year]) => curves.curves.has(year))
-      .sort((a, b) => a[1] - b[1])
-      .map(([year, slot]) => ({
-        year,
-        label: yearLabel(year),
-        color: theme.series[slot % theme.series.length],
-        through: year === currentYear ? today : DAYS - 1,
-      }));
-
-    // The annual chart runs on its own window, so "the current year" is a
-    // different number there: with the cumulative chart on a rolling window the
-    // year in progress is 2025, while the calendar chart beside it is drawing
-    // 2026. Highlighting by number alone put the blue bar one to the left.
-    const annualHighlights: Highlight[] = sameWindow ? highlights
-      : [...state.highlights.entries()]
-          .sort((a, b) => a[1] - b[1])
-          .map(([year, slot]) => {
-            const own = year === currentYear ? aYear : year;
-            return {
-              year: own,
-              label: yearLabel(own, state.annualWindow),
-              color: theme.series[slot % theme.series.length],
-              through: own === aYear ? aToday : DAYS - 1,
-            };
-          })
-          .filter((h) => aCurves.curves.has(h.year));
-
-    // Day 0 of the window is 1 January only in the calendar view; the rolling
-    // view starts it on today's date, so the axis has to be told.
-    const dayToDate = (day: number) => {
-      const start = Date.UTC(currentYear, 0, 1) + shift;
-      const end = Date.UTC(currentYear + 1, 0, 1) + shift;
-      return new Date(start + (day / DAYS) * (end - start));
-    };
-
-    // Each figure measures its own container. This used to measure #chart for
-    // all of them, which was fine while that was the first chart on the page;
-    // it now sits inside "Explore the data" at the foot, and the sections above
-    // were being drawn to whatever width it happened to report.
-    const widthOf = (node: HTMLElement) => Math.max(320, node.clientWidth || 800);
-    const width = widthOf(el.chart);
-
-    if (result) {
-      const peers = refYears
-        .map((year) => ({ year, value: curves.curves.get(year)?.[today] ?? NaN }))
-        .filter((d) => Number.isFinite(d.value));
-      const above = Math.round(result.aboveShare * 100);
-      const moment = state.measure === "moment";
-      const stripWidth = Math.max(240, el.answerDetail.clientWidth || 340);
-      // Moment is plotted as the magnitude of the single earthquake that would
-      // release it. Raw moment runs from 6 to 592 x10^20 N.m -- 2011 alone is 26
-      // times the median -- so the bars pile into one bin and the axis carries a
-      // unit nobody reads. The log turn makes it a 1.3-magnitude spread, and it
-      // is the number the answer sentence already quotes.
-      const asMagnitude = (v: number) => equivalentMagnitude(v);
-      const peerValues = moment
-        ? peers.map((d) => ({ ...d, value: asMagnitude(d.value) }))
-        : peers;
-      const strip = renderDistribution({
-        peers: peerValues,
-        yearLabel: (year: number) => yearLabel(year),
-        value: moment ? asMagnitude(result.count) : result.count,
-        share: {
-          more: fill(copy.home.stripShare, { share: above }),
-          moreLabel: fill(
-            moment ? copy.home.stripShareMoreMoment : copy.home.stripShareMore,
-            {
-              subject: `${magLabel(minMag)} ${kind}`,
-              // A full twelve months, so there is no "as of" date to give.
-              when: "",
-            }),
-        },
-        currentLabel: moment
-          ? fill(copy.home.stripCurrentMoment, {
-              year: yearLabel(currentYear), count: asMagnitude(result.count).toFixed(1),
-            })
-          : fill(copy.home.stripCurrent, {
-              year: yearLabel(currentYear), count: fmt(result.count),
-            }),
-        tickFormat: moment ? (n: number) => `M${n.toFixed(1)}` : undefined,
-        // Tucked into the corner of the chart, so it gives up its caption and
-        // a third of its height. What it is showing is named by the controls
-        // directly above it.
-        compact: true,
-        theme, width: stripWidth,
-      });
-      el.answerDetail.replaceChildren(strip);
-    }
-    const figure = renderChart({
-      curves, band, refYears, highlights, today, theme, width, dayToDate,
-      yLabel: state.measure === "moment"
-        ? copy.home.axisCumulativeMoment
-        : fill(copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),
-      wholeNumbers: state.measure === "count",
-      bandMode: state.range,
-      yMax: Math.max(0, ...band.map((b) => b.hi), ...band.map((b) => b.sdHi),
-                     ...highlights.map((h) => curves.curves.get(h.year)?.[h.through] ?? 0)),
-    });
-    el.chart.replaceChildren(figure);
-    figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
-
-    el.annualChart.replaceChildren(renderAnnualChart({
-      counts, highlights: annualHighlights, refYears: aRefYears,
-      theme, width: widthOf(el.annualChart),
-      yearLabel: (year: number) => yearLabel(year, state.annualWindow),
-      yLabel: state.measure === "moment"
-        ? copy.home.axisAnnualMoment
-        : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
-      wholeNumbers: state.measure === "count",
-      sigma: annualSigma,
-      yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
-    }));
-
-      writeTech();
-
-  };
-  lastRender();
-}
-
-function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[],
-                     from: number, to: number): HTMLElement {
-  const wrap = document.createElement("p");
-  wrap.className = "legend";
-  // Each swatch is drawn in the style of the mark it stands for. Flat bars for
-  // everything made the reference median -- a thin dashed line on the chart --
-  // look identical to a highlighted year's solid accent, and identical again to
-  // the faint past years, which share its colour.
-  type Kind = "accent" | "faint" | "dashed" | "band";
-  const entries: { color: string; label: string; kind: Kind }[] = [
-    ...highlights.map((h) => ({ color: h.color, label: yearLabel(h.year), kind: "accent" as Kind })),
-    { color: theme.history, label: fill(copy.home.legendOtherYears, { from, to }), kind: "faint" },
-    { color: theme.median,
-      label: state.range === "sigma" ? copy.home.legendMean : copy.home.legendMedian,
-      kind: "accent" },
-    ...(state.range === "sigma"
-      ? [{ color: theme.rangeInner, label: copy.home.legendSigma, kind: "band" as Kind }]
-      : [{ color: theme.rangeInner, label: copy.home.legendBandInner, kind: "band" as Kind },
-         { color: theme.rangeOuter, label: copy.home.legendBand, kind: "band" as Kind }]),
-  ];
-  for (const { color, label, kind } of entries) {
-    const span = document.createElement("span");
-    const swatch = document.createElement("i");
-    swatch.className = `swatch-${kind}`;
-    if (kind === "dashed") {
-      swatch.style.backgroundImage =
-        `repeating-linear-gradient(to right, ${color} 0 4px, transparent 4px 7px)`;
-    } else {
-      swatch.style.background = color;
-    }
-    span.append(swatch, document.createTextNode(label));
-    wrap.append(span);
-  }
-  return wrap;
-}
-
-/**
- * Answers only what the chart below it shows: where this year sits against the
- * years before it. Nothing here depends on a long-run trend -- a trend cannot
- * change between visits, and cannot be checked by eye against the chart, so it
- * belongs beside the annual chart instead.
- */
-/**
- * The answer at the top of the page.
- *
- * The sentence is read off the pooled percentile, not off whichever way of
- * counting the controls happen to be set to. Those move it from the 41st to the
- * 92nd, which meant the page's own answer could be changed by clicking; the
- * pooled figure is what the question deserves, and it does not move. What the
- * controls still change is everything below the sentence -- the histogram
- * beside it, the charts, the table -- all of which say which setting they are
- * showing.
- */
-function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
-                       headlinePct: number | null) {
-  const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
-  const moment = state.measure === "moment";
-
-  if (!result || result.count === 0) {
-    el.answer.innerHTML = copy.home.answerNothingYet;
-    el.answerDetail.replaceChildren();
-    el.answerSummary.textContent = moment
-      ? fill(copy.home.detailNoneMoment, { year: yearLabel(currentYear) })
-      : fill(copy.home.detailNoneCount,
-             { threshold: magLabel(state.minMag), kind, year: yearLabel(currentYear) });
-    return;
-  }
-
-  el.answer.innerHTML = fill(answerFor(headlinePct ?? result.percentile * 100, true),
-                             { year: yearLabel(currentYear), from: REFERENCE_START });
-
-  const shared = {
-    from: REFERENCE_START, to: currentYear - 1,
-    above: Math.round(result.aboveShare * 100),
-  };
-  el.answerSummary.textContent = moment
-    ? fill(copy.home.detailMomentRolling, {
-        ...shared, count: withUnit(result.count),
-        equivalent: equivalentMagnitude(result.count).toFixed(1),
-        median: withUnit(result.medianToDate),
-      })
-    : fill(copy.home.detailCountRolling, {
-        ...shared, count: fmt(result.count), threshold: magLabel(state.minMag), kind,
-        median: fmt(result.medianToDate),
-      });
-}
-
-function writeNote(refCount: number, liveAdded: number) {
-  const notes: string[] = [
-    state.range === "sigma"
-      ? fill(copy.home.noteSigma, { years: refCount })
-      : fill(copy.home.noteBand, { years: refCount }),
-  ];
-
-  if (state.measure === "moment") notes.push(copy.home.noteMoment);
-
-  if (effectiveMainshocksOnly()) {
-    notes.push(copy.home.noteMainshocks);
-    if (liveAdded > 0) {
-      notes.push(fill(copy.home.noteLiveUnclassified, {
-        n: liveAdded, s: liveAdded === 1 ? "" : "s", is: liveAdded === 1 ? "is" : "are",
-      }));
-    }
-  }
-
-  el.chartNote.textContent = notes.join(" ");
-}
-
-/**
- * Notes for the annual chart.
- *
- * No trend line and no slope. Fitted across a window reaching back to the
- * 1970s, the number is dominated by how the catalogue was built rather than by
- * seismicity, and it would read as a finding.
- */
-function writeAnnualNote(currentYear: number, splitMajor: boolean, rolling: boolean) {
-  const template = rolling
-    ? (splitMajor ? copy.home.noteAnnualRollingMajor : copy.home.noteAnnualRolling)
-    : (splitMajor ? copy.home.noteAnnual : copy.home.noteAnnualPlain);
-  el.annualNote.textContent = fill(template,
-    { major: magLabel(MAJOR_MAGNITUDE),
-      year: yearLabel(currentYear, state.annualWindow) });
-}
-
-function errorBox(message: string): HTMLElement {
-  const box = document.createElement("div");
-  box.className = "error";
-  box.textContent = message;
-  return box;
-}
-
-/* ---------------- boot ---------------- */
-
-let resizeTimer: number | undefined;
-window.addEventListener("resize", () => {
-  window.clearTimeout(resizeTimer);
-  resizeTimer = window.setTimeout(() => lastRender?.(), 150);
-});
-/** The last event time across all tiers, which is where the live feed takes over. */
-function newestTime(): number {
-  return Math.max(...meta.tiers.map((t) => t.lastTime ?? 0));
-}
-
-/**
- * Pick up a rebuilt catalog without a page reload.
- *
- * The pipeline republishes every fifteen minutes, but a tab that stayed open
- * kept whatever it loaded at first paint. That was not merely stale: the live
- * feed only reaches back a day, so once an event aged out of it, a tab whose
- * catalog predated that event dropped it from the page entirely. Counts went
- * down while you watched.
- *
- * meta.json is 4 KB and carries a build timestamp, so the check is cheap and
- * the tiers are only refetched when there is something new to fetch.
- */
-async function refreshCatalog() {
-  try {
-    const fresh = await loadMeta();
-    if (fresh.generated === meta.generated) return;
-    meta = fresh;
-    store = new CatalogStore(meta);
-    el.generated.textContent = fill(copy.home.generated,
-      { when: new Date(meta.generated).toUTCString() });
-    // Re-checked against the new catalog. checkCatalog ran once at boot, so a
-    // tab left open through a bad rebuild kept drawing it unwarned -- and a
-    // banner raised for a bad catalog never cleared once a good one replaced
-    // it. Both directions now follow the catalog on the page.
-    document.querySelector("main > .integrity")?.remove();
-    const problem = checkCatalog(meta);
-    if (problem) showProblem(problem);
-  } catch {
-    // Keep serving what we have; the next tick tries again.
-  }
-}
-
-async function boot() {
-  try {
-    meta = await loadMeta();
-  } catch (err) {
-    el.answer.textContent = "Could not load the catalogue.";
-    el.answerDetail.textContent = fill(copy.home.errorBoot,
-      { message: (err as Error).message });
-    return;
-  }
-
-  const problem = checkCatalog(meta);
-  if (problem) showProblem(problem);
-
-  store = new CatalogStore(meta);
-  buildControls();
-  // Seeded once, not per render, so "Clear all" leaves the chart showing just
-  // the reference backdrop instead of snapping the current year back on.
-  claimSlot(dayIndex(Date.now(), calendarShift()).year);
-
-  if (!meta.declustered) {
-    const control = el.catalog.closest("fieldset");
-    if (control) control.hidden = true;
-  }
-
-  el.generated.textContent = fill(copy.home.generated,
-    { when: new Date(meta.generated).toUTCString() });
-
-  await pollLive(newestTime());
-  await update();
-
-  window.setInterval(async () => {
-    await refreshCatalog();
-    await pollLive(newestTime());
-    await update();
-  }, LIVE_INTERVAL_MS);
-}
-
-startAnalytics();
-installHintGuard();
-void boot();
+const jointCache = new Map<string, number>();

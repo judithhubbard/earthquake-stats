@@ -116,8 +116,8 @@ export const copy = {
     cumulativeTitle: "Cumulative {subject} worldwide",
     cumulativeSubjectCount: "{threshold} {kind}",
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
-    annualTitleCount: "How many earthquakes occur each year?",
-    annualTitleMoment: "How much moment is released each year?",
+    annualTitleCount: "Is the rate of earthquakes changing?",
+    annualTitleMoment: "Is the rate of moment release changing?",
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
     axisCumulativeMoment: "Moment this year, as a single earthquake",
@@ -182,61 +182,10 @@ export const copy = {
     yearsSome: "{n} years",
     yearsCount: "{n} of {max}",
 
-    /* The trend section under the annual chart.
-
-       Four fixed series, always all four, never responding to the toggles
-       above. There are more than eight ways to slice this catalogue and their
-       p-values run from 0.07 to 0.85; a reader given the toggles will find the
-       0.07 and stop. Showing the whole set, and charging for the search with a
-       multiple-comparison correction, is the only honest way to answer the
-       question on a page anyone can click through.
-
-       Count only. Every moment series slopes upward at about 25% per decade,
-       and all of that is 2004, 2010 and 2011 falling in the second half of the
-       record. That is a statement about whether a great earthquake happened,
-       not about the rate of earthquakes, and this section asks the latter.
-
-       It reports an interval and never a bare slope: a slope invites "5% a
-       decade, so 20% over forty years" from data that cannot tell the line
-       from flat. */
-    trendQuestion: "Is the rate of earthquakes changing?",
-    trendIntro: "To find out, we took all {threshold} earthquakes worldwide and removed the " +
-      "aftershocks. Then, we plotted the number year-over-year and fit a straight line to " +
-      "the data.",
     /* Every one of these leads with the combined number, because that is the
        one the answer is graded on. The steepest single series is named
        afterwards, as context -- naming it first would put the un-corrected
        p-value in the reader's head as the result. */
-    trendNo: "",
-    trendMaybe: "The line slopes, but not by enough to rule out chance: counts with no trend in " +
-      "them produce a slope at least this steep {corrected}% of the time. Worth watching " +
-      "rather than announcing.",
-    trendProbably: "The line slopes by more than chance comfortably explains: counts with no trend in " +
-      "them produce a slope at least this steep only {corrected}% of the time. That is a " +
-      "real change in the rate at this magnitude and this setting, which is not the same as " +
-      "a change in the Earth.",
-    trendPanelAll: "{threshold}, all earthquakes",
-    trendPanelMainshocks: "{threshold}, mainshocks only",
-    trendPanelAxis: "{threshold} mainshocks per year",
-    trendPanelStat: "{low} to {high} per decade · p = {p}%",
-
-    trendColCombined: "p-value for the fitted slope",
-    trendHelp: "how is this calculated?",
-    trendHelpBody:
-      "A straight line is fitted through the {years} yearly counts, and the question is " +
-      "whether its slope means anything." +
-      "\n\nTo find out, the years are shuffled into a random order and the line refitted, " +
-      "{permutations} times over. Shuffling breaks any real trend, so those {permutations} " +
-      "slopes are what counts with no trend in them look like. Comparing the real slope " +
-      "against them: counts with no trend produce a slope at least this steep {corrected}% of " +
-      "the time. A small number would mean the slope is hard to put down to chance; a large " +
-      "one means it is not." +
-      "\n\nThe range under the chart is every slope the data cannot rule out, at 95% " +
-      "confidence. When it includes zero, no change at all is one of them — which is why the " +
-      "range is shown rather than the single number in the middle of it, a number that " +
-      "invites arithmetic the data cannot support." +
-      "\n\nA straight line is an assumption too. It would not detect a rate that rose and " +
-      "then fell back.",
     /* ===============================================================
        THE TECHNICAL SUMMARY, front page. Plain and direct: what the
        data is, what was done to it, and what that costs.
@@ -288,12 +237,6 @@ export const copy = {
       "past windows fell on each day of the window. The ±2σ setting uses the mean plus and " +
       "minus two standard deviations, measured over every window of that length anywhere in " +
       "the record rather than over the {years} windows the other setting uses." +
-
-      "\n\n**Is the rate changing?** A straight line is fitted by least squares through the " +
-      "yearly counts of {threshold} mainshocks, and the slope is tested against no slope at " +
-      "all. The p-value comes from shuffling the year labels {shuffles} times over and " +
-      "refitting, rather than from the t-distribution, so it does not assume the counts are " +
-      "normally distributed. It currently reads {joint}%." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
       "their consequences. The two are related, but loosely: an M7 on the Mid-Atlantic Ridge " +
