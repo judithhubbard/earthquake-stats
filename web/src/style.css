@@ -419,7 +419,9 @@ main {
     width: auto;
     max-width: 420px;
     padding: 0;
-    margin-top: 0.75rem;
+    /* Centred once it is in the flow. Left-aligned it read as a stray figure
+       that had slipped out of the chart, which is more or less what happened. */
+    margin: 0.75rem auto 0;
     background: none;
     border: 0;
     box-shadow: none;
