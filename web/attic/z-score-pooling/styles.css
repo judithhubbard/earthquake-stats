@@ -1,0 +1,25 @@
+/* The answer, and beside it the histogram it is read off. Two columns while
+   there is room for both; below that the figure drops under the sentence
+   rather than being squeezed to a width where the bars stop meaning anything. */
+.answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.answer-row .answer-detail { min-height: 150px; }
+
+.answer-caption {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  text-align: center;
+  /* The tip under this caption resolves against the CAPTION, not against the
+     inline "?" — see .hint-tip. The caption is page-centred and full width, so
+     a tip centred in it lands on the page by construction, with no script. */
+  position: relative;
+}
+
+.answer-caption .hint { position: static; }

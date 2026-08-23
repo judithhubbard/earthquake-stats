@@ -180,6 +180,26 @@ main {
 
 .answer strong { color: var(--series-1); }
 
+/* The count the headline sentence is about. Bigger than the sentence, because
+   it is the thing a reader came for; the sentence is the reading of it. */
+.headline-count {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.headline-count strong {
+  display: block;
+  font-size: clamp(2.6rem, 7vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.1rem;
+}
+
 /* The correlations hero carries the headline alone. On the front page the
    answer sits in a two-column row beside the histogram, vertically centred,
    and takes its presence from that; here it is a bare paragraph with a grey
@@ -196,18 +216,6 @@ main {
 }
 
 .page-correlations .hero > .answer-detail { font-size: 1.05rem; }
-
-/* The answer, and beside it the histogram it is read off. Two columns while
-   there is room for both; below that the figure drops under the sentence
-   rather than being squeezed to a width where the bars stop meaning anything. */
-.answer-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.answer-row .answer-detail { min-height: 150px; }
 
 /* Only on the front page, where this holds the histogram: the correlations
    page reuses the class for a sentence, and was reserving 150px for a figure
@@ -269,20 +277,6 @@ main {
   font-size: 1rem;
   line-height: 1.55;
 }
-
-.answer-caption {
-  margin: 0.1rem 0 0;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  color: var(--text-muted);
-  text-align: center;
-  /* The tip under this caption resolves against the CAPTION, not against the
-     inline "?" — see .hint-tip. The caption is page-centred and full width, so
-     a tip centred in it lands on the page by construction, with no script. */
-  position: relative;
-}
-
-.answer-caption .hint { position: static; }
 
 @media (max-width: 820px) {
   .answer-detail { max-width: 420px; }

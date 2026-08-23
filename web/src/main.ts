@@ -3,14 +3,14 @@ import { renderAnnualChart, renderChart, renderDistribution, renderTrend,
          readTheme, type Highlight, type Theme } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
-  TREND_PERMUTATIONS, combineRanks, combinedTrendP, dayIndex, empiricalBand,
+  TREND_PERMUTATIONS, combinedTrendP, dayIndex, empiricalBand,
   asPercent, equivalentMagnitude, seismicMoment,
   rollingWindowBand,
   trend, verdict,
-  type Combined, type Measure, type Trend, type YearCurves,
+  type Measure, type Trend, type YearCurves,
 } from "./stats";
 import { loadLand, renderMap, type MapEvent } from "./map";
-import { copy, fill, numberWord } from "./copy";
+import { copy, fill } from "./copy";
 import { renderTech } from "./tech";
 import { flipTable } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
@@ -140,6 +140,7 @@ let liveEvents: LiveEvent[] = [];
 
 const el = {
   answer: document.getElementById("answer")!,
+  headlineCount: document.getElementById("headline-count")!,
   answerDetail: document.getElementById("answer-detail")!,
   answerSummary: document.getElementById("answer-summary")!,
   latest: document.getElementById("latest")!,
@@ -175,7 +176,6 @@ const el = {
   trendQuestion: document.getElementById("trend-question")!,
   trendVerdict: document.getElementById("trend-verdict")!,
   trendBody: document.getElementById("trend-body")!,
-  answerAggregate: document.getElementById("answer-aggregate")!,
   trendTable: document.getElementById("trend-table")!,
   trendGrid: document.getElementById("trend-grid")!,
   techTitle: document.getElementById("tech-title")!,
@@ -540,15 +540,7 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
  * one that counted, and made the table look like it was answering the controls
  * when it is there to show what the controls are worth.
  */
-interface SpreadCell {
-  percentile: number;
-}
 
-/** One row per way of counting; one cell per time window. */
-interface SpreadRow {
-  label: string;
-  cells: SpreadCell[];
-}
 
 /**
  * The aggregate answer to the page's own question.
@@ -564,18 +556,6 @@ interface SpreadRow {
  * moment is dominated by the largest earthquakes either way -- so the six are
  * worth about 1.7 independent ones. See combineRanks.
  */
-/** Each value's rank among the others, itself excluded, ties counted as half. */
-function leaveOneOutPercentiles(values: number[]): number[] {
-  return values.map((v, i) => {
-    let below = 0, tied = 0;
-    values.forEach((o, j) => {
-      if (j === i) return;
-      if (o < v) below++;
-      else if (o === v) tied++;
-    });
-    return (100 * (below + tied / 2)) / Math.max(1, values.length - 1);
-  });
-}
 
 /**
  * The combined score of every year since 1976, with this one marked.
@@ -587,172 +567,9 @@ function leaveOneOutPercentiles(values: number[]): number[] {
  * distribution with a middle and two tails, and where this year sits in it is
  * legible at a glance.
  */
-function writeAggregateChart(spread: ReturnType<typeof spreadTable>,
-                             currentYear: number) {
-  const a = spread.aggregate;
-  if (!a || a.scores.length < 3) { el.answerAggregate.replaceChildren(); return; }
 
-  const theme = readTheme(document.body);
-  const width = Math.max(260, el.answerAggregate.clientWidth || 340);
-  const scores = a.scores;
-  const first = currentYear - (scores.length - 1);
-  const peers = scores.slice(0, -1).map((value, i) => ({ year: first + i, value }));
-  // Counted off the bars beside it, not from a.p, which is the fitted normal
-  // tail. The label belongs to the picture, so it says how many years, not
-  // what share: a percentage here reads as the complement of the percentile
-  // above it and does not quite match, because one is a count of fifty bars
-  // and the other is a smooth curve through them.
 
-  const strip = renderDistribution({
-    peers,
-    value: a.z,
-    share: {
-      more: fill(copy.home.aggregateShareCount, { n: a.higher }),
-      moreLabel: fill(copy.home.aggregateShareMore, { peers: a.peers }),
-    },
-    // Just the year. The percentile was on the marker as well as in the
-    // sentence above the chart, which printed the same number twice.
-    currentLabel: fill(copy.home.aggregateCurrent, { year: yearLabel(currentYear) }),
-    theme, width,
-  });
 
-  const caption = document.createElement("p");
-  caption.className = "answer-caption";
-  caption.append(
-    fill(copy.home.aggregateCaption, { from: first }),
-    " ",
-    hint(copy.home.aggregateHelp,
-         fill(copy.home.aggregateHelpBody, { waysWord: numberWord(a.tests) })),
-  );
-  el.answerAggregate.replaceChildren(strip, caption);
-}
-
-/** The page's question-mark tooltip, built as nodes rather than markup. */
-function hint(label: string, body: string): HTMLElement {
-  const wrap = document.createElement("span");
-  wrap.className = "hint";
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "hint-button";
-  button.setAttribute("aria-label", label);
-  button.textContent = "?";
-  const tip = document.createElement("span");
-  tip.className = "hint-tip";
-  tip.setAttribute("role", "tooltip");
-  // One <p> per paragraph. The tips written into the HTML use <br /><br />,
-  // and .hint-tip has no white-space rule, so a body assigned with textContent
-  // collapsed its blank lines and came out as one block of prose.
-  for (const para of body.split("\n\n")) {
-    const line = document.createElement("p");
-    line.textContent = para;
-    tip.append(line);
-  }
-  wrap.append(button, tip);
-
-  // The tip is centred on the "?" in CSS, which is right for a caption in the
-  // middle of the page. It is not enough on its own: a "?" close to either
-  // margin still puts half a 22rem box past the edge. So on open, measure and
-  // shift it back inside. Measuring happens in rAF because the tip is
-  // display:none until :hover matches, and a rect taken too early is all zeros.
-  const place = () => {
-    tip.style.setProperty("--hint-nudge", "0px");
-    requestAnimationFrame(() => {
-      const r = tip.getBoundingClientRect();
-      if (!r.width) return;
-      const margin = 8;
-      const over = r.right - (window.innerWidth - margin);
-      const under = margin - r.left;
-      const dx = over > 0 ? -over : under > 0 ? under : 0;
-      if (dx) tip.style.setProperty("--hint-nudge", `${Math.round(dx)}px`);
-    });
-  };
-  wrap.addEventListener("mouseenter", place);
-  wrap.addEventListener("focusin", place);
-
-  return wrap;
-}
-
-const SPREAD_WINDOWS: State["window"][] = ["rolling"];
-
-function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | null;
-                                    years: number; columns: (Combined | null)[] } {
-  const rows: SpreadRow[] = [];
-  // One year -> percentile map per slicing. Keyed by year rather than indexed
-  // by position: the rolling window shifts the year boundary, so its year list
-  // is not the same length as the calendar one, and an earlier version quietly
-  // dropped every rolling slicing on a length check -- averaging six where the
-  // text beside it said twelve.
-  const ranks: Map<number, number>[][] = SPREAD_WINDOWS.map(() => []);
-
-  for (const minMag of MAGNITUDES) {
-    for (const measure of ["count", "moment"] as Measure[]) {
-      // Declustering is only offered on the count views, so the moment ones
-      // have no aftershock choice to enumerate. Mirroring what the controls
-      // can actually reach matters: a table listing combinations the page
-      // cannot produce would not be a summary of this page.
-      for (const mainshocksOnly of measure === "count" ? [false, true] : [false]) {
-        const cells: SpreadCell[] = [];
-        for (const [wi, window] of SPREAD_WINDOWS.entries()) {
-          const shift = calendarShift();
-          const curves = cumulativeByYear(
-            tier, minMag, REFERENCE_START, mainshocksOnly, measure, shift);
-          applyLive(curves, tier, minMag, shift, measure);
-          const { year, day: today } = dayIndex(Date.now(), shift);
-          const day = window === "rolling" ? DAYS - 1 : today;
-          const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < year);
-          const result = verdict(curves, refYears, year, day, measure);
-          if (!result) continue;
-
-          // Kept per column, never merged across them. A shifted window labels
-          // the 365 days ending today as year 2025, because that is where its
-          // year boundary falls, while a calendar slicing means by 2025 the
-          // whole of last year -- so pooling the two would put this year's
-          // rolling total next to last year's completed one under one label.
-          // Within a column every slicing shares a year boundary, so the six
-          // there pool cleanly, and each column gets its own combined figure.
-          const scored = curves.years.filter((y) => y >= REFERENCE_START && y <= year);
-          const percentiles = leaveOneOutPercentiles(
-            scored.map((y) => curves.curves.get(y)![day]));
-          ranks[wi].push(new Map(scored.map((y, i) => [y, percentiles[i]])));
-
-          cells.push({ percentile: result.percentile * 100 });
-        }
-        if (cells.length !== SPREAD_WINDOWS.length) continue;
-        rows.push({
-          label: fill(copy.home.spreadLabel, {
-            threshold: magLabel(minMag),
-            catalog: mainshocksOnly ? copy.home.spreadMainshocks : copy.home.spreadAll,
-            measure: measure === "moment" ? copy.home.spreadMoment : copy.home.spreadCount,
-          }),
-          cells,
-        });
-      }
-    }
-  }
-
-  // Only years every slicing scored, so the correlation between the tests is
-  // measured over one common set of years.
-  const pool = (rs: Map<number, number>[]) => {
-    const shared = rs.length
-      ? [...rs[0].keys()].filter((y) => rs.every((r) => r.has(y))).sort((a, b) => a - b)
-      : [];
-    return {
-      combined: shared.length > 2
-        ? combineRanks(rs.map((r) => shared.map((y) => r.get(y)!)))
-        : null,
-      years: shared.length - 1,
-    };
-  };
-  const columns = ranks.map(pool);
-  // The headline still comes off the calendar column: "so far this year" is
-  // the question the page asks, and the rolling column answers a different one.
-  return {
-    rows,
-    aggregate: columns[0].combined,
-    years: columns[0].years,
-    columns: columns.map((c) => c.combined),
-  };
-}
 
 /**
  * Every number the technical summary quotes, collected as it is computed.
@@ -784,28 +601,6 @@ function writeTech() {
   renderTech(copy.home.techTitle, body, el.techTitle, el.techBody);
 }
 
-/**
- * The spread block -- the "Nth percentile, so far" sentence and the table of
- * ways of counting -- is parked in attic/spread-table. What is left is the
- * part nothing else could do without: the range quoted by the technical
- * summary, and the pooled score the hero histogram is drawn from.
- */
-function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number) {
-  const { rows, aggregate } = spread;
-  if (rows.length < 2) return;
-
-  const all = rows.flatMap((r) => r.cells.map((cell) => cell.percentile));
-  techValues.spreadLow = ordinal(Math.min(...all));
-  techValues.spreadHigh = ordinal(Math.max(...all));
-  if (aggregate) {
-    techValues.ways = aggregate.tests;
-    techValues.waysWord = numberWord(aggregate.tests);
-    techValues.effective = aggregate.effective.toFixed(1);
-    techValues.peers = aggregate.peers;
-  }
-
-  writeAggregateChart(spread, currentYear);
-}
 
 /* ---------------- map ---------------- */
 
@@ -1438,29 +1233,6 @@ async function update() {
     ? { lo: windows[windows.length - 1].sdLo, hi: windows[windows.length - 1].sdHi }
     : null;
   const result = verdict(curves, refYears, currentYear, today, state.measure);
-  // Before the headline, because the headline is now read off it. Every way of
-  // counting the year, pooled -- see spreadTable.
-  //
-  // Always the M6 tier, whatever is selected above, exactly as writeTrend does.
-  // Passing the selected tier meant that with M7+ chosen the "M6+" rows were
-  // computed from a tier holding only M7+ events: the two rows came out
-  // identical and the pooled percentile moved with the control, which is the
-  // one thing the page promises it does not do.
-  let pooledTier = tier;
-  if (minMag !== MIN_MAGNITUDE) {
-    try {
-      pooledTier = await store.load(MIN_MAGNITUDE);
-    } catch {
-      pooledTier = tier;
-    }
-  }
-  const spread = spreadTable(pooledTier);
-  // The one number the controls cannot move. Falling back to the selected
-  // slice only if the pooling could not be done at all, which needs three
-  // years of catalogue.
-  const headlinePct = spread.aggregate
-    ? 100 * (1 - spread.aggregate.p)
-    : (result ? result.percentile * 100 : null);
 
   const counts = annualCounts(curves, majorCurves, currentYear, today, refYears,
                              state.measure);
@@ -1469,7 +1241,27 @@ async function update() {
     ? fill(copy.home.cumulativeSubjectMoment, { threshold: magLabel(minMag) })
     : fill(copy.home.cumulativeSubjectCount, { threshold: magLabel(minMag), kind });
 
-  writeHeadline(result, currentYear, headlinePct);
+  // The one reading the controls cannot move: M6+, all earthquakes, counted,
+  // over the same 365-day window. Always the M6 tier, whatever is selected
+  // above -- with M7+ chosen, the selected tier holds only M7+ events, and
+  // computing "M6+" from it would silently answer a different question.
+  let headlineTier = tier;
+  if (minMag !== MIN_MAGNITUDE) {
+    try {
+      headlineTier = await store.load(MIN_MAGNITUDE);
+    } catch {
+      headlineTier = tier;
+    }
+  }
+  const headlineCurves = cumulativeByYear(
+    headlineTier, MIN_MAGNITUDE, REFERENCE_START, false, "count", shift);
+  applyLive(headlineCurves, headlineTier, MIN_MAGNITUDE, shift, "count");
+  const headlineRef = headlineCurves.years.filter(
+    (y) => y >= REFERENCE_START && y < currentYear);
+  const headline = verdict(headlineCurves, headlineRef, currentYear, today, "count");
+  const headlinePct = headline ? headline.percentile * 100 : null;
+
+  writeHeadline(headline, result, currentYear, headlinePct);
   void writeLatest(minMag);
   buildAnswerScale(headlinePct, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);
@@ -1579,8 +1371,7 @@ async function update() {
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
     }));
 
-    writeSpread(spread, currentYear);
-    // finally, not then: a trend section that bails still leaves the summary
+      // finally, not then: a trend section that bails still leaves the summary
     // to be written, minus the paragraphs about the part that bailed.
     void writeTrend(currentYear, theme, width).finally(writeTech);
 
@@ -1650,19 +1441,33 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
  * beside it, the charts, the table -- all of which say which setting they are
  * showing.
  */
-function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
+function writeHeadline(headline: ReturnType<typeof verdict>,
+                       result: ReturnType<typeof verdict>, currentYear: number,
                        pooled: number | null) {
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const moment = state.measure === "moment";
 
   if (!result || result.count === 0) {
     el.answer.innerHTML = copy.home.answerNothingYet;
+    el.headlineCount.replaceChildren();
     el.answerDetail.replaceChildren();
     el.answerSummary.textContent = moment
       ? fill(copy.home.detailNoneMoment, { year: yearLabel(currentYear) })
       : fill(copy.home.detailNoneCount,
              { threshold: magLabel(state.minMag), kind, year: yearLabel(currentYear) });
     return;
+  }
+
+  // The number the sentence is about, said out loud. It is the fixed series,
+  // not the selection: a reader who has clicked to M7+ still sees the M6+
+  // count here, which is the whole point of it being fixed.
+  el.headlineCount.replaceChildren();
+  if (headline) {
+    const n = document.createElement("strong");
+    n.textContent = fmt(headline.count);
+    el.headlineCount.append(n, " ", fill(copy.home.headlineUnit, {
+      threshold: magLabel(MIN_MAGNITUDE),
+    }));
   }
 
   el.answer.innerHTML = fill(answerFor(pooled ?? result.percentile * 100, true),
