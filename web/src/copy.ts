@@ -247,6 +247,22 @@ export const copy = {
       "browser reads the USGS feed of the last day directly, so an earthquake from an hour " +
       "ago is already counted here." +
 
+      "\n\n**How the answer at the top is decided.** One fixed reading, and the controls " +
+      "cannot move it: {threshold} earthquakes, aftershocks included, counted over the 365 " +
+      "days ending today, and ranked against the same 365-day stretch of every year back to " +
+      "{from}. The histogram beside the answer draws those past windows, so the bar the " +
+      "marker sits on is the count the sentence is about. Selecting {major} or mainshocks " +
+      "changes the charts below; it does not change the answer." +
+
+      "\n\n**A year here is 365 days ending today.** Comparing a part-finished calendar " +
+      "year against whole ones would flatter or punish it depending on the date, so the " +
+      "default everywhere is a full twelve months ending today, measured against windows " +
+      "that ended on the same date in earlier years. The cumulative chart can be switched to " +
+      "the calendar year, which is then compared against the same date in every past year. " +
+      "The chart of yearly counts keeps its own switch and opens on calendar years, where " +
+      "the bar for the year in progress is drawn as far as it has got, with a dashed outline " +
+      "showing where it lands if the rest of the year runs at the usual pace." +
+
       "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
       "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +
       "of magnitudes for some earthquakes. Here, we replace those alternative magnitudes with " +
@@ -255,35 +271,22 @@ export const copy = {
       "exists. About {mwShare}% of {threshold} events carry an Mw." +
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
-      "hundreds of smaller ones with it. **Mainshocks only** removes them — the operation is " +
-      "called declustering — using Gardner-Knopoff windows, widened to twice the Wells and " +
-      "Coppersmith rupture length wherever that is larger: 53 km at M6, 87 km at M7. The " +
-      "windows run forward in time only, so " +
-      "an earthquake is removed if a larger one came before it and never if a larger one " +
-      "followed." +
+      "hundreds of smaller ones with it. **Mainshocks only**, which the charts open on, " +
+      "removes them — the operation is called declustering — using Gardner-Knopoff windows, " +
+      "widened to twice the Wells and Coppersmith rupture length wherever that is larger: " +
+      "53 km at M6, 87 km at M7. The windows run forward in time only, so an earthquake is " +
+      "removed if a larger one came before it and never if a larger one followed." +
 
-      "\n\n**The record starts in 1976,** when the Global CMT catalog begins — the earliest " +
-      "date from which moment magnitudes are broadly available. Only M6+ and M7+ are offered: " +
-      "below M6, how many earthquakes a year contains depends partly on how many seismometers " +
-      "were running that year, so counts cannot be compared across decades." +
-
-      "\n\n**Moment/Count.** Count treats every earthquake as one. Moment weights each by the " +
-      "size of the fault slip that produced it — how much rock moved, and how far. That is " +
-      "not the same as the energy radiated as shaking, though the two rise together. We " +
-      "convert moment into an equivalent “earthquake magnitude” via " +
-      "the Hanks and Kanamori relation, because otherwise moment spans multiple orders of " +
-      "magnitude." +
+      "\n\n**The record starts in {from},** when the Global CMT catalog begins — the earliest " +
+      "date from which moment magnitudes are broadly available. Only {threshold} and {major} " +
+      "are offered: below M6, how many earthquakes a year contains depends partly on how many " +
+      "seismometers were running that year, so counts cannot be compared across decades." +
 
       "\n\n**The shaded ranges.** The default shows where the middle 50% and middle 90% of " +
-      "past years fell on each date. The ±2σ setting uses the mean plus and minus two " +
-      "standard deviations, measured over every window of that length anywhere in the " +
-      "record rather than over calendar years." +
+      "past windows fell on each day of the window. The ±2σ setting uses the mean plus and " +
+      "minus two standard deviations, measured over every window of that length anywhere in " +
+      "the record rather than over the {years} windows the other setting uses." +
 
-      
-      
-      
-      
-      
       "\n\n**Is the rate changing?** A straight line is fitted by least squares through the " +
       "yearly counts of {threshold} mainshocks, and the slope is tested against no slope at " +
       "all. The p-value comes from shuffling the year labels {shuffles} times over and " +

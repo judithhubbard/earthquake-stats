@@ -930,6 +930,7 @@ async function update() {
     ? (100 * base.homogenised / base.count).toFixed(1) : "0";
   techValues.threshold = magLabel(MIN_MAGNITUDE);
   techValues.from = REFERENCE_START;
+  techValues.major = magLabel(MAJOR_MAGNITUDE);
 
   const shift = calendarShift();
   const { year: currentYear, day: dayOfYear } = dayIndex(Date.now(), shift);
@@ -952,6 +953,7 @@ async function update() {
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
   const percentiles = empiricalBand(curves, refYears, state.measure);
+  techValues.years = refYears.length;
   // The sigma view takes its spread from every window in the record, not from
   // the calendar years -- see rollingWindowBand. The percentile view stays as
   // it is: percentiles are robust to a single huge event, so it has no step to
