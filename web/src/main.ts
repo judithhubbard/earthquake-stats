@@ -721,6 +721,8 @@ function writeDecades(counts: { year: number; count: number }[],
   if (past.length < 3) return;
 
   const busier = past.filter((w) => w.value > now.value).length;
+  let bandBar: HTMLElement | null = null;
+  let bandBasis: HTMLElement | null = null;
 
   // The verdict rests on the exact test, not on the ranking above: the drawn
   // stretches overlap by nine years each, so their order describes where the
@@ -775,6 +777,45 @@ function writeDecades(counts: { year: number; count: number }[],
       key,
       [fill(c.decadeNow, { value: String(recent) }), null],
     ));
+
+    // The same bar as the first question's, but on a count axis rather than a
+    // percentile one. These three bands are 2.5 / 95 / 2.5 in probability, so
+    // drawn to their probabilities the middle would swallow the whole bar and
+    // a reader would learn nothing from it. Drawn to the counts they cover,
+    // the marker's position means what it appears to mean.
+    const values = [...past.map((w) => w.value), recent];
+    const axisLo = Math.min(...values, band.low) - Math.max(1, (Math.max(...values, band.high) - Math.min(...values, band.low)) * 0.06);
+    const axisHi = Math.max(...values, band.high) + Math.max(1, (Math.max(...values, band.high) - Math.min(...values, band.low)) * 0.06);
+    bandBar = document.createElement("div");
+    bandBar.className = "scale-bar";
+    for (const [from, to, tint] of [
+      [axisLo, band.low, "down"], [band.low, band.high, "mid"], [band.high, axisHi, "up"],
+    ] as [number, number, string][]) {
+      const seg = document.createElement("span");
+      seg.className = `scale-seg scale-${tint}`;
+      seg.style.flexGrow = String(Math.max(0.001, to - from));
+      bandBar.append(seg);
+    }
+    const at = ((recent - axisLo) / (axisHi - axisLo)) * 100;
+    const marker = document.createElement("span");
+    marker.className = "scale-marker";
+    marker.style.left = `${at}%`;
+    const value = document.createElement("span");
+    value.className = "scale-marker-value";
+    value.textContent = String(recent);
+    if (at > 90) value.classList.add("is-left");
+    if (at < 10) value.classList.add("is-right");
+    const tag = document.createElement("span");
+    tag.className = "scale-marker-label";
+    tag.textContent = `${now.year}\u2013${String(now.year + DECADE - 1).slice(2)}`;
+    if (at > 80) tag.classList.add("is-left");
+    marker.append(value, tag);
+    bandBar.append(marker);
+
+    bandBasis = document.createElement("p");
+    bandBasis.className = "scale-basis";
+    bandBasis.textContent = fill(copy.home.decadeBasis,
+                                 { threshold: magLabel(MIN_MAGNITUDE) });
   }
 
   const strip = renderDistribution({
@@ -796,7 +837,8 @@ function writeDecades(counts: { year: number; count: number }[],
   caption.className = "answer-caption";
   caption.textContent = fill(copy.home.decadeCaption,
                              { threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START });
-  el.decadeChart.replaceChildren(strip, caption);
+  el.decadeChart.replaceChildren(
+    ...[bandBar, bandBasis].filter((n): n is HTMLElement => n !== null), strip, caption);
 }
 
 /* ---------------- event lookup ---------------- */
