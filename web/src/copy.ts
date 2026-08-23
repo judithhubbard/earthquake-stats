@@ -65,6 +65,9 @@ export const copy = {
        and all earthquakes whatever the controls below are set to, so a reader
        who has clicked to M7+ still sees the figure the sentence used. */
     headlineUnit: "{threshold} earthquakes in the last 365 days",
+    headlineShareCount: "{n}",
+    headlineShareMore: "of {peers} past windows had more",
+    headlineCaption: "{threshold} earthquakes per 365 days, every year since {from}",
 
     /** The same answers for the rolling window, which is complete rather than
         part-way through, so "running" and "so far" would both be wrong. */
@@ -212,62 +215,39 @@ export const copy = {
        decade, so 20% over forty years" from data that cannot tell the line
        from flat. */
     trendQuestion: "Is the rate of earthquakes changing?",
-    trendIntro:
-      "We fit a straight line through the yearly counts for four different series — {threshold} " +
-      "and {major}, each with aftershocks left in and taken out — and ask: can we see a " +
-      "statistically meaningful change?" +
-      "\n\nIt is tempting to pick and choose \u2014 find the correlation that works, discard " +
-      "the rest. That is a common statistical trap known as p-hacking: choosing the test after " +
-      "you look at the results. Here, we first calculate the p-value for each test, which tells " +
-      "us how unusual that specific correlation is. Then, we calculate the combined probability " +
-      "for all four tests, correcting for the fact that we asked the question in four different " +
-      "ways — and for the fact that the four overlap. This last number is the one you should " +
-      "look at.",
+    trendIntro: "To find out, we took all {threshold} earthquakes worldwide and removed the " +
+      "aftershocks. Then, we plotted the number year-over-year and fit a straight line to " +
+      "the data.",
     /* Every one of these leads with the combined number, because that is the
        one the answer is graded on. The steepest single series is named
        afterwards, as context -- naming it first would put the un-corrected
        p-value in the reader's head as the result. */
-    trendNo:
-      "So the answer is no. Combined across the four tests, counts with no trend in them " +
-      "produce a slope at least this steep {corrected}% of the time, which is not unusual at " +
-      "all. The steepest single series is {subject}, at {p}%.",
-    trendMaybe:
-      "That is enough to notice. Combined across the four tests, counts with no trend in them " +
-      "produce a slope at least this steep {corrected}% of the time — worth watching rather " +
-      "than announcing. The steepest single series is {subject}, at {p}%.",
-    trendProbably:
-      "Combined across the four tests, counts with no trend in them produce a slope at least " +
-      "this steep only {corrected}% of the time. The steepest single series is {subject}, at " +
-      "{p}%. That is a real change in the rate at this magnitude and this setting, which is " +
-      "not the same as a change in the Earth.",
+    trendNo: "There is no meaningful trend to the data. The rate of earthquakes is not changing.",
+    trendMaybe: "The line slopes, but not by enough to rule out chance: counts with no trend in " +
+      "them produce a slope at least this steep {corrected}% of the time. Worth watching " +
+      "rather than announcing.",
+    trendProbably: "The line slopes by more than chance comfortably explains: counts with no trend in " +
+      "them produce a slope at least this steep only {corrected}% of the time. That is a " +
+      "real change in the rate at this magnitude and this setting, which is not the same as " +
+      "a change in the Earth.",
     trendPanelAll: "{threshold}, all earthquakes",
     trendPanelMainshocks: "{threshold}, mainshocks only",
     trendPanelAxis: "{threshold} per year",
     trendPanelStat: "{low} to {high} per decade · p = {p}%",
 
-    trendColCombined: "Combined p-value for the four tests",
+    trendColCombined: "p-value for the fitted slope",
     trendHelp: "how is this calculated?",
-    trendHelpBody:
-      "A straight line is fitted through the {years} yearly counts of each of the four series, " +
-      "and each test asks how often counts with no trend in them would produce a slope at " +
-      "least that steep. That gives four p-values. The smallest is {p}%, from {subject}." +
-      "\n\nFour tests means four chances for one of them to look unusual, so the four are " +
-      "combined into a single number. Because the series overlap, that number cannot come " +
-      "from the textbook formula, which assumes the tests are independent. Instead the years " +
-      "are shuffled into a random order — the same order for all four series at once, which " +
-      "keeps the overlap intact — the four lines are refitted, and the steepest of them is " +
-      "recorded. Across {permutations} shuffles, four series with no trend in them produce " +
-      "something at least this steep {corrected}% of the time. That is the number the answer " +
-      "above is graded on." +
-      "\n\nThe range under each chart is where that series' true slope lies with 95% " +
-      "confidence. When it includes zero, no change is one of the possibilities the data " +
-      "allow — which is why this shows the range rather than the single number in the middle " +
-      "of it. That number on its own invites arithmetic the data cannot support." +
+    trendHelpBody: "A straight line is fitted by least squares through the {years} yearly counts, and " +
+      "the slope is tested against no slope at all. The year labels are then shuffled into a " +
+      "random order and the line refitted, {permutations} times over, which gives the spread " +
+      "of slopes a series with no trend in it produces. This slope is steeper than " +
+      "{corrected}% of those, and that is the number the answer above is graded on." +
+      "\n\nThe range under the chart is where the true slope lies with 95% confidence. When " +
+      "it includes zero, no change is one of the possibilities the data allow — which is why " +
+      "this shows the range rather than the single number in the middle of it. That number " +
+      "on its own invites arithmetic the data cannot support." +
       "\n\nA straight line is an assumption too. It would not detect a rate that rose and " +
-      "then fell, or a step change. And shuffling the years assumes that, with no trend, one " +
-      "year is interchangeable with another — which an aftershock sequence running across New " +
-      "Year slightly breaks.",
-
+      "then fell back.",
     /* ===============================================================
        THE TECHNICAL SUMMARY, front page. Plain and direct: what the
        data is, what was done to it, and what that costs.
@@ -315,21 +295,13 @@ export const copy = {
       
       
       
+      
+      
       "\n\n**Is the rate changing?** A straight line is fitted by least squares through the " +
-      "yearly counts of four fixed series — M6+ and M7+, each with aftershocks left in and " +
-      "taken out — and each slope is tested against no slope at all with a t-test. Four " +
-      "rather than one, because the answer depends on which you pick: their p-values " +
-      "currently run from {trendLow}% to {trendHigh}%." +
-
-      "\n\n**The four are combined by a permutation test.** The textbook correction, " +
-      "Šidák's formula, assumes the four tests are independent, and these are nested: every " +
-      "M7+ earthquake is also an M6+ earthquake, and the four yearly counts correlate between " +
-      "{corrMin} and {corrMax}. So the year labels are shuffled instead — the same shuffle " +
-      "across all " +
-      "four at once, which keeps the overlap intact — the lines refitted, and the steepest " +
-      "recorded. {shuffles} shuffles give the distribution of the steepest slope when " +
-      "none of the four is trending. This is the Westfall-Young max-T procedure, evaluated by " +
-      "Monte Carlo. Šidák would say {sidak}% where this says {joint}%." +
+      "yearly counts of {threshold} mainshocks, and the slope is tested against no slope at " +
+      "all. The p-value comes from shuffling the year labels {shuffles} times over and " +
+      "refitting, rather than from the t-distribution, so it does not assume the counts are " +
+      "normally distributed. It currently reads {joint}%." +
 
       "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
       "their consequences. The two are related, but loosely: an M7 on the Mid-Atlantic Ridge " +

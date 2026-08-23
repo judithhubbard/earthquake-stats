@@ -140,6 +140,7 @@ let liveEvents: LiveEvent[] = [];
 
 const el = {
   answer: document.getElementById("answer")!,
+  answerAggregate: document.getElementById("answer-aggregate")!,
   headlineCount: document.getElementById("headline-count")!,
   answerDetail: document.getElementById("answer-detail")!,
   answerSummary: document.getElementById("answer-summary")!,
@@ -602,6 +603,47 @@ function writeTech() {
 }
 
 
+/**
+ * Every past 365-day window as a histogram, with the current one marked.
+ *
+ * The same series the headline counts, so the bar the marker sits on is the
+ * number printed beside it. It used to draw z-scores from a pooled score,
+ * which is a quantity a reader cannot check against anything; counts they can.
+ */
+function writeHeadlineChart(curves: YearCurves, refYears: number[],
+                            headline: ReturnType<typeof verdict>,
+                            currentYear: number) {
+  el.answerAggregate.replaceChildren();
+  if (!headline || refYears.length < 3) return;
+
+  const peers = refYears
+    .map((year) => ({ year, value: curves.curves.get(year)![DAYS - 1] }))
+    .filter((d) => Number.isFinite(d.value));
+  if (peers.length < 3) return;
+
+  const higher = peers.filter((d) => d.value > headline.count).length;
+  const strip = renderDistribution({
+    peers,
+    value: headline.count,
+    // A count of bars, not a share: the picture is bars, so the label should
+    // describe the picture rather than a curve fitted through it.
+    share: {
+      more: fill(copy.home.headlineShareCount, { n: higher }),
+      moreLabel: fill(copy.home.headlineShareMore, { peers: peers.length }),
+    },
+    currentLabel: yearLabel(currentYear),
+    theme: readTheme(document.body),
+    width: Math.max(260, el.answerAggregate.clientWidth || 340),
+  });
+
+  const caption = document.createElement("p");
+  caption.className = "answer-caption";
+  caption.textContent = fill(copy.home.headlineCaption, {
+    threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START,
+  });
+  el.answerAggregate.replaceChildren(strip, caption);
+}
+
 /* ---------------- map ---------------- */
 
 let land: Awaited<ReturnType<typeof loadLand>> | null = null;
@@ -961,11 +1003,11 @@ function signedPct(v: number): string {
   return `${v >= 0 ? "+" : "\u2212"}${Math.abs(v).toFixed(1)}%`;
 }
 
+/* One series. The other three -- M7+, and both thresholds with aftershocks
+   left in -- are parked in attic/trend-multi-series, along with the
+   multiplicity correction that four tests needed and one does not. */
 const TREND_SERIES = [
-  { threshold: MIN_MAGNITUDE, mainshocksOnly: false },
   { threshold: MIN_MAGNITUDE, mainshocksOnly: true },
-  { threshold: MAJOR_MAGNITUDE, mainshocksOnly: false },
-  { threshold: MAJOR_MAGNITUDE, mainshocksOnly: true },
 ];
 
 /**
@@ -988,30 +1030,6 @@ function combinedFor(panels: { points: { year: number; value: number }[] }[]): n
   return value;
 }
 
-/**
- * How strongly the four series move together, as a range.
- *
- * Quoted on the page rather than asserted, because it is the reason the
- * textbook correction is not used, and because it moves with the catalogue.
- */
-function correlationRange(cols: number[][]): { min: number; max: number } | null {
-  const centred = cols.map((c) => {
-    const mean = c.reduce((a, v) => a + v, 0) / c.length;
-    return c.map((v) => v - mean);
-  });
-  const pairs: number[] = [];
-  for (let i = 0; i < centred.length; i++) {
-    for (let j = i + 1; j < centred.length; j++) {
-      const a = centred[i], b = centred[j];
-      const num = a.reduce((acc, v, k) => acc + v * b[k], 0);
-      const den = Math.sqrt(a.reduce((acc, v) => acc + v * v, 0)
-                          * b.reduce((acc, v) => acc + v * v, 0));
-      if (den > 0) pairs.push(num / den);
-    }
-  }
-  if (!pairs.length) return null;
-  return { min: Math.min(...pairs), max: Math.max(...pairs) };
-}
 
 interface TrendPanel {
   title: string;
@@ -1064,26 +1082,14 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
 
   const outcome = (p: number) => (p < 0.01 ? "probably" : p < 0.05 ? "maybe" : "no");
   const steepest = panels.reduce((a, b) => (b.fit.p < a.fit.p ? b : a));
-  // Measured, not assumed. Sidak would be 1 - (1 - p)^4, but the four series
-  // are nested and correlate with each other, so that formula over-states the
-  // correction. Both numbers are quoted in the technical summary, computed
-  // rather than written down. See combinedTrendP.
+  // From shuffled years rather than the t-distribution, so it does not assume
+  // the counts are normal. With one series there is nothing to correct for --
+  // this is that series' own p-value. See combinedTrendP.
   const corrected = combinedFor(panels);
   if (corrected === null) { el.trendQuestion.textContent = ""; return; }
-  // Graded on the combined number, not the smallest. Reporting the best of
-  // four tests as though it were the only one is the whole failure mode this
-  // section was rebuilt to avoid, so the number that decides the answer is the
-  // one that has paid for the four looks.
   const key = outcome(corrected);
   const pct = asPercent;
 
-  // What the technical summary quotes about this section. Sidak is computed
-  // here rather than stated so the comparison stays honest: it is the formula
-  // this page declines to use, on the same steepest slope the shuffles judge.
-  const ps = panels.map((p) => p.fit.p);
-  techValues.trendLow = pct(Math.min(...ps));
-  techValues.trendHigh = pct(Math.max(...ps));
-  techValues.sidak = pct(1 - Math.pow(1 - steepest.fit.p, panels.length));
   techValues.joint = pct(corrected);
   techValues.shuffles = TREND_PERMUTATIONS.toLocaleString();
 
@@ -1093,20 +1099,11 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
                               : copy.correlations.verdictNo;
 
   el.trendBody.textContent = fill(c.trendIntro, {
-    threshold: magLabel(MIN_MAGNITUDE), major: magLabel(MAJOR_MAGNITUDE),
+    threshold: magLabel(MIN_MAGNITUDE),
   }) + "\n\n" + fill(
     key === "probably" ? c.trendProbably : key === "maybe" ? c.trendMaybe : c.trendNo,
-    { subject: steepest.title, p: pct(steepest.fit.p), corrected: pct(corrected) });
+    { p: pct(steepest.fit.p), corrected: pct(corrected) });
 
-  const corr = correlationRange(panels.map((p) => p.points.map((d) => d.value)));
-  if (corr) {
-    techValues.corrMin = corr.min.toFixed(2);
-    techValues.corrMax = corr.max.toFixed(2);
-  }
-  // One column, not two. The smallest p-value used to sit beside the combined
-  // one, which invited the reader to grade off whichever looked better; it is
-  // still reported, in the prose and under each panel, where it cannot be
-  // mistaken for the deciding number.
   const cc = copy.correlations;
   el.trendTable.replaceChildren(flipTable(
     [{ label: c.trendColCombined,
@@ -1126,8 +1123,8 @@ async function writeTrend(currentYear: number, theme: ReturnType<typeof readThem
     [fill(cc.flipNow, { value: `${pct(corrected)}%` }), null],
   ));
 
-  // Two across, so each panel gets about half the section width less the gap.
-  const panelWidth = Math.max(240, Math.floor((width - 28) / 2));
+  // One panel now, so it takes the section width rather than half of it.
+  const panelWidth = Math.max(240, width);
   el.trendGrid.replaceChildren(...panels.map((panel) => {
     const box = document.createElement("figure");
     box.className = "trend-panel";
@@ -1262,6 +1259,7 @@ async function update() {
   const headlinePct = headline ? headline.percentile * 100 : null;
 
   writeHeadline(headline, result, currentYear, headlinePct);
+  writeHeadlineChart(headlineCurves, headlineRef, headline, currentYear);
   void writeLatest(minMag);
   buildAnswerScale(headlinePct, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);

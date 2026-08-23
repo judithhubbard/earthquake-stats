@@ -180,6 +180,33 @@ main {
 
 .answer strong { color: var(--series-1); }
 
+/* The answer, and beside it the histogram it is read off. Two columns while
+   there is room for both; below that the figure drops under the sentence
+   rather than being squeezed to a width where the bars stop meaning anything. */
+.answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.answer-row .answer-detail { min-height: 150px; }
+
+.answer-caption {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 52rem) {
+  .answer-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+}
+
 /* The count the headline sentence is about. Bigger than the sentence, because
    it is the thing a reader came for; the sentence is the reading of it. */
 .headline-count {
