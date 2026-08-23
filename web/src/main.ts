@@ -674,7 +674,7 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
     currentLabel: yearLabel(currentYear, "rolling"),
     yearLabel: (year: number) => yearLabel(year, "rolling"),
     theme: readTheme(document.body),
-    width: Math.max(260, el.answerAggregate.clientWidth || 340),
+    width: Math.max(200, el.answerAggregate.clientWidth || 260),
   });
 
   const caption = document.createElement("p");

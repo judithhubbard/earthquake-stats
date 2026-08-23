@@ -838,13 +838,22 @@ main {
   padding: 0.9rem 1rem;
 }
 
-/* Two boxes stacked, not side by side: the scale is five rows of full
-   sentences, and half a section turns each of them into three lines. The rate
-   question can put its table beside a histogram because that table is three
-   short rows. */
-.question > .answer-figure + .answer-figure { margin-top: 1rem; }
-.question > .answer-figure > .scale { margin: 0; }
-.question .answer-detail { max-width: 26rem; margin: 0 auto; }
+/* The histogram takes a narrow column and the scale takes the rest -- not half
+   each. Half a section left the scale's sentences three lines deep; at 17rem
+   the histogram still reads, and the scale gets two thirds of the width. */
+.answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+  gap: 1.25rem 1.75rem;
+  align-items: center;
+}
+
+.answer-row > .scale { margin: 0; min-width: 0; }
+.question .answer-detail { min-height: 0; }
+
+@media (max-width: 60rem) {
+  .answer-row { grid-template-columns: minmax(0, 1fr); }
+}
 
 .question .answer-detail { min-height: 0; }
 
