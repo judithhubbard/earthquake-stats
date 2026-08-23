@@ -915,8 +915,9 @@ main {
 
 .decade-chart { min-width: 0; }
 
-.decade-table .correlate-flip { margin: 0; padding-top: 0; border-top: 0; }
-.decade-table .flip-title { display: none; }
+/* The rate scale sits beside the histogram, so it needs no rule of its own and
+   no margin above -- the row already gives it both. */
+#rate-scale { margin: 0; min-width: 0; }
 
 @media (max-width: 52rem) {
   .decade-row { grid-template-columns: minmax(0, 1fr); }

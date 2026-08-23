@@ -777,7 +777,18 @@ export function verdict(curves: YearCurves, refYears: number[],
  * ten-year stretches, which fairly describes where the recent one sits but is
  * not a test: consecutive stretches share nine of their ten years.
  */
-export function recentShareP(recent: number, total: number, share: number): number | null {
+export function binomialPosition(recent: number, total: number,
+                                 share: number): number | null {
+  const parts = binomialParts(recent, total, share);
+  if (!parts) return null;
+  // Half the probability at the observed count, so a discrete distribution does
+  // not push the position systematically low.
+  return 100 * (parts.below + parts.at / 2);
+}
+
+/** Shared machinery: the pmf in logs, and the mass below and at a count. */
+function binomialParts(recent: number, total: number, share: number):
+    { logPmf: (i: number) => number; below: number; at: number } | null {
   if (!(total > 0) || !(share > 0) || !(share < 1)) return null;
   if (recent < 0 || recent > total) return null;
 
@@ -799,6 +810,15 @@ export function recentShareP(recent: number, total: number, share: number): numb
   const logPmf = (i: number) =>
     logC - lgamma(i + 1) - lgamma(total - i + 1) + i * logP + (total - i) * logQ;
 
+  let below = 0;
+  for (let i = 0; i < recent; i++) below += Math.exp(logPmf(i));
+  return { logPmf, below, at: Math.exp(logPmf(recent)) };
+}
+
+export function recentShareP(recent: number, total: number, share: number): number | null {
+  const parts = binomialParts(recent, total, share);
+  if (!parts) return null;
+  const { logPmf } = parts;
   // Compared in logs with a whisker of tolerance, so a count symmetric with the
   // observed one is not dropped by a rounding error in the last bit.
   const observed = logPmf(recent);
