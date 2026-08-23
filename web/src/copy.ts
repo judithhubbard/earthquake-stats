@@ -133,7 +133,8 @@ export const copy = {
       "This chart shows {threshold} earthquakes globally, after removing aftershocks, to " +
       "evaluate whether the rate of earthquakes is changing over time. Because we have removed " +
       "aftershocks, the annual numbers are lower than in the previous plot. One large " +
-      "earthquake can trigger many aftershocks, which would skew these results.",
+      "earthquake can trigger many aftershocks, which would skew these results. A large " +
+      "earthquake with many aftershocks does not tell us that the rate is changing.",
     annualTitleMoment: "Is the rate of moment release changing?",
 
     /* The verdict alone. What decides it is in the table beside the histogram,
@@ -181,8 +182,8 @@ export const copy = {
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
     axisCumulativeMoment: "Moment this year, as a single earthquake",
-    axisAnnualCount: "{threshold} events per year",
-    axisAnnualMainshocks: "{threshold} mainshocks per year",
+    axisAnnualCount: "{threshold} earthquakes per year",
+    axisAnnualMainshocks: "{threshold} earthquakes per year, aftershocks removed",
     axisAnnualMoment: "Moment per year, as a single earthquake",
 
     /* The small print under the cumulative chart. */

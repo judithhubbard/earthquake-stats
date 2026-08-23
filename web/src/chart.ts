@@ -723,6 +723,12 @@ export interface AnnualOptions {
   theme: Theme;
   width: number;
   yLabel: string;
+  /**
+   * A heading for the chart, set above its top right corner. When one is given
+   * it names the quantity, so the y axis drops its own label and hands the
+   * width back to the bars.
+   */
+  title?: string;
   wholeNumbers?: boolean;
   /** Top of the y range, so the moment ticks can be placed on round magnitudes. */
   yMax?: number;
@@ -826,17 +832,24 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     })),
   );
 
+  if (opts.title) {
+    marks.push(Plot.text([opts.title], {
+      frameAnchor: "top-right", textAnchor: "end", dy: -16,
+      fill: theme.text, fontSize: 13, fontWeight: 700,
+    }));
+  }
+
   return Plot.plot({
     width,
     height: Math.max(200, Math.min(280, width * 0.3)),
-    marginLeft: 70,
+    marginLeft: opts.title ? 44 : 70,
     marginRight: 62,
     marginBottom: 30,
-    marginTop: 20,
+    marginTop: opts.title ? 36 : 20,
     style: { background: "transparent", color: theme.text, fontSize: "12px" },
     x: { label: null, tickSize: 0, tickPadding: 8, interval: 1, ticks: 8, tickFormat: "d" },
     y: {
-      label: opts.yLabel,
+      label: opts.title ? null : opts.yLabel,
       labelAnchor: "center",
       labelOffset: 52,
       // Counts get whole numbers; moment gets the magnitude it is equivalent to.
