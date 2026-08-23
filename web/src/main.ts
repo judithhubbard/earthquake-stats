@@ -1020,7 +1020,7 @@ async function update() {
   void writeLatest(minMag);
   buildAnswerScale(headlinePct, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);
-  writeAnnualNote(currentYear, splitMajor, true);
+  writeAnnualNote(aYear, splitMajor, annualRolling);
 
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
     subject, from: REFERENCE_START, to: currentYear - 1,
@@ -1047,6 +1047,24 @@ async function update() {
         color: theme.series[slot % theme.series.length],
         through: year === currentYear ? today : DAYS - 1,
       }));
+
+    // The annual chart runs on its own window, so "the current year" is a
+    // different number there: with the cumulative chart on a rolling window the
+    // year in progress is 2025, while the calendar chart beside it is drawing
+    // 2026. Highlighting by number alone put the blue bar one to the left.
+    const annualHighlights: Highlight[] = sameWindow ? highlights
+      : [...state.highlights.entries()]
+          .sort((a, b) => a[1] - b[1])
+          .map(([year, slot]) => {
+            const own = year === currentYear ? aYear : year;
+            return {
+              year: own,
+              label: yearLabel(own, state.annualWindow),
+              color: theme.series[slot % theme.series.length],
+              through: own === aYear ? aToday : DAYS - 1,
+            };
+          })
+          .filter((h) => aCurves.curves.has(h.year));
 
     // Day 0 of the window is 1 January only in the calendar view; the rolling
     // view starts it on today's date, so the axis has to be told.
@@ -1123,7 +1141,9 @@ async function update() {
     figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
 
     el.annualChart.replaceChildren(renderAnnualChart({
-      counts, highlights, refYears: aRefYears, theme, width: widthOf(el.annualChart),
+      counts, highlights: annualHighlights, refYears: aRefYears,
+      theme, width: widthOf(el.annualChart),
+      yearLabel: (year: number) => yearLabel(year, state.annualWindow),
       yLabel: state.measure === "moment"
         ? copy.home.axisAnnualMoment
         : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
@@ -1260,7 +1280,8 @@ function writeAnnualNote(currentYear: number, splitMajor: boolean, rolling: bool
     ? (splitMajor ? copy.home.noteAnnualRollingMajor : copy.home.noteAnnualRolling)
     : (splitMajor ? copy.home.noteAnnual : copy.home.noteAnnualPlain);
   el.annualNote.textContent = fill(template,
-    { major: magLabel(MAJOR_MAGNITUDE), year: yearLabel(currentYear) });
+    { major: magLabel(MAJOR_MAGNITUDE),
+      year: yearLabel(currentYear, state.annualWindow) });
 }
 
 function errorBox(message: string): HTMLElement {

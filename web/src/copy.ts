@@ -150,9 +150,7 @@ export const copy = {
     noteAnnualRolling:
       "Each bar is a full twelve months ending on this date, so the most recent one is " +
       "complete and directly comparable to the rest.",
-    noteAnnualRollingMajor:
-      "The darker part of each bar is the {major} share. Each bar is a full twelve months " +
-      "ending on this date, so the most recent one is complete and directly comparable.",
+    noteAnnualRollingMajor: "",
     noteAnnualPlain:
       "{year} is still going: the solid bar shows the year so far, and the dashed outline is " +
       "where it will land if it continues at the usual pace.",

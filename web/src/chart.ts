@@ -718,6 +718,8 @@ export interface AnnualOptions {
    * chart shows at a full year's window length.
    */
   sigma?: { lo: number; hi: number } | null;
+  /** How a year is named -- "2025" on calendar years, "2025-26" on rolling. */
+  yearLabel?: (year: number) => string;
 }
 
 /**
@@ -791,10 +793,11 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
       title: (d: AnnualCount) => {
         const fmt = (v: number) => (Number.isInteger(v) ? v.toLocaleString()
           : v.toLocaleString(undefined, { maximumFractionDigits: 1 }));
+        const name = opts.yearLabel ? opts.yearLabel(d.year) : String(d.year);
         const rows = d.partial
-          ? [`${d.year} (in progress)`, `So far:  ${fmt(d.count)}`,
+          ? [`${name} (in progress)`, `So far:  ${fmt(d.count)}`,
              `On this pace:  ${fmt(Math.round(d.projected))}`]
-          : [`${d.year}:  ${fmt(d.count)}`];
+          : [`${name}:  ${fmt(d.count)}`];
         if (d.major > 0) rows.push(`of which M7+:  ${fmt(d.major)}`);
         return rows.join("\n");
       },
