@@ -28,6 +28,11 @@
      neutrals on this page already lean warm (--band-outer, --grid), so the
      tray joins that family and the sage is left to mean something. */
   --tray: #e9e8e0;
+  /* The two questions share a ground, so they read as a pair and the tray
+     below reads as a different kind of thing. Sage rather than the tray's
+     stone, and light enough that the sage bars in the histograms drawn on it
+     still separate from it. */
+  --question-ground: #eaf2ee;
   --chip: #cfe3d8;
   --chip-edge: #8fb9a3;
   --chip-ink: #2f5a43;
@@ -102,9 +107,11 @@ main {
    What sets them apart is a rule, a wide gap, and a heading larger than
    anything else on the page. */
 .question {
-  margin-top: 4.5rem;
-  padding-top: 2.25rem;
-  border-top: 2px solid var(--chip-edge);
+  margin-top: 1.75rem;
+  padding: 1.6rem 1.4rem 1.5rem;
+  background: var(--question-ground);
+  border: 1px solid var(--range-inner);
+  border-radius: 12px;
 }
 
 .question-title {
@@ -327,7 +334,7 @@ main {
 /* One tray per section now, so the gap between them is what says they are
    separate rather than one tray interrupted. */
 .panel {
-  margin-top: 4.5rem;
+  margin-top: 1.75rem;
   background: var(--tray);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -827,6 +834,13 @@ main {
   border-radius: 50%;
 }
 
+.question > #annual-chart,
+.question .answer-row {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+
 .chart-intro {
   margin: 0.9rem 0 0.2rem;
   font-size: 0.9rem;
@@ -916,6 +930,9 @@ main {
   gap: 1.5rem 2rem;
   align-items: center;
   margin-top: 1.4rem;
+  padding: 1rem 1.1rem;
+  background: #ffffff;
+  border-radius: 10px;
 }
 
 .decade-chart { min-width: 0; }
@@ -960,7 +977,12 @@ main {
 /* The scale of every answer the page can give: part of the answer rather than
    an exhibit, so it stays on the page ground under a rule instead of joining
    the trays below. */
-.decide { margin-top: 2.25rem; }
+.decide {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem 1.1rem;
+  background: #ffffff;
+  border-radius: 10px;
+}
 
 .section-title { margin: 0 0 0.6rem; }
 
