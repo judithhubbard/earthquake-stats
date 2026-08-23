@@ -1679,8 +1679,10 @@ footer p { margin: 0 0 0.4rem; }
 /* Under the table now, not over the histogram: it describes the scale, and the
    scale is what it sits beneath. Mono and uppercase, like every other label
    that names rather than states. */
+/* Directly under the rule that closes the question band. It qualifies the
+   whole answer, not the table it used to sit beneath. */
 .scale-basis {
-  margin: 0.9rem 0 0;
+  margin: 0.7rem 0 0;
   font-family: var(--mono);
   font-size: var(--t-micro);
   letter-spacing: 0.1em;
