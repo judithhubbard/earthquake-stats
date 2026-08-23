@@ -27,10 +27,11 @@ import { startAnalytics } from "./analytics";
  */
 const REFERENCE_START = 1976;
 
-/* Mainshocks first, and the default. A year's count is dominated by whether a
-   handful of big sequences happened to fall in it, so "is this year unusual"
-   is a question about mainshocks; leaving aftershocks in answers a different
-   one. The option to put them back stays, second. */
+/* All earthquakes first, and the default: it is the catalogue the page's own
+   answer is read from, so the explorer opens on the series the reader has just
+   been shown. Mainshocks only stays, second -- a year's count is dominated by
+   whether a handful of big sequences fell in it, and taking them out is the
+   first thing worth trying. */
 /* Rolling first, and the default for the cumulative chart: twelve months
    ending today is a complete window, and so is every one it is compared
    against. The calendar year is the part-way-through one. */
@@ -39,8 +40,8 @@ const WINDOWS = [
   { id: "calendar", label: "This year" },
 ] as const;
 const CATALOG_MODES = [
-  { id: "mainshocks", label: "Mainshocks only" },
   { id: "all", label: "All earthquakes" },
+  { id: "mainshocks", label: "Mainshocks only" },
 ] as const;
 // How the reference years are described. Percentiles say what those years did;
 // sigma says what a normal fit to them predicts. See BandPoint in stats.ts.
@@ -98,7 +99,7 @@ const state: State = {
   measure: "count",
   range: "percentile",
   annualRange: "off",
-  catalogMode: "mainshocks",
+  catalogMode: "all",
   highlights: new Map(),
 };
 
@@ -665,9 +666,12 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
   if (peers.length < 3) return;
 
   const higher = peers.filter((d) => d.value > headline.count).length;
+  // The same four edges the scale prints its ranges from, so a bar's colour and
+  // the row it belongs to are the same statement made twice.
+  const sorted = peers.map((d) => d.value).sort((a, b) => a - b);
   const strip = renderDistribution({
     peers,
-    neutral: true,
+    bands: ANSWER_BOUNDS.slice(1, -1).map((b) => Math.round(quantile(sorted, b / 100))),
     value: headline.count,
     // A count of bars, not a share: the picture is bars, so the label should
     // describe the picture rather than a curve fitted through it.
@@ -1010,8 +1014,14 @@ async function update() {
       const peerValues = moment
         ? peers.map((d) => ({ ...d, value: asMagnitude(d.value) }))
         : peers;
+      // Recomputed from whatever the controls are showing: magnitude, window
+      // and catalogue all move the peers, so the band edges move with them.
+      // Not rounded, unlike the headline's -- these are magnitudes on the
+      // moment view, and nothing prints them as ranges.
+      const stripSorted = peerValues.map((d) => d.value).sort((a, b) => a - b);
       const strip = renderDistribution({
         peers: peerValues,
+        bands: ANSWER_BOUNDS.slice(1, -1).map((b) => quantile(stripSorted, b / 100)),
         yearLabel: (year: number) => yearLabel(year),
         value: moment ? asMagnitude(result.count) : result.count,
         share: {

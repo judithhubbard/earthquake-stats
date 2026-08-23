@@ -230,6 +230,13 @@ export interface DistributionOptions {
    * reads as a verdict the answer does not give.
    */
   neutral?: boolean;
+  /**
+   * The four percentile edges, in the units the bars are drawn in, which tints
+   * each bar by the band it falls in -- the same five tints, in the same order,
+   * as the scale beside the figure. A bin can be wider than a band boundary is
+   * precise, so a bar takes the band its centre lands in. Overrides `neutral`.
+   */
+  bands?: number[];
   theme: Theme;
   width: number;
 }
@@ -336,6 +343,19 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
     }
   }
 
+  // Which of the five bands a bar sits in, matching the scale's tints exactly:
+  // blue, faded blue, sage, faded red, red.
+  const edges = opts.bands && opts.bands.length === 4 ? opts.bands : null;
+  const bandTint = (d: Rect): { fill: string; opacity: number } | null => {
+    if (!edges) return null;
+    const mid = (d.x0 + d.x1) / 2;
+    if (mid <= edges[0]) return { fill: theme.down, opacity: 1 };
+    if (mid <= edges[1]) return { fill: theme.down, opacity: 0.45 };
+    if (mid <= edges[2]) return { fill: theme.rangeInner, opacity: 1 };
+    if (mid <= edges[3]) return { fill: theme.up, opacity: 0.45 };
+    return { fill: theme.up, opacity: 1 };
+  };
+
   const compact = opts.compact ?? false;
   const plot = Plot.plot({
     width,
@@ -366,10 +386,10 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
         // Grey rather than the sage: sage is a data colour on this page -- it is
         // the range band on the charts and the middle band on the scales -- so
         // a bar wearing it still looks like a category.
-        fill: (d: { above: boolean }) =>
-          (opts.neutral ? theme.history : d.above ? theme.up : theme.rangeInner),
-        fillOpacity: (d: { above: boolean }) =>
-          (opts.neutral ? 0.45 : d.above ? 0.55 : 1),
+        fill: (d: Rect) => bandTint(d)?.fill
+          ?? (opts.neutral ? theme.history : d.above ? theme.up : theme.rangeInner),
+        fillOpacity: (d: Rect) => bandTint(d)?.opacity
+          ?? (opts.neutral ? 0.45 : d.above ? 0.55 : 1),
         insetLeft: 0.75, insetRight: 0.75,
       }),
       Plot.ruleY([0], { stroke: theme.axis }),
@@ -393,7 +413,10 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
         // The compact block sits three lines deep once it carries a date, so
         // it starts at the very top of the frame to keep clear of the bars.
         dy: compact ? 0 : 4, dx: flip ? 2 : -2,
-        fill: theme.up, fontWeight: 700, fontSize: compact ? 19 : 25,
+        // Black once the bars are banded: red is the top band there, so a red
+        // headline number reads as a verdict rather than as a count.
+        fill: edges ? theme.text : theme.up,
+        fontWeight: 700, fontSize: compact ? 19 : 25,
       }),
       Plot.text([{}], {
         text: () => opts.share.moreLabel,
