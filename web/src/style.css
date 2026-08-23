@@ -1394,12 +1394,15 @@ footer p { margin: 0 0 0.4rem; }
   margin: 1.75rem 0 0;
 }
 
+/* Sits above the basis line in the left column now, not over the band table.
+   The marker's value rides above the bar, so the top margin is the room that
+   label needs -- without it the percentile collides with the row above. */
 .scale-bar {
   position: relative;
   display: flex;
   gap: 2px;
   height: 14px;
-  margin-bottom: 0.9rem;
+  margin: 1.4rem 0 0.9rem;
 }
 
 .scale-seg {
