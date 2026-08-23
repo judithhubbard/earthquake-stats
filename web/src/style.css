@@ -27,18 +27,17 @@
      a green tray as well left three tints of one hue fighting each other. The
      neutrals on this page already lean warm (--band-outer, --grid), so the
      tray joins that family and the sage is left to mean something. */
-  --tray: #e9e8e0;
+  --tray: #f5f5f2;
   /* The two questions share a ground, so they read as a pair and the tray
      below reads as a different kind of thing. Sage rather than the tray's
      stone, and light enough that the sage bars in the histograms drawn on it
      still separate from it. */
   --question-ground: #eaf2ee;
-  /* The band each question is titled in. Dark enough to carry light type at
-     10:1, and the same hue as the chip ink so the sage below it reads as the
-     pale end of one colour rather than as a second one. */
-  --question-band: #2f5a43;
   --chip: #cfe3d8;
   --chip-edge: #8fb9a3;
+  /* A 2px edge needs a colour that reads at that weight; --border is an alpha
+     black for hairlines and goes muddy when thickened. */
+  --panel-edge: #c7c6bd;
   --chip-ink: #2f5a43;
 
   /* The cumulative chart's two nested ranges. Separate from --band-* because
@@ -112,25 +111,19 @@ main {
    anything else on the page. */
 .question {
   margin-top: 1.75rem;
-  padding: 0 1.4rem 1.5rem;
+  padding: 1.6rem 1.4rem 1.5rem;
   background: var(--question-ground);
-  border: 1px solid var(--range-inner);
+  border: 2px solid var(--chip-edge);
   border-radius: 12px;
 }
 
-/* The question is the banner, not a line inside the panel: it runs the full
-   width of the block in light type on the dark end of the same green the
-   panel is the pale end of. */
 .question-title {
-  margin: 0 -1.4rem 1.4rem;
-  padding: 0.85rem 1.4rem 0.9rem;
-  background: var(--question-band);
-  color: #ffffff;
-  border-radius: 11px 11px 0 0;
-  font-size: clamp(1.25rem, 2.8vw, 1.7rem);
+  margin: 0 0 1.1rem;
+  font-size: clamp(1.5rem, 3.4vw, 2.05rem);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.2;
   letter-spacing: -0.015em;
+  color: var(--chip-ink);
   text-wrap: balance;
 }
 
@@ -351,7 +344,7 @@ main {
 .panel {
   margin-top: 1.75rem;
   background: var(--tray);
-  border: 1px solid var(--border);
+  border: 2px solid var(--panel-edge);
   border-radius: 12px;
   padding: 1rem 1.25rem 1.25rem;
 }
@@ -914,9 +907,7 @@ main {
 
 /* On the page rather than in a box, so its toggle sits at the top right of
    the section instead of inside a frame. */
-/* Below the band, not beside the title: the title is the full width of the
-   block now, so there is no room to its right to pull the toggle into. */
-.question > .chart-head { justify-content: flex-end; margin: -0.5rem 0 0.2rem; }
+.question > .chart-head { justify-content: flex-end; margin-top: -2.6rem; }
 
 .chart-subtitle {
   font-size: 0.95rem;
