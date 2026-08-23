@@ -832,7 +832,6 @@ main {
 }
 
 .question > #annual-chart,
-.question > #rate-chart,
 .question > .answer-figure {
   background: #ffffff;
   border-radius: 10px;
@@ -955,44 +954,6 @@ main {
 .chart-stage { position: relative; margin-top: 0.75rem; }
 
 /* The section's answer, in the headline's voice, directly under its title. */
-.decade-verdict {
-  margin: 1.1rem 0 0.15rem;
-  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--text-primary);
-}
-
-.decade-verdict strong { color: var(--series-1); }
-
-/* The ten-year histogram and the range of answers beside it, under a rule. */
-.decade-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: 1.25rem 1.5rem;
-  align-items: stretch;
-  margin-top: 1.4rem;
-  padding: 0.9rem 1rem;
-  background: #ffffff;
-  border-radius: 10px;
-}
-
-/* Same as .answer-side in the first question: the table is the taller column,
-   so the histogram side stretches to it and centres its own contents while the
-   basis line stays pinned to the top. */
-.decade-chart { display: flex; flex-direction: column; }
-.decade-chart > .hist-wrap { margin-top: auto; }
-.decade-chart > .answer-caption { margin-bottom: auto; }
-
-@media (max-width: 42rem) {
-  .decade-row { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
-}
-
-.decade-chart { min-width: 0; }
-
-.decade-table .correlate-flip { margin: 0; padding-top: 0; border-top: 0; }
-.decade-table .flip-title { display: none; }
-
 /* The histogram and the tooltip that names the bar under the pointer. */
 .hist-wrap { position: relative; }
 
