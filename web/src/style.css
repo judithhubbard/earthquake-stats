@@ -18,6 +18,20 @@
   --band-inner: #d7d5c9;
   --band-neutral: #e6e5df;
 
+  /* The tray the titled sections sit in, and the chip that labels each one.
+     The tray has to be darker than the boxes on top of it, which is the
+     opposite of what the panel used to be -- it was lighter than the page, so
+     the sections had nothing to lift off.
+
+     Warm stone rather than sage: with the boxes white and the chips green,
+     a green tray as well left three tints of one hue fighting each other. The
+     neutrals on this page already lean warm (--band-outer, --grid), so the
+     tray joins that family and the sage is left to mean something. */
+  --tray: #e9e8e0;
+  --chip: #cfe3d8;
+  --chip-edge: #8fb9a3;
+  --chip-ink: #2f5a43;
+
   /* The cumulative chart's two nested ranges. Separate from --band-* because
      those also back the hover states and the correlations bars, which stay
      neutral. One hue, two steps, and deliberately not blue or red: those two
@@ -166,6 +180,23 @@ main {
 
 .answer strong { color: var(--series-1); }
 
+/* The correlations hero carries the headline alone. On the front page the
+   answer sits in a two-column row beside the histogram, vertically centred,
+   and takes its presence from that; here it is a bare paragraph with a grey
+   sentence and two dense tables directly beneath, so it has to hold the top of
+   the page on its own type. Same rules otherwise -- only the sizes move. */
+.page-correlations .hero h1 {
+  font-size: clamp(2.1rem, 5.6vw, 3.4rem);
+  margin-bottom: 1.15rem;
+}
+
+.page-correlations .hero > .answer {
+  font-size: clamp(1.45rem, 3.4vw, 2.1rem);
+  margin-bottom: 0.7rem;
+}
+
+.page-correlations .hero > .answer-detail { font-size: 1.05rem; }
+
 /* The answer, and beside it the histogram it is read off. Two columns while
    there is room for both; below that the figure drops under the sentence
    rather than being squeezed to a width where the bars stop meaning anything. */
@@ -189,11 +220,17 @@ main {
 .has-inset { position: relative; }
 
 .chart-inset {
+  /* Offsets run from the section's padding edge, which is not where the chart
+     starts: the box's own padding pushes the SVG right and down but leaves an
+     absolutely positioned child where it was. The horizontal pair is locked to
+     --sec-pad-x so they cannot drift apart again. The vertical figure also
+     absorbs the header having shrunk, the title having left the flow to become
+     a chip on the border. */
   position: absolute;
-  top: 3.4rem;
-  left: 4.6rem;
+  top: 4.75rem;
+  left: calc(4.6rem + var(--sec-pad-x, 0rem));
   width: 16.5rem;
-  max-width: calc(100% - 6rem);
+  max-width: calc(100% - 6rem - 2 * var(--sec-pad-x, 0rem));
   padding: 0.1rem 0.15rem 0;
   border-radius: 10px;
   background: color-mix(in srgb, var(--surface-1) 88%, transparent);
@@ -266,7 +303,7 @@ main {
 /* ---------- panel ---------- */
 
 .panel {
-  background: var(--surface-1);
+  background: var(--tray);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.25rem;
@@ -423,7 +460,6 @@ main {
 }
 
 .map-row {
-  margin-top: 2.75rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 15rem;
   gap: 1.25rem;
@@ -434,14 +470,31 @@ main {
   .map-row { grid-template-columns: minmax(0, 1fr); }
 }
 
-.map-figure { margin-top: 1.25rem; }
+/* A chip hanging off a border needs room either side of it. On a narrow screen
+   there is none, so it drops back into the flow as an ordinary title. */
+@media (max-width: 34rem) {
+  .chart,
+  .map-row { padding: 0.9rem 0.75rem 0.85rem; }
+  #chart-title,
+  #annual-title,
+  #map-title,
+  .trend > figcaption {
+    position: static;
+    transform: none;
+    display: inline-block;
+    margin-bottom: 0.6rem;
+  }
+  .chart-head { justify-content: space-between; }
+}
+
+.map-figure { margin-top: 0; }
 
 #map { min-height: 200px; }
 
 .largest {
-  margin-top: 1.25rem;
+  margin-top: 0;
   padding: 0.85rem 0.9rem;
-  background: var(--plane);
+  background: var(--tray);
   border: 1px solid var(--border);
   border-radius: 10px;
 }
@@ -669,7 +722,21 @@ main {
 
 /* ---------- chart ---------- */
 
-.chart { margin: 2.75rem 0 0; }
+/* ---- Option A: each titled section is a box, with its title as a chip
+   straddling the top edge. The chip is out of flow, so .chart-head pushes the
+   Range toggle to the right on its own; the box's top padding is what reserves
+   room for the chip rather than the title's own margin. ---- */
+.chart,
+.map-row {
+  --sec-pad-x: 1rem;
+  --sec-pad-top: 1.55rem;
+  position: relative;
+  margin: 2.25rem 0 0;
+  padding: var(--sec-pad-top) var(--sec-pad-x) 1.05rem;
+  background: #ffffff;
+  border: 1px solid var(--chip-edge);
+  border-radius: 10px;
+}
 
 .chart figcaption {
   font-size: 0.95rem;
@@ -771,14 +838,33 @@ main {
 #annual-title,
 #map-title,
 .trend > figcaption {
-  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.01em;
   color: var(--range-ink);
 }
 
-.trend > figcaption { margin-bottom: 0.45rem; }
+.section-title { font-size: 1.35rem; }
+
+#chart-title,
+#annual-title,
+#map-title,
+.trend > figcaption {
+  position: absolute;
+  top: 0;
+  left: 0.85rem;
+  transform: translateY(-50%);
+  max-width: calc(100% - 1.7rem);
+  padding: 0.14rem 0.7rem;
+  font-size: 1.05rem;
+  color: var(--chip-ink);
+  background: var(--chip);
+  border: 1px solid var(--chip-edge);
+  border-radius: 99px;
+}
+
+/* The title is out of flow, so the row that held it only carries the toggle. */
+.chart-head { justify-content: flex-end; }
 
 .section-title { margin: 0 0 0.6rem; }
 
