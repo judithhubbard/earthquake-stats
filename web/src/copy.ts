@@ -164,7 +164,7 @@ export const copy = {
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
     decadeCaption:
-      "Total {threshold} earthquakes in each ten-year stretch since {from}",
+      "Total {threshold} earthquakes in each ten-year stretch since {from}; aftershocks removed",
     decadeCurrent: "last ten",
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",

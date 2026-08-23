@@ -19,7 +19,16 @@
           <span>Earthquake<br />Insights</span>
         </a>
         </div>
-        <h1>Are there more earthquakes than usual this&nbsp;year?</h1>
+        <h1 class="sr-only">Are there more earthquakes than usual, and is the rate changing?</h1>
+        <p class="hero-intro">
+          People often ask: is the rate of earthquakes changing? Are there more
+          earthquakes than usual? Here, we let the data answer those questions
+          directly.
+        </p>
+      </header>
+
+      <section class="question">
+        <h2 class="question-title">Are there more earthquakes than usual this&nbsp;year?</h2>
         <div class="answer-row">
           <div class="answer-text">
             <p class="answer" id="answer">Loading the catalog…</p>
@@ -27,12 +36,6 @@
           </div>
           <div class="answer-detail" id="answer-aggregate"></div>
         </div>
-
-        <p class="hero-intro">
-          This page shows the data, updated live from the USGS. The answers here
-          are calculated automatically from that data.
-        </p>
-
         <div class="decide">
           <figure class="scale" id="scale">
             <figcaption id="scale-title"></figcaption>
@@ -41,27 +44,25 @@
             <p class="scale-basis" id="scale-basis"></p>
           </figure>
         </div>
-      </header>
+      </section>
 
-      <section class="panel">
-          <figure class="chart">
-            <figcaption class="chart-head">
-              <span id="annual-title"></span>
-              <span class="chart-toggle">
-                <span class="chart-toggle-label">Range</span>
-                <span class="segmented segmented-sm" id="annual-range-control"></span>
-              </span>
-            </figcaption>
-            <p class="decade-verdict" id="decade-verdict"></p>
-            <p class="chart-intro" id="annual-intro"></p>
-            <div id="annual-chart"></div>
-            <p class="chart-note" id="annual-note"></p>
-            <p class="chart-intro" id="decade-check"></p>
-            <div class="decade-row">
-              <div class="decade-chart" id="decade-chart"></div>
-              <div class="decade-table" id="decade-table"></div>
-            </div>
-          </figure>
+      <section class="question">
+        <h2 class="question-title" id="annual-title"></h2>
+        <div class="chart-head">
+          <span class="chart-toggle">
+            <span class="chart-toggle-label">Range</span>
+            <span class="segmented segmented-sm" id="annual-range-control"></span>
+          </span>
+        </div>
+        <p class="decade-verdict" id="decade-verdict"></p>
+        <p class="chart-intro" id="annual-intro"></p>
+        <div id="annual-chart"></div>
+        <p class="chart-note" id="annual-note"></p>
+        <p class="chart-intro" id="decade-check"></p>
+        <div class="decade-row">
+          <div class="decade-chart" id="decade-chart"></div>
+          <div class="decade-table" id="decade-table"></div>
+        </div>
       </section>
 
       <section class="panel">
