@@ -719,14 +719,14 @@ function hint(label: string, body: string): HTMLElement {
 const SPREAD_WINDOWS: State["window"][] = ["calendar", "rolling"];
 
 function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | null;
-                                    years: number } {
+                                    years: number; columns: (Combined | null)[] } {
   const rows: SpreadRow[] = [];
   // One year -> percentile map per slicing. Keyed by year rather than indexed
   // by position: the rolling window shifts the year boundary, so its year list
   // is not the same length as the calendar one, and an earlier version quietly
   // dropped every rolling slicing on a length check -- averaging six where the
   // text beside it said twelve.
-  const ranks: Map<number, number>[] = [];
+  const ranks: Map<number, number>[][] = SPREAD_WINDOWS.map(() => []);
 
   for (const minMag of MAGNITUDES) {
     for (const measure of ["count", "moment"] as Measure[]) {
@@ -736,7 +736,7 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
       // cannot produce would not be a summary of this page.
       for (const mainshocksOnly of measure === "count" ? [false, true] : [false]) {
         const cells: SpreadCell[] = [];
-        for (const window of SPREAD_WINDOWS) {
+        for (const [wi, window] of SPREAD_WINDOWS.entries()) {
           const shift = calendarShift(window);
           const curves = cumulativeByYear(
             tier, minMag, REFERENCE_START, mainshocksOnly, measure, shift);
@@ -747,19 +747,17 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
           const result = verdict(curves, refYears, year, day, measure);
           if (!result) continue;
 
-          // Calendar slicings only. A shifted window labels the 365 days
-          // ending today as year 2025, because that is where its year boundary
-          // falls, while a calendar slicing means by 2025 the whole of last
-          // year. Averaging the two puts this year's rolling total next to last
-          // year's completed one under the same label. Rolling stays in the
-          // table, where each column is read on its own terms; it is left out
-          // of the average, which has to compare like with like.
-          if (window === "calendar") {
-            const scored = curves.years.filter((y) => y >= REFERENCE_START && y <= year);
-            const percentiles = leaveOneOutPercentiles(
-              scored.map((y) => curves.curves.get(y)![day]));
-            ranks.push(new Map(scored.map((y, i) => [y, percentiles[i]])));
-          }
+          // Kept per column, never merged across them. A shifted window labels
+          // the 365 days ending today as year 2025, because that is where its
+          // year boundary falls, while a calendar slicing means by 2025 the
+          // whole of last year -- so pooling the two would put this year's
+          // rolling total next to last year's completed one under one label.
+          // Within a column every slicing shares a year boundary, so the six
+          // there pool cleanly, and each column gets its own combined figure.
+          const scored = curves.years.filter((y) => y >= REFERENCE_START && y <= year);
+          const percentiles = leaveOneOutPercentiles(
+            scored.map((y) => curves.curves.get(y)![day]));
+          ranks[wi].push(new Map(scored.map((y, i) => [y, percentiles[i]])));
 
           cells.push({ percentile: result.percentile * 100 });
         }
@@ -778,13 +776,26 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
 
   // Only years every slicing scored, so the correlation between the tests is
   // measured over one common set of years.
-  const shared = ranks.length
-    ? [...ranks[0].keys()].filter((y) => ranks.every((r) => r.has(y))).sort((a, b) => a - b)
-    : [];
-  const aggregate = shared.length > 2
-    ? combineRanks(ranks.map((r) => shared.map((y) => r.get(y)!)))
-    : null;
-  return { rows, aggregate, years: shared.length - 1 };
+  const pool = (rs: Map<number, number>[]) => {
+    const shared = rs.length
+      ? [...rs[0].keys()].filter((y) => rs.every((r) => r.has(y))).sort((a, b) => a - b)
+      : [];
+    return {
+      combined: shared.length > 2
+        ? combineRanks(rs.map((r) => shared.map((y) => r.get(y)!)))
+        : null,
+      years: shared.length - 1,
+    };
+  };
+  const columns = ranks.map(pool);
+  // The headline still comes off the calendar column: "so far this year" is
+  // the question the page asks, and the rolling column answers a different one.
+  return {
+    rows,
+    aggregate: columns[0].combined,
+    years: columns[0].years,
+    columns: columns.map((c) => c.combined),
+  };
 }
 
 /**
@@ -868,13 +879,17 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
     list.append(row(
       [r.label, ...r.cells.map((cell) => ordinal(cell.percentile))], ""));
   }
-  // The plain mean of the column, which is what a reader adding up the six
-  // themselves would get. It is deliberately not the pooled figure at the top:
-  // that one corrects for the redundancy between the slicings, so the two
-  // disagree, and showing this one keeps the table arithmetic self-contained.
-  const means = rows[0].cells.map((_, i) =>
-    rows.reduce((sum, r) => sum + r.cells[i].percentile, 0) / rows.length);
-  list.append(row([c.spreadAverage, ...means.map(ordinal)], "spread-average"));
+  // The same figure the headline quotes, one per column -- not the mean of the
+  // rows above it. A plain mean would treat six slicings that correlate at up
+  // to 0.99 as six independent readings and land several points away from the
+  // number at the top of the section, inviting the reader to wonder which of
+  // the two the page believes.
+  if (spread.columns.every((col) => col)) {
+    list.append(row([
+      fill(c.spreadCombined, { waysWord: numberWord(rows.length) }),
+      ...spread.columns.map((col) => ordinal(100 * (1 - col!.p))),
+    ], "spread-average"));
+  }
   box.append(list);
   el.spreadChart.replaceChildren(box);
 }

@@ -108,11 +108,12 @@ export const copy = {
     spreadColWay: "How it is counted",
     spreadCalendar: "This year so far",
     spreadRolling: "Last 365 days",
-    /* The plain mean of the six rows above, one per column. The pooled figure at
-       the top of the section is not this: it corrects for how strongly the six
-       correlate, so the two will not agree, and this row is here because it is
-       the number a reader would work out for themselves from the column. */
-    spreadAverage: "Averaged",
+    /* Not a mean. The six slicings overlap heavily -- M6+ and M7+ moment
+       correlate at 0.99 -- so they are pooled with the divisor corrected for
+       that, which is what the headline above the table quotes. Saying only
+       "averaged" invited the reader to check it by adding up the column and
+       dividing, and get a different number. */
+    spreadCombined: "All {waysWord} combined, allowing for their overlap",
     /* The one number that answers the title question with no choice hidden in
        it. Every past year is scored the same {ways} ways and its own average
        taken, so this year's average can be ranked against theirs directly --
