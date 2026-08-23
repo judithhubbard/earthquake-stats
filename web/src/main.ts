@@ -89,9 +89,10 @@ interface State {
 const state: State = {
   minMag: MIN_MAGNITUDE,
   window: "rolling",
-  // Its own, so this chart can show calendar years -- and the projected bar
-  // for the year in progress -- while the headline stays on a full 365 days.
-  annualWindow: "calendar",
+  // Pinned to the rolling window, so every bar is a complete twelve months and
+  // directly comparable, with no part-finished year to project. The cumulative
+  // chart below keeps its own switch.
+  annualWindow: "rolling",
   // Pinned. The Count/Moment control is parked in attic/measure-control;
   // the moment branches downstream are unreachable but still present.
   measure: "count",
@@ -149,7 +150,6 @@ const el = {
   mag: document.getElementById("mag-control")!,
   catalog: document.getElementById("catalog-control")!,
   window: document.getElementById("window-control")!,
-  annualWindow: document.getElementById("annual-window-control")!,
   yearPicker: document.getElementById("year-picker")!,
   yearToggle: document.getElementById("year-toggle") as HTMLButtonElement,
   yearPanel: document.getElementById("year-panel")!,
@@ -430,8 +430,6 @@ function buildControls() {
     () => String(state.minMag), (id) => { state.minMag = Number(id); });
   buildSegmented(el.range, RANGES.map((r) => ({ id: r.id, label: r.label })),
     () => state.range, (id) => { state.range = id as State["range"]; });
-  buildSegmented(el.annualWindow, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
-    () => state.annualWindow, (id) => { state.annualWindow = id as State["window"]; });
   buildSegmented(el.annualRange, ANNUAL_RANGES.map((r) => ({ id: r.id, label: r.label })),
     () => state.annualRange, (id) => { state.annualRange = id as State["annualRange"]; });
   buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
