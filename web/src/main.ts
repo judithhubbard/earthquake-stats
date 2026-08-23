@@ -161,7 +161,6 @@ const el = {
   chart: document.getElementById("chart")!,
   chartTitle: document.getElementById("chart-title")!,
   chartNote: document.getElementById("chart-note")!,
-  annualIntro: document.getElementById("annual-intro")!,
   annualChart: document.getElementById("annual-chart")!,
   annualNote: document.getElementById("annual-note")!,
   annualChartTitle: document.getElementById("annual-chart-title")!,
@@ -199,6 +198,15 @@ function withUnit(n: number): string {
  * each band, so the two cannot describe different rules -- the table is not a
  * restatement of these thresholds, it is their output.
  */
+/** The fragments the scale table prints, in the same order answerFor decides. */
+function scaleAnswerFor(pct: number): string {
+  if (pct > 95) return copy.home.scaleAnsBusiest;
+  if (pct < 5) return copy.home.scaleAnsQuietest;
+  if (pct >= 75) return copy.home.scaleAnsBusy;
+  if (pct <= 25) return copy.home.scaleAnsQuiet;
+  return copy.home.scaleAnsAverage;
+}
+
 function answerFor(pct: number, rolling: boolean): string {
   if (pct > 95) return rolling ? copy.home.rollingBusiest : copy.home.answerBusiest;
   if (pct < 5) return rolling ? copy.home.rollingQuietest : copy.home.answerQuietest;
@@ -232,7 +240,7 @@ const BAND_FADES = [1, 0.45, 1, 0.45, 1];
  * Every headline the page can print, with the slice of the percentile range
  * that earns it and how often that slice comes up.
  *
- * Each row's text is answerFor() called at the middle of its band, so this is
+ * Each row's text is scaleAnswerFor() called at the middle of its band, so this is
  * the rule's output rather than a second copy of it. The width of a row is the
  * width of its band, which is also the number of years in a hundred: the
  * percentile is uniform by construction, so a band 20 points wide is 20 years.
@@ -251,7 +259,7 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
     return {
       low, high, width: high - low,
       // The sentences the headline can print, which are now the rolling set.
-      text: fill(answerFor((low + high) / 2, true), { year, from: REFERENCE_START }),
+      text: scaleAnswerFor((low + high) / 2),
       tint: BAND_TINTS[i], fade: BAND_FADES[i],
       count: sorted.length < 4 ? null
            : i === 0 ? fill(copy.home.scaleRowLow, { n: edges[0] })
@@ -947,8 +955,6 @@ async function update() {
   });
   el.annualChartTitle.textContent = fill(copy.home.axisAnnualCount,
                                          { threshold: magLabel(MIN_MAGNITUDE) });
-  el.annualIntro.textContent = fill(copy.home.annualIntro,
-                                    { threshold: magLabel(MIN_MAGNITUDE) });
 
   lastRender = () => {
     const theme = readTheme(document.body);

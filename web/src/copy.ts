@@ -72,6 +72,18 @@ export const copy = {
     rollingBusy: "<strong>No.</strong> The last year was busy, but not unusual.",
     rollingQuiet: "<strong>No.</strong> The last year was on the quiet side.",
     rollingAverage: "<strong>No.</strong> The last year was about average.",
+
+    /* The same five answers as fragments, for the table beside the histogram.
+       There the range in the next column already supplies the subject, so the
+       sentence only has to supply the verdict -- and five full sentences that
+       all begin "The last year was" is five times the reading for one word of
+       difference. The rolling set above stays intact: it is also the headline,
+       where a bare "No -- less." would say nothing. */
+    scaleAnsBusiest: "<strong>Yes.</strong>",
+    scaleAnsBusy: "<strong>No.</strong> Busy, but not unusual",
+    scaleAnsAverage: "<strong>No.</strong> About average",
+    scaleAnsQuiet: "<strong>No.</strong> On the quiet side",
+    scaleAnsQuietest: "<strong>No — less.</strong>",
     detailCountRolling:
       "{count} {threshold} {kind} in the last 365 days — usual is {median} — {above}% of years " +
       "since {from} had more {kind}",
@@ -116,11 +128,6 @@ export const copy = {
     cumulativeTitle: "Cumulative {subject} worldwide",
     cumulativeSubjectCount: "{threshold} {kind}",
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
-    /* The chart above the answer counts every earthquake, aftershocks
-       included, because that is the series the answer is read from. */
-    annualIntro:
-      "This chart shows every {threshold} earthquake recorded worldwide, aftershocks " +
-      "included, in each twelve-month window since 1976.",
     annualBand:
       "Where does the last year fall? In 90% of years, we expect to see between {lo} and " +
       "{hi} {threshold} earthquakes. In the last 365 days, there have been {n}.",
