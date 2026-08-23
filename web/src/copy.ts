@@ -108,6 +108,11 @@ export const copy = {
     spreadColWay: "How it is counted",
     spreadCalendar: "This year so far",
     spreadRolling: "Last 365 days",
+    /* The plain mean of the six rows above, one per column. The pooled figure at
+       the top of the section is not this: it corrects for how strongly the six
+       correlate, so the two will not agree, and this row is here because it is
+       the number a reader would work out for themselves from the column. */
+    spreadAverage: "Averaged",
     /* The one number that answers the title question with no choice hidden in
        it. Every past year is scored the same {ways} ways and its own average
        taken, so this year's average can be ranked against theirs directly --
@@ -135,11 +140,6 @@ export const copy = {
       "year-to-year spread. Zero is an average year." +
       "\n\nThere are many ways to look at earthquake numbers; we show {waysWord} of them below. " +
       "This z-score combines those {waysWord} into a single representative number.",
-    spreadNote:
-      "These individual metrics each tell us something about how many earthquakes there have " +
-      "been in {year}. The number at the top combines the {waysWord} in the “{column}” " +
-      "column into an overall assessment.",
-
     detailNoneCount: "No {threshold} {kind} recorded worldwide yet in {year}.",
     detailNoneMoment: "No moment released worldwide yet in {year}.",
 

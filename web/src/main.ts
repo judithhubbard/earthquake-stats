@@ -186,7 +186,6 @@ const el = {
   answerAggregate: document.getElementById("answer-aggregate")!,
   spreadAggregate: document.getElementById("spread-aggregate")!,
   spreadChart: document.getElementById("spread-chart")!,
-  spreadNote: document.getElementById("spread-note")!,
   trendTable: document.getElementById("trend-table")!,
   trendGrid: document.getElementById("trend-grid")!,
   trendOverlap: document.getElementById("trend-overlap")!,
@@ -828,17 +827,6 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
   const all = rows.flatMap((r) => r.cells.map((cell) => cell.percentile));
   techValues.spreadLow = ordinal(Math.min(...all));
   techValues.spreadHigh = ordinal(Math.max(...all));
-  // The pooled count, not the number of cells in the table: the note is about
-  // what the answer at the top combines, and the last-365-days column is not
-  // in it. The technical summary is where that exclusion is explained.
-  el.spreadNote.textContent = fill(c.spreadNote, {
-    year: yearLabel(currentYear),
-    waysWord: numberWord(aggregate ? aggregate.tests : all.length),
-    // Named from the column header itself, so the sentence cannot drift from
-    // the table. Every cell is this year, so the year alone does not say which
-    // six of the twelve are pooled -- the column does.
-    column: c.spreadCalendar,
-  });
   el.spreadAggregate.replaceChildren();
   if (aggregate) {
     techValues.ways = aggregate.tests;
@@ -881,6 +869,13 @@ function writeSpread(spread: ReturnType<typeof spreadTable>, currentYear: number
     list.append(row(
       [r.label, ...r.cells.map((cell) => ordinal(cell.percentile))], ""));
   }
+  // The plain mean of the column, which is what a reader adding up the six
+  // themselves would get. It is deliberately not the pooled figure at the top:
+  // that one corrects for the redundancy between the slicings, so the two
+  // disagree, and showing this one keeps the table arithmetic self-contained.
+  const means = rows[0].cells.map((_, i) =>
+    rows.reduce((sum, r) => sum + r.cells[i].percentile, 0) / rows.length);
+  list.append(row([c.spreadAverage, ...means.map(ordinal)], "spread-average"));
   box.append(list);
   el.spreadChart.replaceChildren(box);
 }
