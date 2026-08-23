@@ -711,8 +711,6 @@ function writeDecades(counts: { year: number; count: number }[],
       [{ label: c.decadeColP,
          help: { label: c.decadeHelp,
                  body: fill(c.decadeHelpBody, {
-                   threshold: magLabel(MIN_MAGNITUDE),
-                   total: total.toLocaleString(),
                    expected: Math.round(expected).toLocaleString(),
                    recent: recent.toLocaleString(),
                    p: asPercent(p),

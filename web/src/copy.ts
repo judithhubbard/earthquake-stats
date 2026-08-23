@@ -147,12 +147,9 @@ export const copy = {
     decadeNow: "Right now: {value}",
     decadeHelp: "how is this calculated?",
     decadeHelpBody:
-      "If the rate never changed, each earthquake would be equally likely to have fallen " +
-      "anywhere in the fifty years, so the number landing in the last ten follows a binomial " +
-      "distribution — {expected} of the {total} on record, give or take. This stretch holds " +
-      "{recent}, and a steady rate lands at least this far from average {p}% of the time." +
-      "\n\nTen years is fixed in advance, because a window chosen after looking would be " +
-      "chosen for its answer.",
+      "If the rate never changed, the last ten years should hold about a fifth of all the " +
+      "earthquakes on record. They hold {recent}, where {expected} would be average. A gap " +
+      "that size or bigger turns up {p}% of the time by chance alone.",
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
     decadeCaption:
