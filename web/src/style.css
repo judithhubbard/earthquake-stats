@@ -846,10 +846,20 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 1.25rem 1.5rem;
-  align-items: center;
+  align-items: stretch;
 }
 
 .answer-row > .scale { margin: 0; min-width: 0; }
+
+/* The scale is the taller column, so the histogram side stretches to match it
+   and centres its own contents; the basis line stays pinned to the top. */
+.answer-side { display: flex; flex-direction: column; min-width: 0; }
+.answer-side > .answer-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .question .answer-detail { min-height: 0; min-width: 0; }
 
 /* 42rem, not 60: the page's column is 60rem wide, so a 60rem breakpoint
@@ -1433,8 +1443,11 @@ footer p { margin: 0 0 0.4rem; }
 .scale-marker-value.is-left { left: auto; right: 0; transform: none; }
 .scale-marker-value.is-right { left: 0; transform: none; }
 
+/* Top left of the row, in the space the histogram leaves above itself, rather
+   than trailing the scale's last row -- where it read as a footnote to the
+   table instead of a statement about the whole figure. */
 .scale-basis {
-  margin: 0.6rem 0 0;
+  margin: 0 0 0.75rem;
   font-size: 0.82rem;
   font-style: italic;
   color: var(--text-secondary);

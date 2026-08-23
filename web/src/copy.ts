@@ -55,8 +55,8 @@ export const copy = {
   home: {
     /** The one-word answer. Whichever line fits the year is used. */
     answerBusiest: "<strong>Yes.</strong> {year} is ahead of almost every year since {from}.",
-    answerQuietest: "<strong>No — less.</strong> {year} is quieter than almost every year since {from}.",
-    answerBusy: "<strong>No.</strong> {year} is busy, but not unusually so.",
+    answerQuietest: "<strong>No — less.</strong> {year} is quieter.",
+    answerBusy: "<strong>No.</strong> {year} is busy, but not unusual.",
     answerQuiet: "<strong>No.</strong> {year} is running on the quiet side.",
     answerAverage: "<strong>No.</strong> {year} is running about average.",
     answerNothingYet: "<strong>No.</strong>",
@@ -68,8 +68,8 @@ export const copy = {
     /** The same answers for the rolling window, which is complete rather than
         part-way through, so "running" and "so far" would both be wrong. */
     rollingBusiest: "<strong>Yes.</strong> The last 365 days beat almost every year since {from}.",
-    rollingQuietest: "<strong>No — less.</strong> The last 365 days were quieter than almost every year since {from}.",
-    rollingBusy: "<strong>No.</strong> The last 365 days were busy, but not unusually so.",
+    rollingQuietest: "<strong>No — less.</strong> The last 365 days were quieter.",
+    rollingBusy: "<strong>No.</strong> The last 365 days were busy, but not unusual.",
     rollingQuiet: "<strong>No.</strong> The last 365 days were on the quiet side.",
     rollingAverage: "<strong>No.</strong> The last 365 days were about average.",
     detailCountRolling:
