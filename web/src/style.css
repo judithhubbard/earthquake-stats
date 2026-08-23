@@ -414,14 +414,20 @@ main {
    difference it was guarding against is small: the inset covers 28% of the
    chart at 960px, where it was allowed, and 34% at 768px, where it now is. */
 @media (max-width: 48rem) {
+  /* Once the inset is in the flow it reads as a summary of the chart, and a
+     summary belongs before the thing it summarises -- underneath, it arrived
+     after the reader had already worked the chart out. */
+  .chart-stage { display: flex; flex-direction: column; }
+
   .chart-inset {
+    order: -1;
     position: static;
     width: auto;
     max-width: 420px;
     padding: 0;
-    /* Centred once it is in the flow. Left-aligned it read as a stray figure
-       that had slipped out of the chart, which is more or less what happened. */
-    margin: 0.75rem auto 0;
+    /* Centred. Left-aligned it read as a stray figure that had slipped out of
+       the chart, which is more or less what happened. */
+    margin: 0 auto 1.1rem;
     background: none;
     border: 0;
     box-shadow: none;
