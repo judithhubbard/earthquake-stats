@@ -321,11 +321,16 @@ main {
    charts beside it at 60rem the text read as a narrow column that stopped
    two-thirds of the way across, and the caps did not even agree with each other.
    Line length is now whatever the container is. */
+/* The page's opening line, naming both questions before either is answered.
+   Italic and a shade heavier than the prose it sits above, so it reads as the
+   page speaking rather than as the first of the answers. */
 .hero-intro {
   margin: 1.1rem 0 0;
   max-width: 46rem;
-  color: var(--text-secondary);
-  font-size: 1.05rem;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-style: italic;
+  font-weight: 500;
   line-height: 1.6;
 }
 
