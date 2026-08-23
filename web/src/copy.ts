@@ -63,7 +63,7 @@ export const copy = {
 
     headlineShareCount: "{n}",
     headlineShareMore: "of {peers} past windows had more",
-    headlineCaption: "{threshold} earthquakes per 365 days, every year since {from}",
+    headlineCaption: "{threshold} earthquakes per 365 days, since {from}",
 
     /** The same answers for the rolling window, which is complete rather than
         part-way through, so "running" and "so far" would both be wrong. */
