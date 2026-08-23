@@ -924,13 +924,15 @@ main {
   border-top: 1px solid var(--border);
 }
 
+/* Quieter than a section title. It opens the second half of the answer, so it
+   should not compete with the headline above it or with the two chips below. */
 .decide-title {
-  margin: 0 0 0.7rem;
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  color: var(--chip-ink);
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: 0;
+  color: var(--text-secondary);
 }
 
 .section-title { margin: 0 0 0.6rem; }
