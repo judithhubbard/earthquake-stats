@@ -947,25 +947,26 @@ main {
   #chart, #map, .correlate-chart { overflow-x: auto; }
 }
 
+/* A grid, not a wrapping flex row. Flexed, the entries kept their content
+   widths and left the leftover space in the gaps, then still spilled a single
+   item onto a second row. auto-fit gives every entry an equal share of the
+   width and drops a column only when one genuinely will not fit. */
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.6rem 1.1rem;
-  margin: 0.5rem 0 0;
-  font-size: var(--t-data);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  align-items: start;
+  gap: 0.6rem 0.9rem;
+  margin: 0.6rem 0 0;
+  font-size: var(--t-cap);
   line-height: 1.3;
   color: var(--text-secondary);
 }
 
-/* Each entry is capped, so its label wraps to two short lines and all five
-   entries fit on one row. Set on one line each they ran to a second row that
-   held a single item -- the same total height, spent worse. */
 .legend span {
   display: inline-flex;
   align-items: flex-start;
   gap: 0.4rem;
-  max-width: 9.5rem;
+  min-width: 0;
 }
 
 .legend i {

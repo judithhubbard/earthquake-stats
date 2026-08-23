@@ -778,7 +778,6 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
   const fill = (d: AnnualCount) => colorFor.get(d.year) ?? theme.history;
   // The unfinished part of the current year is drawn as a hollow extension, so
   // the solid bar is always a count that actually happened.
-  const partial = counts.filter((c) => c.partial && c.projected > c.count);
   const withMajor = counts.filter((c) => c.major > 0);
 
   // Each bar is one hue at two strengths -- the M7+ share is the darker part
@@ -801,11 +800,6 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
       fill, fillOpacity: (d: AnnualCount) => (colorFor.has(d.year) ? 1 : 0.75),
       insetLeft: 0.5, insetRight: 0.5,
     })] : []),
-    Plot.rectY(partial, {
-      x: "year", y1: "count", y2: "projected",
-      fill: "none", stroke: fill, strokeWidth: 1, strokeDasharray: "2,2",
-      insetLeft: 0.5, insetRight: 0.5,
-    }),
   ];
 
   // Drawn before the rules so it sits behind them, and behind the bars, which

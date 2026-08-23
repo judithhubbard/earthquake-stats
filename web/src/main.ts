@@ -1199,8 +1199,15 @@ function writeAnnualNote(currentYear: number, splitMajor: boolean, rolling: bool
   const template = rolling
     ? (splitMajor ? copy.home.noteAnnualRollingMajor : copy.home.noteAnnualRolling)
     : (splitMajor ? copy.home.noteAnnual : copy.home.noteAnnualPlain);
+  // The catalogue's own cut-off, not the reader's clock: every bar is measured
+  // to the moment the data was last rebuilt, and that is what moves when the
+  // site updates.
+  const cutoff = new Date(meta.generated);
   el.annualNote.textContent = fill(template,
     { major: magLabel(MAJOR_MAGNITUDE),
+      when: cutoff.toLocaleString(undefined, {
+        month: "long", day: "numeric", hour: "numeric", minute: "2-digit",
+      }),
       year: yearLabel(currentYear, state.annualWindow) });
 }
 
