@@ -200,25 +200,13 @@ main {
   margin-bottom: 0.25rem;
 }
 
-.verdict-cols {
-  margin-top: 2.5rem;
-  display: grid;
-  /* The key column gives ground before the layout does. A fixed 21rem forced a
-     collapse as soon as the window dipped under the page's own width, which is
-     most windows; letting it fall to 14rem keeps two columns roughly 14rem of
-     viewport further down. The gap closes with it. */
-  grid-template-columns: minmax(0, clamp(17rem, 36%, 24rem)) minmax(0, 1fr);
-  gap: clamp(1.25rem, 3vw, 2.5rem);
-  align-items: start;
-}
+/* One column. The key reads first at the full measure, then the figures below
+   it -- which is the order a reader takes them in anyway, and it gives both
+   the charts the whole 60rem instead of two thirds of it. The two-column
+   version is stored in attic/verdict-columns. */
+.verdict-cols { margin-top: 2.5rem; }
 
-/* 42rem, not 58: below this the key column can no longer hold "153 to 191"
-   beside a sentence, which is the actual thing that breaks. */
-@media (max-width: 42rem) {
-  .verdict-cols { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
-}
-
-.verdict { min-width: 0; }
+.verdict { min-width: 0; margin-bottom: 3.25rem; }
 .figures { min-width: 0; }
 
 /* The one place on the site with a face of its own. A serif for the questions
@@ -1007,7 +995,7 @@ main {
    frame round a frame, and each one cost 2rem of padding. A hairline under the
    heading does the same work in 1px, and every figure now starts on the same
    left edge as the text above it. */
-.figures > .answer-detail { margin: 0 0 2.25rem; }
+.figures > .answer-detail { margin: 0 0 3rem; }
 
 /* Centred whatever width it was drawn at, so a stale measurement shows as a
    smaller figure rather than a figure pushed against the left edge. */
@@ -1131,13 +1119,14 @@ main {
 
 .chart-toggle-label { font-family: var(--mono); letter-spacing: 0.11em; }
 
-/* Under the table, where it belongs: it reads the same three numbers the
-   table's own rows are built from, so it explains the key rather than
-   introducing the figures. */
+/* Under the table: it reads the same three numbers the table's own rows are
+   built from, so it explains the key rather than introducing the figures. On
+   the full measure it is held to a reading width. */
 .verdict > .chart-explain {
   margin: 1.4rem 0 0;
   padding-top: 1.1rem;
   border-top: 1px solid var(--axis);
+  max-width: 60ch;
   font-size: var(--t-body);
   line-height: 1.6;
   color: var(--text-secondary);
@@ -1712,9 +1701,9 @@ footer p { margin: 0 0 0.4rem; }
    the same three columns the second question's table uses. */
 .scale-rows li {
   display: grid;
-  grid-template-columns: 14px minmax(0, 8rem) minmax(0, 1fr);
+  grid-template-columns: 14px minmax(0, 11rem) minmax(0, 1fr);
   align-items: start;
-  column-gap: 0.9rem;
+  column-gap: 1.25rem;
   padding: 0.35rem;
   margin: 0 -0.35rem;
   border-radius: var(--r-sm);
@@ -1730,7 +1719,7 @@ footer p { margin: 0 0 0.4rem; }
   font-size: var(--t-cap);
   white-space: nowrap;
 }
-.scale-rows .scale-said { grid-column: 3; grid-row: 1; }
+.scale-rows .scale-said { grid-column: 3; grid-row: 1; max-width: 46ch; }
 
 /* The reading, under the bands, in the same grid so the count lines up with
    the ranges above it. */
