@@ -155,7 +155,6 @@ const el = {
   scaleTitle: document.getElementById("scale-title")!,
   scaleBar: document.getElementById("scale-bar")!,
   scaleRows: document.getElementById("scale-rows")!,
-  scaleNote: document.getElementById("scale-note")!,
   generated: document.getElementById("generated")!,
   trendQuestion: document.getElementById("trend-question")!,
   trendVerdict: document.getElementById("trend-verdict")!,
@@ -203,14 +202,6 @@ function answerFor(pct: number, rolling: boolean): string {
  */
 const ANSWER_BOUNDS = [0, 5, 25, 75, 95, 100];
 
-/** 1st, 2nd, 3rd, 61st -- the copy used to append a literal "th". */
-function ordinal(n: number): string {
-  const v = Math.round(n);
-  const suffix = v % 100 >= 11 && v % 100 <= 13
-    ? "th"
-    : ["th", "st", "nd", "rd"][v % 10] ?? "th";
-  return `${v}${suffix}`;
-}
 
 /** Colour per band, palest in the middle: blue below average, red above. */
 const BAND_TINTS = ["down", "down", "mid", "up", "up"] as const;
@@ -287,10 +278,6 @@ function buildAnswerScale(pct: number | null, year: string) {
     return li;
   }));
 
-  el.scaleNote.textContent = pct === null ? "" : fill(copy.home.scaleNote, {
-    year, percentile: ordinal(pct),
-    threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START,
-  });
 }
 
 /* ---------------- highlight slots ---------------- */

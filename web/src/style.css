@@ -475,6 +475,7 @@ main {
   .chart { padding: 0.9rem 0.75rem 0.85rem; }
   #explore-title,
   #annual-title,
+  #decide-title,
   .trend > figcaption {
     position: static;
     transform: none;
@@ -832,6 +833,7 @@ main {
 .section-title,
 #explore-title,
 #annual-title,
+#decide-title,
 .trend > figcaption {
   font-weight: 700;
   line-height: 1.25;
@@ -843,6 +845,7 @@ main {
 
 #explore-title,
 #annual-title,
+#decide-title,
 .trend > figcaption {
   position: absolute;
   top: 0;
@@ -876,7 +879,10 @@ main {
    off the plot. */
 .chart-stage { position: relative; margin-top: 0.75rem; }
 
-.explore .controls { padding-bottom: 0.9rem; margin-bottom: 0; }
+/* Not ".explore": that class already belongs to the arrow links at the foot of
+   the page, and a figure wearing it became an inline-flex box with their
+   padding and border. */
+.explorer .controls { padding-bottom: 0.9rem; margin-bottom: 0; }
 
 .section-title { margin: 0 0 0.6rem; }
 
@@ -1245,24 +1251,13 @@ footer p { margin: 0 0 0.4rem; }
 
 /* ---------- "why does it feel like more" ---------- */
 
-/* A deliberate change of register after the charts: this half of the answer is
-   prose, because none of it is a number. */
-.feels {
-  margin: 2.5rem 0 0;
-  padding: 1.75rem 0 0;
-  border-top: 1px solid var(--border);
-}
-
-@media (max-width: 40rem) {
-}
-
-.feels-close {
+.decide .feels-close {
   margin: 0 0 0.5rem;
   font-size: 1rem;
   color: var(--text-secondary);
 }
 
-.feels-close strong { color: var(--text-primary); }
+.decide .feels-close strong { color: var(--text-primary); }
 
 /* Every headline the page can print, laid out against how often each comes up.
    The bar's segments are sized by band width, which is the same number as the
@@ -1369,12 +1364,6 @@ footer p { margin: 0 0 0.4rem; }
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   white-space: nowrap;
-}
-
-.scale-note {
-  margin: 0.9rem 0 0;
-  font-size: 0.78rem;
-  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {
