@@ -359,7 +359,7 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   const compact = opts.compact ?? false;
   const plot = Plot.plot({
     width,
-    height: compact ? 104 : 150,
+    height: compact ? 104 : 200,
     // Side margins hold a tick label; the first and last ticks sit on the frame
     // edge, so 8px cut them in half. The caption lives outside the figure, in
     // HTML that can wrap -- inside the plot it was one line and ran off the end.
@@ -851,7 +851,7 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
 
   return Plot.plot({
     width,
-    height: Math.max(200, Math.min(280, width * 0.3)),
+    height: Math.max(230, Math.min(330, width * 0.34)),
     marginLeft: opts.yLabel ? 70 : 44,
     marginRight: 62,
     marginBottom: 30,

@@ -207,8 +207,8 @@ main {
      collapse as soon as the window dipped under the page's own width, which is
      most windows; letting it fall to 14rem keeps two columns roughly 14rem of
      viewport further down. The gap closes with it. */
-  grid-template-columns: minmax(0, clamp(14rem, 32%, 21rem)) minmax(0, 1fr);
-  gap: clamp(1.25rem, 3.5vw, 3rem);
+  grid-template-columns: minmax(0, clamp(17rem, 36%, 24rem)) minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
   align-items: start;
 }
 
@@ -1653,7 +1653,7 @@ footer p { margin: 0 0 0.4rem; }
 .scale-rows li {
   display: grid;
   grid-template-columns: 14px minmax(0, 8rem) minmax(0, 1fr);
-  align-items: baseline;
+  align-items: start;
   column-gap: 0.9rem;
   padding: 0.35rem;
   margin: 0 -0.35rem;
@@ -1661,7 +1661,7 @@ footer p { margin: 0 0 0.4rem; }
   color: var(--text-secondary);
 }
 
-.scale-rows i { grid-column: 1; grid-row: 1; }
+.scale-rows i { grid-column: 1; grid-row: 1; margin-top: 0.22em; }
 .scale-rows .scale-range {
   grid-column: 2;
   grid-row: 1;
