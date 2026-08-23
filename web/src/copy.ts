@@ -222,15 +222,19 @@ export const copy = {
 
     trendColCombined: "p-value for the fitted slope",
     trendHelp: "how is this calculated?",
-    trendHelpBody: "A straight line is fitted by least squares through the {years} yearly counts, and " +
-      "the slope is tested against no slope at all. The year labels are then shuffled into a " +
-      "random order and the line refitted, {permutations} times over, which gives the spread " +
-      "of slopes a series with no trend in it produces. This slope is steeper than " +
-      "{corrected}% of those, and that is the number the answer above is graded on." +
-      "\n\nThe range under the chart is where the true slope lies with 95% confidence. When " +
-      "it includes zero, no change is one of the possibilities the data allow — which is why " +
-      "this shows the range rather than the single number in the middle of it. That number " +
-      "on its own invites arithmetic the data cannot support." +
+    trendHelpBody:
+      "A straight line is fitted through the {years} yearly counts, and the question is " +
+      "whether its slope means anything." +
+      "\n\nTo find out, the years are shuffled into a random order and the line refitted, " +
+      "{permutations} times over. Shuffling breaks any real trend, so those {permutations} " +
+      "slopes are what counts with no trend in them look like. Comparing the real slope " +
+      "against them: counts with no trend produce a slope at least this steep {corrected}% of " +
+      "the time. A small number would mean the slope is hard to put down to chance; a large " +
+      "one means it is not." +
+      "\n\nThe range under the chart is every slope the data cannot rule out, at 95% " +
+      "confidence. When it includes zero, no change at all is one of them — which is why the " +
+      "range is shown rather than the single number in the middle of it, a number that " +
+      "invites arithmetic the data cannot support." +
       "\n\nA straight line is an assumption too. It would not detect a rate that rose and " +
       "then fell back.",
     /* ===============================================================
