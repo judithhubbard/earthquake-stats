@@ -136,7 +136,7 @@ export const copy = {
     /* Ten years is fixed in advance and cannot be a control: on the current
        catalogue the five-year window reads 28%, the ten 51% and the fifteen
        6.7%, so a window chosen after looking would report the fifteen. */
-    decadeColP: "How often a steady rate does this",
+    decadeColP: "Chance of a gap this big",
     decadeColAnswer: "The answer",
     decadeBandStrong: "below 1%",
     decadeBandWeak: "1% to 5%",
@@ -147,9 +147,8 @@ export const copy = {
     decadeNow: "Right now: {value}",
     decadeHelp: "how is this calculated?",
     decadeHelpBody:
-      "If the rate never changed, the last ten years should hold about a fifth of all the " +
-      "earthquakes on record. They hold {recent}, where {expected} would be average. A gap " +
-      "that size or bigger turns up {p}% of the time by chance alone.",
+      "An average decade would hold {expected} earthquakes. This one holds {recent}. " +
+      "Gaps that size happen {p}% of the time by chance.",
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
     decadeCaption:
