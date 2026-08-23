@@ -192,7 +192,7 @@ export const copy = {
     scaleNow: "{year}, right now",
     scaleColCount: "Earthquakes in the last year",
     scaleColAnswer: "The answer",
-    scaleBasis: "Calculated based on all {threshold} earthquakes worldwide",
+    scaleBasis: "Calculated based on all {threshold} earthquakes worldwide since {from}",
     legendSigma: "±2σ — 95.45% under a normal fit",
     yearsNone: "None",
     yearsSome: "{n} years",

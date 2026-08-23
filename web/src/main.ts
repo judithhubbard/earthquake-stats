@@ -280,7 +280,8 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
   }
 
   el.scaleBasis.textContent = fill(copy.home.scaleBasis,
-                                   { threshold: magLabel(MIN_MAGNITUDE) });
+                                   { threshold: magLabel(MIN_MAGNITUDE),
+                                     from: REFERENCE_START });
 
   // Highest band at the top, so the list reads the way the question is asked:
   // "are there more?" first. The bar underneath still runs low to high left to
@@ -674,15 +675,9 @@ function writeHeadlineChart(curves: YearCurves, refYears: number[],
     width: Math.max(240, el.answerAggregate.clientWidth || 320),
   });
 
-  const head = document.createElement("div");
-  head.className = "chart-head chart-subhead";
-  const title = document.createElement("span");
-  title.className = "chart-subtitle";
-  title.textContent = fill(copy.home.headlineCaption, {
-    threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START,
-  });
-  head.append(title);
-  el.answerAggregate.replaceChildren(head, strip);
+  // No heading. What the figure counts is stated under the question, and the
+  // table beside it names the same bands its bars are coloured by.
+  el.answerAggregate.replaceChildren(strip);
 }
 
 /* ---------------- event lookup ---------------- */
