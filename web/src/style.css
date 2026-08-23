@@ -1334,7 +1334,12 @@ footer p { margin: 0 0 0.4rem; }
 
 /* A real container, so the spacing above the group does not depend on :has()
    resolving against paragraphs that exist only to wrap a link. */
-.read-next { margin-top: 4rem; }
+.read-next {
+  margin-top: 4rem;
+  /* Closes the list. Without it the last link's rule reads as a heading rule
+     for whatever follows rather than as the bottom of the group. */
+  border-bottom: 1px solid var(--axis);
+}
 
 .explore:hover { border-top-color: var(--text-primary); }
 .explore .arrow {
