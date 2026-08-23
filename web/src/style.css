@@ -27,7 +27,7 @@
      a green tray as well left three tints of one hue fighting each other. The
      neutrals on this page already lean warm (--band-outer, --grid), so the
      tray joins that family and the sage is left to mean something. */
-  --tray: #f5f5f2;
+  --tray: #e8e7df;
   /* The two questions share a ground, so they read as a pair and the tray
      below reads as a different kind of thing. Sage rather than the tray's
      stone, and light enough that the sage bars in the histograms drawn on it
@@ -37,7 +37,7 @@
   --chip-edge: #8fb9a3;
   /* A 2px edge needs a colour that reads at that weight; --border is an alpha
      black for hairlines and goes muddy when thickened. */
-  --panel-edge: #c7c6bd;
+  --panel-edge: #b0afa2;
   --chip-ink: #2f5a43;
 
   /* The cumulative chart's two nested ranges. Separate from --band-* because

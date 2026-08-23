@@ -1030,8 +1030,15 @@ async function update() {
             moment ? copy.home.stripShareMoreMoment : copy.home.stripShareMore,
             {
               subject: `${magLabel(minMag)} ${kind}`,
-              // A full twelve months, so there is no "as of" date to give.
-              when: "",
+              // The rolling window is a full twelve months and needs no "as
+              // of" date. The calendar one is part-finished, and every year it
+              // is compared against is cut at the same day, so the figure has
+              // to say which day that is.
+              when: state.window === "calendar"
+                ? fill(copy.home.stripShareBy,
+                       { date: dayToDate(today).toLocaleDateString(undefined, {
+                           month: "long", day: "numeric", timeZone: "UTC" }) })
+                : "",
             }),
         },
         currentLabel: moment
