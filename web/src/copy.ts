@@ -142,23 +142,16 @@ export const copy = {
        nothing was happening; 2.5 makes that five, the conventional two-sided
        rate. The frequencies printed beside each band are what that costs. */
     rateScaleTitle: "Every answer this section can give",
-    rateFalling:
-      "<strong>Yes — falling.</strong> The last ten years are quieter than almost any " +
-      "ten-year stretch a steady rate produces.",
-    rateQuiet:
-      "<strong>No.</strong> The last ten years are on the quiet side of the usual range.",
-    rateUsual:
-      "<strong>No.</strong> The last ten years are running at about the usual rate.",
-    rateBusy:
-      "<strong>No.</strong> The last ten years are on the busy side of the usual range.",
-    rateRising:
-      "<strong>Yes — rising.</strong> The last ten years are busier than almost any " +
-      "ten-year stretch a steady rate produces.",
+    rateFalling: "<strong>Yes</strong> — falling",
+    rateQuiet: "<strong>No</strong> — quiet side of usual",
+    rateUsual: "<strong>No</strong> — about the usual rate",
+    rateBusy: "<strong>No</strong> — busy side of usual",
+    rateRising: "<strong>Yes</strong> — rising",
     rateScaleRow: "{low}–{high}",
-    rateScaleFrequency: "about {n} times in 100",
+    rateScaleFrequency: "{n} in 100",
     rateScaleBasis:
-      "Where the last ten years fall among the ten-year stretches a steady rate produces, " +
-      "counting {threshold} mainshocks. 50 is exactly the long-run average.",
+      "Where the last ten years fall among the ten-year stretches a steady rate produces. " +
+      "50 is the long-run average.",
     rateMarker: "last ten",
     decadeShareCount: "{n}",
     decadeShareMore: "of {peers} earlier stretches were busier",
