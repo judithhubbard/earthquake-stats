@@ -141,7 +141,6 @@ let liveEvents: LiveEvent[] = [];
 const el = {
   answer: document.getElementById("answer")!,
   answerAggregate: document.getElementById("answer-aggregate")!,
-  headlineCount: document.getElementById("headline-count")!,
   answerDetail: document.getElementById("answer-detail")!,
   answerSummary: document.getElementById("answer-summary")!,
   latest: document.getElementById("latest")!,
@@ -1258,7 +1257,7 @@ async function update() {
   const headline = verdict(headlineCurves, headlineRef, currentYear, today, "count");
   const headlinePct = headline ? headline.percentile * 100 : null;
 
-  writeHeadline(headline, result, currentYear, headlinePct);
+  writeHeadline(result, currentYear, headlinePct);
   writeHeadlineChart(headlineCurves, headlineRef, headline, currentYear);
   void writeLatest(minMag);
   buildAnswerScale(headlinePct, yearLabel(currentYear));
@@ -1439,33 +1438,19 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
  * beside it, the charts, the table -- all of which say which setting they are
  * showing.
  */
-function writeHeadline(headline: ReturnType<typeof verdict>,
-                       result: ReturnType<typeof verdict>, currentYear: number,
+function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
                        pooled: number | null) {
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const moment = state.measure === "moment";
 
   if (!result || result.count === 0) {
     el.answer.innerHTML = copy.home.answerNothingYet;
-    el.headlineCount.replaceChildren();
     el.answerDetail.replaceChildren();
     el.answerSummary.textContent = moment
       ? fill(copy.home.detailNoneMoment, { year: yearLabel(currentYear) })
       : fill(copy.home.detailNoneCount,
              { threshold: magLabel(state.minMag), kind, year: yearLabel(currentYear) });
     return;
-  }
-
-  // The number the sentence is about, said out loud. It is the fixed series,
-  // not the selection: a reader who has clicked to M7+ still sees the M6+
-  // count here, which is the whole point of it being fixed.
-  el.headlineCount.replaceChildren();
-  if (headline) {
-    const n = document.createElement("strong");
-    n.textContent = fmt(headline.count);
-    el.headlineCount.append(n, " ", fill(copy.home.headlineUnit, {
-      threshold: magLabel(MIN_MAGNITUDE),
-    }));
   }
 
   el.answer.innerHTML = fill(answerFor(pooled ?? result.percentile * 100, true),

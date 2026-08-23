@@ -61,10 +61,6 @@ export const copy = {
     answerAverage: "<strong>No.</strong> {year} is running about average.",
     answerNothingYet: "<strong>No.</strong>",
 
-    /* The number the headline sentence is about, said out loud. Fixed on M6+
-       and all earthquakes whatever the controls below are set to, so a reader
-       who has clicked to M7+ still sees the figure the sentence used. */
-    headlineUnit: "{threshold} earthquakes in the last 365 days",
     headlineShareCount: "{n}",
     headlineShareMore: "of {peers} past windows had more",
     headlineCaption: "{threshold} earthquakes per 365 days, every year since {from}",
