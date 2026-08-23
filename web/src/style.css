@@ -330,7 +330,7 @@ main {
   /* Wider than the gaps inside the question above it. This is the seam between
      the page's own answer and the tool for checking it, and it should read as
      a bigger step than anything within either. */
-  margin-top: 3.5rem;
+  margin-top: 7rem;
   background: var(--tray);
   border: 2px solid var(--panel-edge);
   border-radius: 12px;
