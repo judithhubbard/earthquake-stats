@@ -179,10 +179,13 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 1.5rem 3rem;
-  /* Bottom, not first-baseline. The two blocks run to different line counts,
-     so aligning their first lines left the shorter one floating; sitting them
-     both on the rule underneath makes them one band. */
+  /* The last baseline, not the box's bottom edge. `end` lined up the two
+     boxes, which left the two final lines of type sitting at different
+     heights -- descenders and half-leading differ between 3.1rem and 1.7rem.
+     `last baseline` puts "usual this year?" and "average." on one line. The
+     `end` above it is the fallback for browsers without it. */
   align-items: end;
+  align-items: last baseline;
   padding-bottom: 1.75rem;
   border-bottom: 1px solid var(--axis);
 }
