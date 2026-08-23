@@ -28,9 +28,13 @@ import { startAnalytics } from "./analytics";
  */
 const REFERENCE_START = 1976;
 
+/* Mainshocks first, and the default. A year's count is dominated by whether a
+   handful of big sequences happened to fall in it, so "is this year unusual"
+   is a question about mainshocks; leaving aftershocks in answers a different
+   one. The option to put them back stays, second. */
 const CATALOG_MODES = [
-  { id: "all", label: "All earthquakes" },
   { id: "mainshocks", label: "Mainshocks only" },
+  { id: "all", label: "All earthquakes" },
 ] as const;
 const WINDOWS = [
   { id: "calendar", label: "This year" },
@@ -95,7 +99,7 @@ const state: State = {
   sortMode: "largest",
   range: "percentile",
   annualRange: "off",
-  catalogMode: "all",
+  catalogMode: "mainshocks",
   highlights: new Map(),
 };
 
