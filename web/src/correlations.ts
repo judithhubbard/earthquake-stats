@@ -4,7 +4,7 @@ import { readTheme, type Theme } from "./chart";
 import { MIN_MAGNITUDE, asPercent, dayIndex } from "./stats";
 import { copy, fill, numberWord } from "./copy";
 import { renderTech } from "./tech";
-import { flipTable } from "./verdict";
+import { flipTable, installHintGuard } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 import {
@@ -901,4 +901,5 @@ window.addEventListener("resize", () => {
   resizeTimer = window.setTimeout(() => { for (const fn of redraw) fn(); }, 150);
 });
 startAnalytics();
+installHintGuard();
 void boot();

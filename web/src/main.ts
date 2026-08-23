@@ -11,7 +11,7 @@ import {
 } from "./stats";
 import { copy, fill } from "./copy";
 import { renderTech } from "./tech";
-import { flipTable } from "./verdict";
+import { flipTable, installHintGuard } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 
@@ -31,9 +31,12 @@ const REFERENCE_START = 1976;
    handful of big sequences happened to fall in it, so "is this year unusual"
    is a question about mainshocks; leaving aftershocks in answers a different
    one. The option to put them back stays, second. */
+/* Rolling first, and the default for the cumulative chart: twelve months
+   ending today is a complete window, and so is every one it is compared
+   against. The calendar year is the part-way-through one. */
 const WINDOWS = [
-  { id: "calendar", label: "This year" },
   { id: "rolling", label: "Last 365 days" },
+  { id: "calendar", label: "This year" },
 ] as const;
 const CATALOG_MODES = [
   { id: "mainshocks", label: "Mainshocks only" },
@@ -1345,4 +1348,5 @@ async function boot() {
 }
 
 startAnalytics();
+installHintGuard();
 void boot();
