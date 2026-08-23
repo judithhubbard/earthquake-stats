@@ -289,6 +289,7 @@ function buildAnswerScale(pct: number | null, year: string) {
 
   el.scaleNote.textContent = pct === null ? "" : fill(copy.home.scaleNote, {
     year, percentile: ordinal(pct),
+    threshold: magLabel(MIN_MAGNITUDE), from: REFERENCE_START,
   });
 }
 
@@ -1002,7 +1003,12 @@ async function update() {
       return new Date(start + (day / DAYS) * (end - start));
     };
 
-    const width = Math.max(320, el.chart.clientWidth || 800);
+    // Each figure measures its own container. This used to measure #chart for
+    // all of them, which was fine while that was the first chart on the page;
+    // it now sits inside "Explore the data" at the foot, and the sections above
+    // were being drawn to whatever width it happened to report.
+    const widthOf = (node: HTMLElement) => Math.max(320, node.clientWidth || 800);
+    const width = widthOf(el.chart);
 
     if (result) {
       const peers = refYears
@@ -1063,7 +1069,7 @@ async function update() {
     figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
 
     el.annualChart.replaceChildren(renderAnnualChart({
-      counts, highlights, refYears, theme, width,
+      counts, highlights, refYears, theme, width: widthOf(el.annualChart),
       yLabel: state.measure === "moment"
         ? copy.home.axisAnnualMoment
         : fill(copy.home.axisAnnualCount, { threshold: magLabel(minMag) }),
@@ -1074,7 +1080,7 @@ async function update() {
 
       // finally, not then: a trend section that bails still leaves the summary
     // to be written, minus the paragraphs about the part that bailed.
-    void writeTrend(currentYear, theme, width).finally(writeTech);
+    void writeTrend(currentYear, theme, widthOf(el.trendGrid)).finally(writeTech);
 
   };
   lastRender();
@@ -1134,7 +1140,7 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
  * showing.
  */
 function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
-                       pooled: number | null) {
+                       headlinePct: number | null) {
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
   const moment = state.measure === "moment";
 
@@ -1148,7 +1154,7 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
     return;
   }
 
-  el.answer.innerHTML = fill(answerFor(pooled ?? result.percentile * 100, true),
+  el.answer.innerHTML = fill(answerFor(headlinePct ?? result.percentile * 100, true),
                              { year: yearLabel(currentYear), from: REFERENCE_START });
 
   const shared = {
