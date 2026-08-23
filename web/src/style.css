@@ -23,7 +23,7 @@
   --t-body: 0.9375rem;    /* 15px  -- prose */
   --t-lead: 1.0625rem;    /* 17px  -- figure titles, emphasis */
   --t-answer: 1.35rem;    /* 22px  -- the answer sentence */
-  --t-display: min(2.35rem, 5.6vw);             /* question titles, one line */
+  --t-display: min(3.1rem, 7vw);                /* question titles */
   --t-verdict: clamp(1.35rem, 2.8vw, 1.7rem);   /* the answer beside it */
   --t-hero: clamp(2rem, 5vw, 3rem);             /* the correlations masthead */
 
@@ -188,7 +188,7 @@ main {
   .question-head { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 }
 
-.question-title { max-width: 20ch; }
+.question-title { max-width: 17ch; }
 .answer { max-width: 24ch; }
 
 /* The word itself, at headline scale. Everything after it is the qualifier. */
