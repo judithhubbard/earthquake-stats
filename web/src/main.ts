@@ -36,10 +36,6 @@ const CATALOG_MODES = [
   { id: "mainshocks", label: "Mainshocks only" },
   { id: "all", label: "All earthquakes" },
 ] as const;
-const WINDOWS = [
-  { id: "calendar", label: "This year" },
-  { id: "rolling", label: "Last 365 days" },
-] as const;
 // How the reference years are described. Percentiles say what those years did;
 // sigma says what a normal fit to them predicts. See BandPoint in stats.ts.
 const RANGES = [
@@ -79,7 +75,7 @@ const LIVE_INTERVAL_MS = 60_000;
 
 interface State {
   minMag: number;
-  window: (typeof WINDOWS)[number]["id"];
+  window: "calendar" | "rolling";
   measure: Measure;
   sortMode: (typeof SORT_MODES)[number]["id"];
   range: (typeof RANGES)[number]["id"];
@@ -92,7 +88,8 @@ interface State {
 
 const state: State = {
   minMag: MIN_MAGNITUDE,
-  window: "calendar",
+  // Pinned. The Period control is parked in attic/period-control.
+  window: "rolling",
   // Pinned. The Count/Moment control is parked in attic/measure-control;
   // the moment branches downstream are unreachable but still present.
   measure: "count",
@@ -111,18 +108,15 @@ const state: State = {
  * complete "year" -- and every past window run to the same date, so a full year
  * is only ever compared against full years.
  */
-function calendarShift(window: State["window"] = state.window): number {
-  if (window === "calendar") return 0;
+function calendarShift(): number {
   const now = new Date();
   const tomorrow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
   return tomorrow - Date.UTC(now.getUTCFullYear(), 0, 1);
 }
 
-/** "2025" for a calendar year, "2025–26" for a window that straddles two. */
+/** "2025–26": every window straddles two calendar years now. */
 function yearLabel(year: number): string {
-  return state.window === "calendar"
-    ? String(year)
-    : `${year}–${String(year + 1).slice(2)}`;
+  return `${year}–${String(year + 1).slice(2)}`;
 }
 
 /**
@@ -150,7 +144,6 @@ const el = {
   answerSummary: document.getElementById("answer-summary")!,
   latest: document.getElementById("latest")!,
   mag: document.getElementById("mag-control")!,
-  window: document.getElementById("window-control")!,
   sort: document.getElementById("sort-control")!,
   catalog: document.getElementById("catalog-control")!,
   yearPicker: document.getElementById("year-picker")!,
@@ -253,9 +246,8 @@ function buildAnswerScale(pct: number | null, year: string) {
     const high = ANSWER_BOUNDS[i + 1];
     return {
       low, high, width: high - low,
-      // false, not the window setting: these are the sentences the headline can
-      // print, and it prints the calendar ones.
-      text: fill(answerFor((low + high) / 2, false), { year, from: REFERENCE_START }),
+      // The sentences the headline can print, which are now the rolling set.
+      text: fill(answerFor((low + high) / 2, true), { year, from: REFERENCE_START }),
       tint: BAND_TINTS[i], fade: BAND_FADES[i],
     };
   });
@@ -439,14 +431,6 @@ function buildControls() {
     () => state.range, (id) => { state.range = id as State["range"]; });
   buildSegmented(el.annualRange, ANNUAL_RANGES.map((r) => ({ id: r.id, label: r.label })),
     () => state.annualRange, (id) => { state.annualRange = id as State["annualRange"]; });
-  buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
-    () => state.window, (id) => {
-      state.window = id as State["window"];
-      // "2025" means the calendar year in one mode and August-to-August in the
-      // other. Carrying a selection across would quietly point it elsewhere.
-      state.highlights.clear();
-      claimSlot(dayIndex(Date.now(), calendarShift()).year);
-    });
   buildSegmented(el.catalog, CATALOG_MODES.map((c) => ({ id: c.id, label: c.label })),
     () => state.catalogMode, (id) => { state.catalogMode = id as State["catalogMode"]; });
   buildSegmented(el.sort, SORT_MODES.map((s) => ({ id: s.id, label: s.label })),
@@ -688,7 +672,7 @@ function hint(label: string, body: string): HTMLElement {
   return wrap;
 }
 
-const SPREAD_WINDOWS: State["window"][] = ["calendar", "rolling"];
+const SPREAD_WINDOWS: State["window"][] = ["rolling"];
 
 function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | null;
                                     years: number; columns: (Combined | null)[] } {
@@ -709,7 +693,7 @@ function spreadTable(tier: Tier): { rows: SpreadRow[]; aggregate: Combined | nul
       for (const mainshocksOnly of measure === "count" ? [false, true] : [false]) {
         const cells: SpreadCell[] = [];
         for (const [wi, window] of SPREAD_WINDOWS.entries()) {
-          const shift = calendarShift(window);
+          const shift = calendarShift();
           const curves = cumulativeByYear(
             tier, minMag, REFERENCE_START, mainshocksOnly, measure, shift);
           applyLive(curves, tier, minMag, shift, measure);
@@ -1422,10 +1406,9 @@ async function update() {
 
   const shift = calendarShift();
   const { year: currentYear } = dayIndex(Date.now(), shift);
-  // A rolling window always ends today, so it is complete: the current "year"
-  // runs the full 365 days, and is compared only against equally complete ones.
-  const rolling = state.window === "rolling";
-  const today = rolling ? DAYS - 1 : dayIndex(Date.now(), shift).day;
+  // The window always ends today, so it is complete: the current "year" runs
+  // the full 365 days, and is compared only against equally complete ones.
+  const today = DAYS - 1;
 
   const mainshocksOnly = effectiveMainshocksOnly();
   const curves = cumulativeByYear(
@@ -1490,7 +1473,7 @@ async function update() {
   void writeLatest(minMag);
   buildAnswerScale(headlinePct, yearLabel(currentYear));
   writeNote(refYears.length, liveAdded);
-  writeAnnualNote(currentYear, splitMajor, rolling);
+  writeAnnualNote(currentYear, splitMajor, true);
 
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
     subject, from: REFERENCE_START, to: currentYear - 1,
@@ -1553,13 +1536,8 @@ async function update() {
             moment ? copy.home.stripShareMoreMoment : copy.home.stripShareMore,
             {
               subject: `${magLabel(minMag)} ${kind}`,
-              // The calendar view counts up to today, and the number means
-              // nothing without saying so; the rolling view is a full twelve
-              // months and has no such date.
-              when: rolling ? "" : fill(copy.home.stripShareBy, {
-                date: new Date().toLocaleDateString(undefined,
-                                                    { day: "numeric", month: "long" }),
-              }),
+              // A full twelve months, so there is no "as of" date to give.
+              when: "",
             }),
         },
         currentLabel: moment
@@ -1687,11 +1665,7 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
     return;
   }
 
-  const roll = state.window === "rolling";
-  // Never the rolling wording: the pooled figure is built from calendar years
-  // only, because a 365-day window ending today is not a year and cannot be
-  // ranked against past ones. See spreadTable.
-  el.answer.innerHTML = fill(answerFor(pooled ?? result.percentile * 100, false),
+  el.answer.innerHTML = fill(answerFor(pooled ?? result.percentile * 100, true),
                              { year: yearLabel(currentYear), from: REFERENCE_START });
 
   const shared = {
@@ -1699,12 +1673,12 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
     above: Math.round(result.aboveShare * 100),
   };
   el.answerSummary.textContent = moment
-    ? fill(roll ? copy.home.detailMomentRolling : copy.home.detailMoment, {
+    ? fill(copy.home.detailMomentRolling, {
         ...shared, count: withUnit(result.count),
         equivalent: equivalentMagnitude(result.count).toFixed(1),
         median: withUnit(result.medianToDate),
       })
-    : fill(roll ? copy.home.detailCountRolling : copy.home.detailCount, {
+    : fill(copy.home.detailCountRolling, {
         ...shared, count: fmt(result.count), threshold: magLabel(state.minMag), kind,
         median: fmt(result.medianToDate),
       });
