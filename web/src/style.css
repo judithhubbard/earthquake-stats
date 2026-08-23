@@ -272,11 +272,10 @@ main {
    the copy string. */
 .latest {
   margin-left: 0.6rem;
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: 0;
+  font-weight: 400;
+  letter-spacing: 0.06em;
   text-transform: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .eyebrow {
@@ -1597,15 +1596,24 @@ footer p { margin: 0 0 0.4rem; }
   border-radius: 0;
 }
 
-.scale-rows .scale-head .scale-range { font-weight: 700; }
+/* The heading is a phrase, not a range, so it wraps where the rows below it
+   must not -- at 7rem "Earthquakes in the last year" ran straight under "The
+   answer" in the next column. */
+.scale-rows .scale-head .scale-range {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: inherit;
+  white-space: normal;
+  line-height: 1.25;
+}
 
 /* One line per band: swatch, the range it covers, and the sentence it earns --
    the same three columns the second question's table uses. */
 .scale-rows li {
   display: grid;
-  grid-template-columns: 14px minmax(0, 7rem) minmax(0, 1fr);
+  grid-template-columns: 14px minmax(0, 8rem) minmax(0, 1fr);
   align-items: baseline;
-  column-gap: 0.75rem;
+  column-gap: 0.9rem;
   padding: 0.35rem;
   margin: 0 -0.35rem;
   border-radius: var(--r-sm);
