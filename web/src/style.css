@@ -412,9 +412,10 @@ main {
      a chip on the border. */
   position: absolute;
   top: 0.9rem;
-  left: 4.6rem;
+  right: 0;
+  left: auto;
   width: 16.5rem;
-  max-width: calc(100% - 6rem);
+  max-width: calc(100% - 9rem);
   padding: 0.45rem 0.55rem 0.3rem;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -1184,8 +1185,8 @@ main {
    of their own. */
 .stage-toggle {
   position: absolute;
-  right: 0;
-  top: -2rem;
+  top: 0.9rem;
+  left: 3.6rem;
   z-index: 5;
 }
 
