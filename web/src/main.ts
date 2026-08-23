@@ -164,6 +164,7 @@ const el = {
   annualIntro: document.getElementById("annual-intro")!,
   annualChart: document.getElementById("annual-chart")!,
   annualNote: document.getElementById("annual-note")!,
+  annualChartTitle: document.getElementById("annual-chart-title")!,
   annualBand: document.getElementById("annual-band")!,
   range: document.getElementById("range-control")!,
   annualRange: document.getElementById("annual-range-control")!,
@@ -944,6 +945,8 @@ async function update() {
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
     subject, from: REFERENCE_START, to: currentYear - 1,
   });
+  el.annualChartTitle.textContent = fill(copy.home.axisAnnualCount,
+                                         { threshold: magLabel(MIN_MAGNITUDE) });
   el.annualIntro.textContent = fill(copy.home.annualIntro,
                                     { threshold: magLabel(MIN_MAGNITUDE) });
 
@@ -1077,7 +1080,6 @@ async function update() {
       yearLabel: (year: number) => yearLabel(year, "rolling"),
       showMajor: false,
       yLabel: "",
-      title: fill(copy.home.axisAnnualCount, { threshold: magLabel(MIN_MAGNITUDE) }),
       wholeNumbers: true,
       sigma: annualSigma,
       yMax: Math.max(0, ...counts.map((c) => Math.max(c.count, c.projected))),
