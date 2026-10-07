@@ -32,6 +32,19 @@
       </header>
 
       <section class="question">
+        <!-- What the page is about: over which span, ending when. Both sit above
+             the question because both change it. -->
+        <div class="span-row">
+          <div class="span-pick">
+            <span class="span-label" id="span-label">Over</span>
+            <span class="segmented" id="span-control"></span>
+          </div>
+          <div class="as-of">
+            <label for="as-of" id="as-of-label">Year ending</label>
+            <input type="date" id="as-of" min="1977-01-01" />
+            <button type="button" class="as-of-today" id="as-of-today" hidden>Back to today</button>
+          </div>
+        </div>
         <div class="question-head">
           <h2 class="question-title" id="question-title">Are there more earthquakes than usual this&nbsp;year?</h2>
           <p class="answer" id="answer">Loading the catalog…</p>
@@ -39,11 +52,6 @@
         <p class="sr-only" id="answer-summary"></p>
         <div class="basis-row">
           <p class="scale-basis" id="scale-basis"></p>
-          <div class="as-of">
-            <label for="as-of" id="as-of-label">Year ending</label>
-            <input type="date" id="as-of" min="1977-01-01" />
-            <button type="button" class="as-of-today" id="as-of-today" hidden>Back to today</button>
-          </div>
         </div>
 
         <div class="verdict-cols">
@@ -60,7 +68,7 @@
           </div>
         </div>
 
-        <div class="annual-figure">
+        <div class="annual-figure only-year">
           <div class="chart-head chart-subhead">
             <span class="chart-subtitle" id="annual-chart-title"></span>
             <span class="chart-toggle">
@@ -93,7 +101,7 @@
               </legend>
               <div class="segmented" id="mag-control"></div>
             </fieldset>
-          <fieldset>
+          <fieldset class="only-year">
             <legend>
               Period
               <span class="hint">
@@ -126,7 +134,11 @@
               </legend>
               <div class="segmented" id="catalog-control"></div>
             </fieldset>
-            <fieldset>
+            <fieldset class="only-thirty">
+              <legend id="thirty-range-label">Charts show</legend>
+              <div class="segmented" id="thirty-range-control"></div>
+            </fieldset>
+            <fieldset class="only-year">
               <legend>Highlighted years</legend>
               <div class="picker" id="year-picker">
                 <button type="button" class="picker-button" id="year-toggle"
@@ -144,18 +156,34 @@
               </div>
             </fieldset>
             </div>
-            <div class="chart-head chart-subhead">
+            <div class="chart-head chart-subhead only-year">
               <span class="chart-subtitle" id="chart-title"></span>
               <div class="answer-detail chart-inset" id="answer-detail"></div>
             </div>
-            <div class="chart-stage has-inset">
+            <div class="chart-stage has-inset only-year">
               <span class="chart-toggle stage-toggle">
                 <span class="chart-toggle-label">Range</span>
                 <span class="segmented segmented-sm" id="range-control"></span>
               </span>
               <div id="chart"></div>
             </div>
-            <p class="chart-note" id="chart-note"></p>
+            <p class="chart-note only-year" id="chart-note"></p>
+
+            <div class="thirty-charts only-thirty">
+              <div class="chart-head chart-subhead">
+                <span class="chart-subtitle" id="timeline-title"></span>
+              </div>
+              <p class="legend" id="timeline-legend"></p>
+              <div id="timeline"></div>
+              <p class="chart-note" id="timeline-note"></p>
+
+              <div class="chart-head chart-subhead">
+                <span class="chart-subtitle" id="rolling-title"></span>
+              </div>
+              <p class="legend" id="rolling-legend"></p>
+              <div id="rolling"></div>
+              <p class="chart-note" id="rolling-note"></p>
+            </div>
           </figure>
       </section>
 

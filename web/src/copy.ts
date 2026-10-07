@@ -82,13 +82,76 @@ export const copy = {
     /* What {span} and {window} say above: the live view, and a date picked in
        the "Year ending" field, where {date} is that date. */
     spanLive: "The last year",
-    spanPast: "The year to {date}",
+    spanPast: "The year ending on {date}",
     windowLive: "the last 365 days",
-    windowPast: "the 365 days to {date}",
+    windowPast: "the 365 days ending on {date}",
     asOfLabel: "Year ending",
+    asOfLabelThirty: "30 days ending",
     /** The headline once a date is picked. The live one is in unusual/index.html. */
-    questionPast: "Were there more earthquakes than usual in the year to {date}?",
+    questionPast: "Were there more earthquakes than usual in the year ending on {date}?",
     asOfToday: "Back to today",
+
+    /* =================================================================
+       THE 30-DAY VIEW. The "Over" switch at the top flips the page between
+       the last year and the last 30 days.
+       ================================================================= */
+    spanLabel: "Over",
+    spanYear: "The last year",
+    spanThirty: "The last 30 days",
+    questionThirty: "Are there more earthquakes than usual right now?",
+    questionThirtyPast: "Were there more earthquakes than usual in the 30 days ending on {date}?",
+    /** {span} is "The last 30 days" live, or "The 30 days ending on {date}". */
+    thirtySpanLive: "The last 30 days",
+    thirtySpanPast: "The 30 days ending on {date}",
+    thirtyBusiest: "<strong>Yes.</strong> {span} were unusually busy.",
+    thirtyQuietest: "<strong>No — fewer.</strong> {span} were unusually quiet.",
+    thirtyBusy: "<strong>No.</strong> {span} were busy, but not unusual.",
+    thirtyQuiet: "<strong>No.</strong> {span} were on the quiet side.",
+    thirtyAverage: "<strong>No.</strong> {span} were about average.",
+    /** The sentence under the histogram, as the yearly view has one. */
+    thirtyBand:
+      "In 90% of 30-day stretches since {from}, there are between {lo} and {hi} " +
+      "{threshold} earthquakes. {actual} {often}",
+    thirtyActualLive: "In the last 30 days, there have been {n}.",
+    thirtyActualPast: "In the 30 days ending on {date}, there were {n}.",
+    /** How often a stretch this quiet or busy turns up. {how} is one of the
+        thirtyHow* phrases below. */
+    thirtyOften: "A 30-day stretch this {which} happens {how}.",
+    thirtyNever: "No other 30-day stretch since {from} has been this {which}.",
+    thirtyHowTimes: "about {n} times a year",
+    thirtyHowOnce: "about once a year",
+    thirtyHowFew: "every two or three years",
+    thirtyHowRare: "about once every {n} years",
+    thirtyQuietWord: "quiet",
+    thirtyBusyWord: "busy",
+    /** Read by screen readers in place of the histogram. */
+    thirtySummary: "{n} {threshold} earthquakes in {window}. Usually there are about {median}.",
+    thirtyWindowLive: "the last 30 days",
+    thirtyWindowPast: "the 30 days ending on {date}",
+    thirtyShareMore: "of 30-day stretches had more",
+    thirtyNowLabel: "now",
+    thirtyColCount: "Earthquakes in 30 days",
+    thirtyScaleNow: "the last 30 days",
+    thirtyScaleNowPast: "the 30 days ending on {date}",
+    thirtyHistTip: "{n} earthquakes: {share}% of 30-day stretches",
+    thirtyRange: "Charts show",
+    thirtyTimelineTitle: "Every {threshold} earthquake, with {window} marked",
+    thirtyBoxLive: "Last 30 days",
+    thirtyBoxPast: "30 days ending on {date}",
+    thirtyMainshock: "Mainshock",
+    thirtyAftershock: "Aftershock",
+    thirtyDotSize: "Dot size follows magnitude",
+    thirtyTimelineNote:
+      "{window}: {n} {threshold} earthquake{s}, {main} mainshock{ms} and {after} " +
+      "aftershock{as}.{largest}",
+    thirtyTimelineLargest: " The largest was M{mag}, {place}, on {date}.",
+    thirtyRollingTitle: "{threshold} {kind} in every 30-day stretch",
+    thirtyRollingNote:
+      "Each point is the number of earthquakes in the 30 days ending that day. The shading " +
+      "is the middle half and the middle 90% of every 30-day stretch since {from}.",
+    thirtyLegendLine: "30-day count",
+    thirtyLegendInner: "Middle half of all 30-day stretches",
+    thirtyLegendOuter: "Middle 90%",
 
     scaleAnsBusiest: "<strong>Yes.</strong>",
     scaleAnsBusy: "<strong>No.</strong> Busy, but not unusual",
@@ -143,7 +206,7 @@ export const copy = {
       "In 90% of years, we expect to see between {lo} and {hi} {threshold} earthquakes. " +
       "{actual}",
     annualBandActualLive: "In the last 365 days, there have been {n}.",
-    annualBandActualPast: "In the 365 days to {date}, there were {n}.",
+    annualBandActualPast: "In the 365 days ending on {date}, there were {n}.",
 
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
@@ -205,7 +268,7 @@ export const copy = {
     scaleRowLow: "{n} or fewer",
     scaleRowHigh: "{n} or more",
     scaleNow: "{year}, right now",
-    scaleNowPast: "{year}, to {date}",
+    scaleNowPast: "{year}, ending on {date}",
     scaleColCount: "Earthquakes in the last year",
     scaleColCountPast: "Earthquakes in the year",
     scaleColAnswer: "The answer",
@@ -259,6 +322,15 @@ export const copy = {
       "complete year in the record, after it as well as before, so a year in the 1980s is " +
       "judged against as many others as this one is. The live feed is left out, since it " +
       "only covers the last day." +
+
+      "\n\n**The last 30 days.** The switch at the top turns the page to the last 30 " +
+      "days. A 30-day stretch is not compared with the same 30 days in each earlier year, " +
+      "which would give one peer per year at around a dozen earthquakes each. It is ranked " +
+      "against every other 30-day stretch since {from}: one ending on each day, about " +
+      "18,000, leaving out any that overlap it. Earthquakes keep no calendar, so a stretch " +
+      "in March is a fair comparison for one in October. \"How often\" counts separate " +
+      "spells rather than days: a quiet spell keeps the count low for days on end as the " +
+      "window slides, so qualifying days within 30 of each other count once." +
 
       "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
       "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +

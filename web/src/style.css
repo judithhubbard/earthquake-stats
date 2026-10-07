@@ -1977,3 +1977,35 @@ footer p { margin: 0 0 0.4rem; }
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* ---------------- the 30-day view ----------------
+   The "Over" switch puts span-thirty on <body>. Each part of the page belongs
+   to one view or the other, and the class decides which is drawn. */
+body.span-thirty .only-year,
+body:not(.span-thirty) .only-thirty { display: none !important; }
+
+.span-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem 1.5rem;
+  margin: 0 0 1.4rem;
+}
+.span-pick { display: flex; align-items: center; gap: 0.7rem; }
+.span-row .as-of { align-items: center; }
+.span-label {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.thirty-charts .chart-subhead { margin-top: 1.6rem; }
+.thirty-charts .chart-subhead:first-child { margin-top: 0.4rem; }
+/* A row, not the cumulative legend's grid: two or three short entries spread
+   across a grid's full width read as unrelated labels. */
+.thirty-charts .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0.5rem 0 0.3rem; }
+/* Round swatches: they stand for dots, not bars. */
+.thirty-charts .swatch-dot { border-radius: 50%; width: 10px; height: 10px; }

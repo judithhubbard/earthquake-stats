@@ -1,6 +1,6 @@
 import { CatalogStore, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, renderDistribution,
-         readTheme, type Highlight } from "./chart";
+import { renderAnnualChart, renderChart, renderDistribution, renderRolling, renderTimeline,
+         readTheme, type Highlight, type TimelineEvent } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
   dayIndex, empiricalBand, quantile,
@@ -15,6 +15,8 @@ import { installHintGuard } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
 import { classifyLive } from "./decluster";
+import { WINDOW_DAYS, bandRanges, dailyCounts, dayOf, reading, spellsPerYear,
+         windowSums } from "./thirty";
 
 /**
  * First year of the reference window, and the earliest year shown anywhere.
@@ -56,6 +58,19 @@ const RANGES = [
 // two: "Off" was an option you could select, which is a strange way to say
 // that nothing is drawn.
 const ANNUAL_SIGMA_LABEL = "±2σ (95.45%)";
+/* What the "Over" switch flips the page between. The year first: it is what
+   the page opens on. */
+const SPANS = [
+  { id: "year", label: copy.home.spanYear },
+  { id: "thirty", label: copy.home.spanThirty },
+] as const;
+/* How far back the 30-day view's two charts reach. */
+const THIRTY_RANGES = [
+  { id: "1", label: "1 year" },
+  { id: "2", label: "2 years" },
+  { id: "5", label: "5 years" },
+  { id: "0", label: "Whole record" },
+] as const;
 
 
 /** Colour slots available to highlighted years; index 0 is the current year. */
@@ -87,6 +102,10 @@ interface State {
   highlights: Map<number, number>;
   /** A picked "Year ending" date as YYYY-MM-DD, or null for live. */
   asOf: string | null;
+  /** The last year, or the last 30 days. */
+  span: (typeof SPANS)[number]["id"];
+  /** Years the 30-day charts reach back; 0 for the whole record. */
+  thirtyYears: number;
 }
 
 const state: State = {
@@ -104,6 +123,8 @@ const state: State = {
   catalogMode: "all",
   highlights: new Map(),
   asOf: null,
+  span: "year",
+  thirtyYears: 1,
 };
 
 const DAY_MS = 86_400_000;
@@ -208,6 +229,18 @@ const el = {
   annualRange: document.getElementById("annual-range-control")!,
   scaleNow: document.getElementById("scale-now")!,
   questionTitle: document.getElementById("question-title")!,
+  span: document.getElementById("span-control")!,
+  spanLabel: document.getElementById("span-label")!,
+  thirtyRange: document.getElementById("thirty-range-control")!,
+  thirtyRangeLabel: document.getElementById("thirty-range-label")!,
+  timeline: document.getElementById("timeline")!,
+  timelineTitle: document.getElementById("timeline-title")!,
+  timelineLegend: document.getElementById("timeline-legend")!,
+  timelineNote: document.getElementById("timeline-note")!,
+  rolling: document.getElementById("rolling")!,
+  rollingTitle: document.getElementById("rolling-title")!,
+  rollingLegend: document.getElementById("rolling-legend")!,
+  rollingNote: document.getElementById("rolling-note")!,
   asOf: document.getElementById("as-of")!,
   asOfWrap: document.querySelector(".as-of") as HTMLElement,
   asOfLabel: document.getElementById("as-of-label")!,
@@ -279,8 +312,18 @@ const BAND_FADES = [1, 0.45, 1, 0.45, 1];
  * width of its band, which is also the number of years in a hundred: the
  * percentile is uniform by construction, so a band 20 points wide is 20 years.
  */
+/** What the 30-day view hands the scale in place of the yearly edges. */
+interface ScaleOverride {
+  /** One range per band, lowest first; null for a band no count lands in. */
+  ranges: (string | null)[];
+  head: string;
+  nowText: string;
+  /** The band the reading is in, 0 lowest -- marked directly, not by percentile. */
+  band: number;
+}
+
 function buildAnswerScale(pct: number | null, year: string, peers: number[],
-                          current: number | null) {
+                          current: number | null, override?: ScaleOverride) {
   // The band edges as counts, read off the past windows themselves. The
   // percentile is already in the frequency column on the right -- "5 years in
   // 100" is what a 0-5th percentile band means -- so the left column can say
@@ -295,7 +338,8 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
       // The sentences the headline can print, which are now the rolling set.
       text: scaleAnswerFor((low + high) / 2),
       tint: BAND_TINTS[i], fade: BAND_FADES[i],
-      count: sorted.length < 4 ? null
+      count: override ? (override.ranges[i] ?? "—")
+           : sorted.length < 4 ? null
            : i === 0 ? fill(copy.home.scaleRowLow, { n: edges[0] })
            : i === ANSWER_BOUNDS.length - 2
              ? fill(copy.home.scaleRowHigh, { n: edges[edges.length - 1] + 1 })
@@ -319,7 +363,8 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
     label.textContent = String(current);
     const said = document.createElement("span");
     said.className = "scale-said";
-    said.textContent = state.asOf === null
+    said.textContent = override ? override.nowText
+      : state.asOf === null
       ? fill(copy.home.scaleNow, { year })
       : fill(copy.home.scaleNowPast, { year, date: asOfLabel() });
     li.append(document.createElement("i"), label, said);
@@ -339,8 +384,8 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
   head.className = "scale-head";
   const headWhen = document.createElement("span");
   headWhen.className = "scale-range";
-  headWhen.textContent = state.asOf === null
-    ? copy.home.scaleColCount : copy.home.scaleColCountPast;
+  headWhen.textContent = override ? override.head
+    : state.asOf === null ? copy.home.scaleColCount : copy.home.scaleColCountPast;
   const headSays = document.createElement("span");
   headSays.className = "scale-said";
   headSays.textContent = copy.home.scaleColAnswer;
@@ -360,7 +405,10 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
     said.className = "scale-said";
     said.innerHTML = b.text;
 
-    if (pct !== null && pct >= b.low && pct <= b.high) li.className = "is-current";
+    const current = override
+      ? override.band === ANSWER_BOUNDS.indexOf(b.low)
+      : pct !== null && pct >= b.low && pct <= b.high;
+    if (current) li.className = "is-current";
     li.append(swatch, range, said);
     return li;
   }));
@@ -519,6 +567,15 @@ function buildControls() {
   buildSegmented(el.catalog, CATALOG_MODES.map((c) => ({ id: c.id, label: c.label })),
     () => state.catalogMode, (id) => { state.catalogMode = id as State["catalogMode"]; });
   wireYearPicker();
+  buildSegmented(el.span, SPANS.map((s) => ({ id: s.id, label: s.label })),
+    () => state.span, (id) => {
+      state.span = id as State["span"];
+      writeUrl();
+    });
+  el.spanLabel.textContent = copy.home.spanLabel;
+  buildSegmented(el.thirtyRange, THIRTY_RANGES.map((r) => ({ id: r.id, label: r.label })),
+    () => String(state.thirtyYears), (id) => { state.thirtyYears = Number(id); });
+  el.thirtyRangeLabel.textContent = copy.home.thirtyRange;
   wireAsOf();
 }
 
@@ -543,11 +600,29 @@ function writeQuestion() {
     liveQuestion.title = document.title;
   }
   const past = state.asOf !== null;
-  const question = past ? fill(copy.home.questionPast, { date: asOfLabel() }) : "";
-  if (past) el.questionTitle.textContent = question;
+  const thirty = state.span === "thirty";
+  const question = thirty
+    ? (past ? fill(copy.home.questionThirtyPast, { date: asOfLabel() }) : copy.home.questionThirty)
+    : past ? fill(copy.home.questionPast, { date: asOfLabel() }) : "";
+  if (question) el.questionTitle.textContent = question;
   else el.questionTitle.innerHTML = liveQuestion.html;
   el.questionTitle.classList.toggle("is-past", past);
-  document.title = past ? question : liveQuestion.title;
+  document.title = question || liveQuestion.title;
+  el.asOfLabel.textContent = thirty ? copy.home.asOfLabelThirty : copy.home.asOfLabel;
+}
+
+/**
+ * The address bar says what the page shows: ?date= for a picked date, and
+ * ?span=30 for the 30-day view, so either can be linked to. Rewritten rather
+ * than pushed, so the back button leaves the page instead of undoing clicks.
+ */
+function writeUrl() {
+  const url = new URL(window.location.href);
+  if (state.asOf === null) url.searchParams.delete("date");
+  else url.searchParams.set("date", state.asOf);
+  if (state.span === "thirty") url.searchParams.set("span", "30");
+  else url.searchParams.delete("span");
+  if (url.href !== window.location.href) window.history.replaceState(null, "", url);
 }
 
 function wireAsOf() {
@@ -563,10 +638,7 @@ function wireAsOf() {
     input.value = state.asOf ?? todayIso();
     el.asOfToday.hidden = state.asOf === null;
     el.asOfWrap.classList.toggle("is-past", state.asOf !== null);
-    const url = new URL(window.location.href);
-    if (state.asOf === null) url.searchParams.delete("date");
-    else url.searchParams.set("date", state.asOf);
-    if (url.href !== window.location.href) window.history.replaceState(null, "", url);
+    writeUrl();
   };
   const set = (value: string | null) => {
     state.asOf = parseAsOf(value);
@@ -587,7 +659,6 @@ function wireAsOf() {
     set(value);
   });
   el.asOfToday.addEventListener("click", () => set(null));
-  el.asOfLabel.textContent = copy.home.asOfLabel;
   el.asOfToday.textContent = copy.home.asOfToday;
   sync();
 }
@@ -939,6 +1010,9 @@ function comparableYears(curves: YearCurves, current: number, shift: number,
 }
 
 async function update() {
+  document.body.classList.toggle("span-thirty", state.span === "thirty");
+  writeQuestion();
+  if (state.span === "thirty") return updateThirty();
   const minMag = state.minMag;
 
   let tier: Tier;
@@ -1242,6 +1316,244 @@ async function update() {
   lastRender();
 }
 
+/* ---------------- the 30-day view ---------------- */
+
+/** Which of the five answers a percentile earns, 0 lowest -- answerFor's order. */
+function bandOf(pct: number): number {
+  if (pct > 95) return 4;
+  if (pct < 5) return 0;
+  if (pct >= 75) return 3;
+  if (pct <= 25) return 1;
+  return 2;
+}
+
+const THIRTY_ANSWERS = () => [copy.home.thirtyQuietest, copy.home.thirtyQuiet,
+  copy.home.thirtyAverage, copy.home.thirtyBusy, copy.home.thirtyBusiest];
+
+const shortDate = (ms: number) => new Date(ms).toLocaleDateString(undefined,
+  { month: "short", day: "numeric", timeZone: "UTC" });
+
+/** "about once a year", "every two or three years" -- or null for never. */
+function howOften(perYear: number): string | null {
+  if (perYear <= 0) return null;
+  if (perYear >= 1.5) return fill(copy.home.thirtyHowTimes, { n: Math.round(perYear) });
+  if (perYear >= 0.8) return copy.home.thirtyHowOnce;
+  if (perYear >= 0.35) return copy.home.thirtyHowFew;
+  return fill(copy.home.thirtyHowRare, { n: Math.round(1 / perYear) });
+}
+
+/** "4 or fewer", "9 to 14", "21 or more", lowest band first. */
+function rangeTexts(ranges: ([number, number] | null)[]): (string | null)[] {
+  return ranges.map((r, i) => {
+    if (!r) return null;
+    if (i === 0) return fill(copy.home.scaleRowLow, { n: r[1] });
+    if (i === ranges.length - 1) return fill(copy.home.scaleRowHigh, { n: r[0] });
+    return r[0] === r[1] ? String(r[0]) : fill(copy.home.scaleRow, { lo: r[0], hi: r[1] });
+  });
+}
+
+/**
+ * The page over the last 30 days.
+ *
+ * The answer, the table and the histogram read one fixed series -- M6+, all
+ * earthquakes -- as the yearly answer does: the controls cannot move the
+ * headline. Magnitude, catalogue and how far back to look change only the two
+ * charts under "Explore the data".
+ */
+async function updateThirty() {
+  let headTier: Tier, tier: Tier;
+  try {
+    [headTier, tier] = await Promise.all([store.load(MIN_MAGNITUDE), store.load(state.minMag)]);
+  } catch (err) {
+    el.timeline.replaceChildren(errorBox(fill(copy.home.errorCatalog,
+      { message: (err as Error).message })));
+    return;
+  }
+  techValues.threshold = magLabel(MIN_MAGNITUDE);
+  techValues.from = REFERENCE_START;
+
+  const start = Date.UTC(REFERENCE_START, 0, 1);
+  const endMs = asOfMs();
+  const end = dayOf(start, endMs);
+  const today = dayOf(start, Date.now());
+  // The last stretch that has finished. Today's is still running, so it is
+  // never a peer -- live, it is the reading itself.
+  const lastComplete = today - 1;
+  // Live events the catalogue does not hold yet. All of them, not just those
+  // up to a picked date: they belong to later stretches, which are peers.
+  const liveFor = (t: Tier) => liveEvents.filter((e) => e.time > (t.info.lastTime ?? 0));
+
+  const head = dailyCounts(headTier, MIN_MAGNITUDE, start, today, liveFor(headTier));
+  const headSums = windowSums(head.all);
+  const r = reading(headSums, end, lastComplete);
+  const window = state.asOf === null ? copy.home.thirtyWindowLive
+    : fill(copy.home.thirtyWindowPast, { date: asOfLabel() });
+
+  if (!r) {
+    el.answer.innerHTML = copy.home.answerNothingYet;
+    return;
+  }
+  const band = bandOf(r.pct);
+  const span = state.asOf === null ? copy.home.thirtySpanLive
+    : fill(copy.home.thirtySpanPast, { date: asOfLabel() });
+  el.answer.innerHTML = fill(THIRTY_ANSWERS()[band], { span });
+  el.answerSummary.textContent = fill(copy.home.thirtySummary, {
+    n: r.now, threshold: magLabel(MIN_MAGNITUDE), window, median: r.median });
+
+  const top = Math.max(r.now, r.peers[r.peers.length - 1]);
+  const ranges = bandRanges(r.peers, bandOf, 5, top);
+  buildAnswerScale(r.pct, "", r.peers, r.now, {
+    ranges: rangeTexts(ranges),
+    head: copy.home.thirtyColCount,
+    nowText: state.asOf === null ? copy.home.thirtyScaleNow
+      : fill(copy.home.thirtyScaleNowPast, { date: asOfLabel() }),
+    band,
+  });
+
+  // The 90% sentence, read off the same ranges the table prints.
+  const lo = ranges[0] ? ranges[0][1] + 1 : 0;
+  const hi = ranges[4] ? ranges[4][0] - 1 : top;
+  let often = "";
+  if (band !== 2) {
+    const quiet = r.pct < 50;
+    const which = quiet ? copy.home.thirtyQuietWord : copy.home.thirtyBusyWord;
+    const how = howOften(spellsPerYear(headSums, end, lastComplete, r.now, quiet));
+    often = how ? fill(copy.home.thirtyOften, { which, how })
+      : fill(copy.home.thirtyNever, { which, from: REFERENCE_START });
+  }
+  el.annualBand.textContent = fill(copy.home.thirtyBand, {
+    from: REFERENCE_START, lo, hi, threshold: magLabel(MIN_MAGNITUDE),
+    actual: state.asOf === null
+      ? fill(copy.home.thirtyActualLive, { n: r.now })
+      : fill(copy.home.thirtyActualPast, { n: r.now, date: asOfLabel() }),
+    often,
+  }).trim();
+
+  // ---- the explorer: whatever the controls are set to ----
+  const mainshocksOnly = effectiveMainshocksOnly();
+  const kind = mainshocksOnly ? "mainshocks" : "earthquakes";
+  const sel = state.minMag === MIN_MAGNITUDE ? head
+    : dailyCounts(tier, state.minMag, start, today, liveFor(tier));
+  const selSums = windowSums(mainshocksOnly ? sel.main : sel.all);
+  const selReading = reading(selSums, end, lastComplete);
+  const from = state.thirtyYears
+    ? Math.max(WINDOW_DAYS - 1, end - Math.round(state.thirtyYears * 365.25))
+    : WINDOW_DAYS - 1;
+
+  // Place names come from the detail sidecar, parallel to its tier.
+  let events: TimelineEvent[] = [];
+  const detailInfo = store.detailTierFor(state.minMag);
+  const fromMs = start + from * DAY_MS;
+  const boxFrom = start + (end - (WINDOW_DAYS - 1)) * DAY_MS;
+  const boxTo = start + (end + 1) * DAY_MS;
+  const upTo = Math.min(endMs, boxTo);
+  try {
+    const evTier = detailInfo ? await store.load(detailInfo.threshold) : tier;
+    const places = detailInfo ? (await store.loadDetail(detailInfo)).places : [];
+    for (let i = 0; i < evTier.n; i++) {
+      const t = evTier.time[i];
+      if (t < fromMs || t > upTo || evTier.mag[i] < state.minMag) continue;
+      events.push({ time: new Date(t), mag: evTier.mag[i], main: evTier.dependent[i] !== 1,
+                    place: places[i] ?? "" });
+    }
+    for (const e of liveFor(evTier)) {
+      if (e.time < fromMs || e.time > upTo || e.mag < state.minMag) continue;
+      events.push({ time: new Date(e.time), mag: e.mag, main: !e.dependent, place: e.place });
+    }
+  } catch {
+    events = [];
+  }
+
+  const inBox = events.filter((e) => +e.time >= boxFrom);
+  const nMain = inBox.filter((e) => e.main).length;
+  const largest = [...inBox].sort((a, b) => b.mag - a.mag)[0];
+  const plural = (n: number) => (n === 1 ? "" : "s");
+  el.timelineTitle.textContent = fill(copy.home.thirtyTimelineTitle,
+    { threshold: magLabel(state.minMag), window });
+  el.timelineNote.textContent = fill(copy.home.thirtyTimelineNote, {
+    window: span, n: inBox.length, s: plural(inBox.length), threshold: magLabel(state.minMag),
+    main: nMain, ms: plural(nMain), after: inBox.length - nMain, as: plural(inBox.length - nMain),
+    largest: largest ? fill(copy.home.thirtyTimelineLargest, {
+      mag: largest.mag.toFixed(1), place: largest.place, date: shortDate(+largest.time) }) : "",
+  });
+  el.rollingTitle.textContent = fill(copy.home.thirtyRollingTitle,
+    { threshold: magLabel(state.minMag), kind });
+  el.rollingNote.textContent = fill(copy.home.thirtyRollingNote, { from: REFERENCE_START });
+
+  void writeLatest(state.minMag);
+
+  lastRender = () => {
+    const theme = readTheme(document.body);
+
+    // The histogram: every 30-day stretch in the record, one bar per count.
+    // The far tail (85 in the month after Tohoku) is left off: those bars are
+    // a fraction of a pixel tall and would squeeze the rest into a corner.
+    const xmax = Math.max(r.now, r.peers[Math.floor(r.peers.length * 0.995)]);
+    const shown = r.peers.filter((v) => v <= xmax);
+    const edges = [0, 1, 2, 3].map((i) => {
+      for (let j = i; j >= 0; j--) if (ranges[j]) return ranges[j]![1];
+      return -1;
+    });
+    el.answerAggregate.replaceChildren(renderDistribution({
+      peers: shown.map((value, year) => ({ year, value })),
+      value: r.now,
+      bands: edges,
+      step: 1,
+      share: { more: `${r.above}%`, moreLabel: copy.home.thirtyShareMore },
+      currentLabel: state.asOf === null ? copy.home.thirtyNowLabel : shortDate(endMs),
+      binLabel: (members) => members.length ? fill(copy.home.thirtyHistTip, {
+        n: members[0].value, share: (100 * members.length / r.peers.length).toFixed(1) }) : "",
+      theme,
+      width: Math.max(240, el.answerAggregate.clientWidth || 320),
+    }));
+
+    const width = Math.max(320, el.timeline.clientWidth || 800);
+    el.timelineLegend.replaceChildren(...[
+      { color: theme.series[0], label: copy.home.thirtyMainshock, opacity: 1 },
+      { color: theme.muted, label: copy.home.thirtyAftershock, opacity: 0.6 },
+    ].map(({ color, label, opacity }) => {
+      const item = document.createElement("span");
+      const swatch = document.createElement("i");
+      swatch.className = "swatch-dot";
+      swatch.style.background = color;
+      swatch.style.opacity = String(opacity);
+      item.append(swatch, document.createTextNode(label));
+      return item;
+    }), Object.assign(document.createElement("span"), { textContent: copy.home.thirtyDotSize }));
+    el.timeline.replaceChildren(renderTimeline({
+      events, from: new Date(fromMs), to: new Date(boxTo),
+      boxFrom: new Date(boxFrom), boxTo: new Date(boxTo),
+      boxLabel: state.asOf === null ? copy.home.thirtyBoxLive
+        : fill(copy.home.thirtyBoxPast, { date: shortDate(endMs) }),
+      minMag: state.minMag, theme, width,
+    }));
+
+    el.rollingLegend.replaceChildren(...[
+      { color: theme.series[0], label: copy.home.thirtyLegendLine, kind: "accent" },
+      { color: theme.rangeInner, label: copy.home.thirtyLegendInner, kind: "band" },
+      { color: theme.rangeOuter, label: copy.home.thirtyLegendOuter, kind: "band" },
+    ].map(({ color, label, kind }) => {
+      const item = document.createElement("span");
+      const swatch = document.createElement("i");
+      swatch.className = `swatch-${kind}`;
+      swatch.style.background = color;
+      item.append(swatch, document.createTextNode(label));
+      return item;
+    }));
+    if (selReading) {
+      const points: { date: Date; n: number }[] = [];
+      for (let d = from; d <= end; d++) points.push({ date: new Date(start + d * DAY_MS), n: selSums[d] });
+      el.rolling.replaceChildren(renderRolling({
+        points, p5: selReading.p5, p25: selReading.p25, median: selReading.median,
+        p75: selReading.p75, p95: selReading.p95, theme, width,
+      }));
+    }
+
+    writeTech();
+  };
+  lastRender();
+}
+
 function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[],
                      from: number, to: number): HTMLElement {
   const wrap = document.createElement("p");
@@ -1451,7 +1763,9 @@ async function boot() {
   if (problem) showProblem(problem);
 
   store = new CatalogStore(meta);
-  state.asOf = parseAsOf(new URL(window.location.href).searchParams.get("date"));
+  const params = new URL(window.location.href).searchParams;
+  state.asOf = parseAsOf(params.get("date"));
+  if (params.get("span") === "30") state.span = "thirty";
   buildControls();
   // Seeded once, not per render, so "Clear all" leaves the chart showing just
   // the reference backdrop instead of snapping the current year back on.

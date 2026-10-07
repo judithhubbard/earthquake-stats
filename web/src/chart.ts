@@ -237,6 +237,18 @@ export interface DistributionOptions {
    * precise, so a bar takes the band its centre lands in. Overrides `neutral`.
    */
   bands?: number[];
+  /**
+   * Bin width, overriding the round step chosen from the range. The 30-day
+   * view needs one bin per count, so its bars line up with the integer ranges
+   * its table prints; the automatic step went to 5 once the tail reached 85.
+   */
+  step?: number;
+  /**
+   * What a bar says on hover, in place of the list of years it holds. The
+   * 30-day view has some 18,000 peers, and a bar naming 1,700 of them is not a
+   * tooltip.
+   */
+  binLabel?: (members: { year: number; value: number }[]) => string;
   theme: Theme;
   width: number;
 }
@@ -281,7 +293,7 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   // other one empty. Whole steps, and edges on the halves so each bin is
   // centred on the count it holds rather than straddling two of them.
   const integral = Number.isInteger(value) && values.every(Number.isInteger);
-  const step = integral ? Math.max(1, Math.round(raw)) : raw;
+  const step = opts.step ?? (integral ? Math.max(1, Math.round(raw)) : raw);
   const start = integral
     ? Math.floor(lo / step) * step - 0.5
     : Math.floor(lo / step) * step;
@@ -323,7 +335,9 @@ export function renderDistribution(opts: DistributionOptions): SVGSVGElement | H
   type Rect = { x0: number; x1: number; n: number; above: boolean; label: string };
   // Oldest first, and the value beside each year: the bar says how many, the
   // tooltip says which, and on a wide bin the values differ from one another.
-  const nameThem = (members: { year: number; value: number }[]) => members
+  const nameThem = (members: { year: number; value: number }[]) => opts.binLabel
+    ? opts.binLabel(members)
+    : members
     .slice()
     .sort((a, b) => a.year - b.year)
     .map((m) => `${opts.yearLabel ? opts.yearLabel(m.year) : m.year}: ${fmtValue(m.value)}`)
@@ -872,5 +886,127 @@ export function renderAnnualChart(opts: AnnualOptions): SVGSVGElement | HTMLElem
     },
     color: { type: "identity" },
     marks,
+  });
+}
+
+
+/* ---------------- the 30-day view ---------------- */
+
+export interface TimelineEvent {
+  time: Date;
+  mag: number;
+  /** False for an aftershock. */
+  main: boolean;
+  place: string;
+}
+
+export interface TimelineOptions {
+  events: TimelineEvent[];
+  from: Date;
+  to: Date;
+  /** The 30 days being read, drawn as a box so they stand out from the context. */
+  boxFrom: Date;
+  boxTo: Date;
+  boxLabel: string;
+  minMag: number;
+  theme: Theme;
+  width: number;
+}
+
+/**
+ * Every earthquake over a stretch of time, with the 30 days being read boxed.
+ *
+ * Thirty days on their own were a handful of dots on an empty axis -- nothing
+ * to compare them with. A year around them shows what an ordinary stretch
+ * looks like, and the box says which part the answer is about. Outside the box
+ * the dots fade, so the box is where the eye lands.
+ */
+export function renderTimeline(opts: TimelineOptions): SVGSVGElement | HTMLElement {
+  const { events, theme, width, minMag } = opts;
+  const inBox = (e: TimelineEvent) => e.time >= opts.boxFrom && e.time < opts.boxTo;
+  const yLo = minMag - 0.08;
+  const yHi = Math.max(minMag + 1.5, ...events.map((e) => e.mag)) + 0.25;
+  // Small: a year of M6+ is ~140 dots, and the boxed ones must stay legible.
+  const radius = (e: TimelineEvent) => 1.6 + (e.mag - minMag) * 3.2;
+  const dots = (main: boolean) => Plot.dot(events.filter((e) => e.main === main), {
+    x: "time", y: "mag", r: radius,
+    fill: main ? theme.series[0] : theme.muted,
+    fillOpacity: (e: TimelineEvent) => inBox(e) ? (main ? 1 : 0.75) : (main ? 0.35 : 0.25),
+    stroke: theme.surface, strokeWidth: 0.5,
+  });
+  return Plot.plot({
+    width, height: 220, marginLeft: 40, marginTop: 22, marginRight: 12,
+    style: { background: "transparent", color: theme.text, fontSize: "11px" },
+    x: { type: "utc", domain: [opts.from, opts.to], label: null },
+    y: { domain: [yLo, yHi], label: "Magnitude", grid: true },
+    r: { type: "identity" },
+    marks: [
+      Plot.rect([0], {
+        x1: () => opts.boxFrom, x2: () => opts.boxTo, y1: yLo, y2: yHi,
+        fill: theme.band, stroke: theme.axis, strokeDasharray: "3,2",
+      }),
+      Plot.text([0], {
+        // Right-aligned to the box: the box sits at the right edge of the
+        // chart, and a centred label ran off it.
+        x: () => opts.boxTo, y: yHi, dy: -8, textAnchor: "end",
+        text: () => opts.boxLabel, fill: theme.text, fontSize: 11, fontWeight: 600,
+      }),
+      dots(false),
+      dots(true),
+      Plot.tip(events, Plot.pointer({
+        x: "time", y: "mag",
+        fill: theme.surface, stroke: theme.axis,
+        title: (e: TimelineEvent) =>
+          `M${e.mag.toFixed(1)} · ${e.main ? "mainshock" : "aftershock"}\n${e.place}\n`
+          + e.time.toLocaleDateString(undefined,
+              { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }),
+      })),
+    ],
+  });
+}
+
+export interface RollingOptions {
+  /** The count in the 30 days ending on each date. */
+  points: { date: Date; n: number }[];
+  p5: number; p25: number; median: number; p75: number; p95: number;
+  theme: Theme;
+  width: number;
+}
+
+/**
+ * The 30-day count, day by day, against the range every 30-day stretch since
+ * 1976 has covered. The band is flat because it is measured over the whole
+ * record, not over the window drawn: earthquakes keep no calendar, so there is
+ * no season for it to follow.
+ */
+export function renderRolling(opts: RollingOptions): SVGSVGElement | HTMLElement {
+  const { points, theme, width } = opts;
+  const first = points[0].date, last = points[points.length - 1].date;
+  const long = (+last - +first) > 6 * 365 * 86_400_000;
+  return Plot.plot({
+    width, height: Math.round(Math.min(230, width * 0.28)),
+    marginLeft: 34, marginRight: 12,
+    style: { background: "transparent", color: theme.text, fontSize: "11px" },
+    x: { type: "utc", label: null },
+    y: { domain: [0, Math.max(opts.p95, ...points.map((d) => d.n)) + 1],
+         label: null, grid: true, nice: false },
+    marks: [
+      Plot.rect([0], { x1: () => first, x2: () => last, y1: opts.p5, y2: opts.p95,
+                       fill: theme.rangeOuter }),
+      Plot.rect([0], { x1: () => first, x2: () => last, y1: opts.p25, y2: opts.p75,
+                       fill: theme.rangeInner }),
+      Plot.ruleY([opts.median], { stroke: theme.median, strokeDasharray: "3,3" }),
+      Plot.lineY(points, { x: "date", y: "n", stroke: theme.series[0],
+                           strokeWidth: long ? 0.8 : 1.6, curve: "step-after" }),
+      Plot.dot([points[points.length - 1]], { x: "date", y: "n", fill: theme.series[0], r: 3.5 }),
+      Plot.ruleX(points, Plot.pointerX({ x: "date", stroke: theme.muted })),
+      Plot.tip(points, Plot.pointerX({
+        x: "date", y: "n", fill: theme.surface, stroke: theme.axis,
+        title: (d: { date: Date; n: number }) => `30 days ending `
+          + d.date.toLocaleDateString(undefined,
+              { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })
+          + `: ${d.n}`,
+      })),
+    ],
   });
 }
