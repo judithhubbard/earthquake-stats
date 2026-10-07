@@ -635,9 +635,10 @@ function wireAsOf() {
     set(value);
   });
   el.asOfToday.addEventListener("click", () => set(null));
-  // The input is invisible, so a click anywhere on it must open the calendar;
-  // left alone, Chrome opens it only from its own icon, which is hidden too.
-  input.addEventListener("click", () => {
+  // The input is invisible and takes no clicks (see .as-of-field in the
+  // stylesheet); the box around it opens the calendar from anywhere.
+  input.parentElement!.addEventListener("click", () => {
+    input.focus();
     try { input.showPicker?.(); } catch { /* not allowed here; focus is enough */ }
   });
   el.asOfToday.textContent = copy.home.asOfToday;

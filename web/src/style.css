@@ -1837,6 +1837,12 @@ footer p { margin: 0 0 0.4rem; }
   padding: 0;
 }
 .as-of-field:focus-within { outline: 2px solid var(--series-1); outline-offset: 2px; }
+/* The field takes no clicks; the box around it does, and opens the picker.
+   Left clickable, the browser's own calendar button sat invisibly under the
+   drawn icon, opened the picker natively, and showPicker() then shut it --
+   the icon was the one place a click did nothing. Tab still reaches it. */
+.as-of-field { cursor: pointer; }
+.as-of-field input { pointer-events: none; }
 /* Picked a past date: the field says so, in the accent the current year uses. */
 .as-of.is-past .as-of-field {
   border-color: var(--series-1);
