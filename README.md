@@ -84,6 +84,10 @@ The pipeline is stdlib-only — no pip install.
 
 ## Page order
 
+The page lives at `/unusual/`. `web/index.html` is only a redirect to it, kept so
+links to the old root URL, `?date=` included, still land.
+
+
 Headline → controls → cumulative chart → annual chart → map and event list.
 That order is the argument, not a layout accident. The cumulative chart is both
 the novel content and the actual answer to the question in the title. The map is
@@ -262,7 +266,7 @@ twice, or drop one you do not want. `<strong>…</strong>` makes text bold.
 
 The one exception is the prose block on the front page — the headline, and the
 "Then why does it feel like there are more?" section — which is plain HTML in
-`web/index.html`, because it is a page of writing rather than labels wrapped
+`web/unusual/index.html`, because it is a page of writing rather than labels wrapped
 around numbers.
 
 After editing: `cd web && npm run build`, or just commit and push, since the site

@@ -10,7 +10,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
+        // The question lives at /unusual/. The root is a redirect to it, so
+        // links made before the move -- ?date= included -- still land.
+        root: resolve(__dirname, "index.html"),
+        main: resolve(__dirname, "unusual/index.html"),
         correlations: resolve(__dirname, "correlations.html"),
       },
     },
