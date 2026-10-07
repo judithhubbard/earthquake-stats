@@ -78,12 +78,9 @@ jobs:
       # back, and the site deploys with data that is stale rather than broken.
       #
       # Not everything runs every time. Measured on a real run: fetch 2s,
-      # magnitudes 10s, decluster ~70s (nearest neighbour over M6+ is 50 of it),
-      # build 1s, context 116s. Only the first,
-      # third and fourth have to keep up with a new earthquake; the other two
-      # chase things that move over days and months, and running them every
-      # quarter of an hour would be four minutes of work and a lot of traffic
-      # aimed at other people's servers for no change in what is on the page.
+      # magnitudes 10s, decluster ~40s, build 1s. Only the magnitude harvest
+      # chases something that moves over days rather than minutes, so it is the
+      # one that is rationed.
       - name: Refresh the catalog from USGS
         id: refresh
         continue-on-error: true
@@ -180,16 +177,6 @@ jobs:
             exit 1
           fi
 
-
-          # Global temperature, sunspots and the Oklahoma record. All three are
-          # monthly at best and this is 116s of the run, so it goes daily. A
-          # failure costs three panels on the correlations page, not the build.
-          if due context 86400; then
-            if python3 pipeline/context.py; then mark context;
-            else echo "::warning::Context datasets unavailable."; fi
-          else
-            echo "Context datasets refreshed within the last 24h; skipping."
-          fi
 
           # The mirror is 62 MB and the cache is a 10 GB bucket with
           # least-recently-used eviction. Saving it 96 times a day would push
@@ -340,7 +327,7 @@ jobs:
           [[ -f CNAME ]] || exit 0
           site="https://$(tr -d '[:space:]' < CNAME)"
           base="${{ steps.base.outputs.value }}"
-          queue=$(for page in "" unusual/ correlations.html; do
+          queue=$(for page in "" unusual/; do
                     curl -fsS --max-time 20 "$site$base$page" || true
                   done | grep -oE 'assets/[A-Za-z0-9._-]+' | sort -u)
           seen=""

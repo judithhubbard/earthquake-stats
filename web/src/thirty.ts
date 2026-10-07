@@ -6,9 +6,8 @@
  * around 11 earthquakes each gives percentile edges that jump a whole band on
  * one event. So a 30-day stretch is ranked against every other 30-day stretch
  * in the record, one ending on each day -- about 18,000 -- leaving out only the
- * ones that overlap it. Earthquakes keep no calendar (the correlations page
- * finds no seasonal signal), so a stretch in March is a fair peer for one in
- * October.
+ * ones that overlap it. Earthquakes keep no calendar, so a stretch in March
+ * is a fair peer for one in October.
  *
  * Overlapping peers are fine for a percentile, which is a statement about the
  * shape of the record. They would not be for a significance test, and nothing

@@ -60,9 +60,9 @@ const SPANS = [
   { id: "year", label: copy.home.spanYear },
   { id: "thirty", label: copy.home.spanThirty },
 ] as const;
-/* How far back the 30-day view's two charts reach. */
+/* How far back the 30-day view's two charts reach. No "1 year": twelve fat
+   bars against the bands read as a block of grey rather than as a record. */
 const THIRTY_RANGES = [
-  { id: "1", label: "1 year" },
   { id: "2", label: "2 years" },
   { id: "5", label: "5 years" },
   { id: "0", label: "Whole record" },
@@ -120,7 +120,7 @@ const state: State = {
   highlights: new Map(),
   asOf: null,
   span: "year",
-  thirtyYears: 1,
+  thirtyYears: 2,
 };
 
 const DAY_MS = 86_400_000;

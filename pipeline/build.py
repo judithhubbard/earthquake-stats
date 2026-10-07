@@ -38,11 +38,9 @@ ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "catalog.sqlite"
 OUT_DIR = ROOT / "web" / "public" / "data"
 
-# M6+ answers the front page. M5+ backs the correlations page, where the
-# comparisons are within-year -- so the catalogue's changing completeness hits
-# every bin equally and cancels, and the extra events buy real statistical power
-# (a 1.8% detectable effect against 6.2% at M6+).
-TIERS = [5.0, 6.0, 7.0]
+# The two thresholds the front page offers. An M5+ tier backed the
+# correlations page until it was taken down in October 2026.
+TIERS = [6.0, 7.0]
 
 # Tiers at or above this get an ids/places sidecar for the "largest events" list.
 DETAIL_MIN_MAGNITUDE = 6.0
@@ -71,11 +69,9 @@ def fetch_tier(conn, threshold: float) -> list[tuple]:
     -- which is the whole point of the homogenisation, and why the mirror is
     queried below the reporting threshold.
     """
-    # M6+ tiers carry the nearest-neighbour flags, the M5 tier the windowed
-    # ones (see decluster.py). COALESCE so a mirror declustered before the
-    # nearest-neighbour column existed still builds.
-    flag = ("COALESCE(mainshock_nn, mainshock)" if threshold >= nearest.MIN_MAGNITUDE
-            else "mainshock")
+    # Nearest-neighbour flags (decluster.py). COALESCE so a mirror declustered
+    # before that column existed still builds; nothing below M6 is emitted.
+    flag = "COALESCE(mainshock_nn, mainshock)"
     return conn.execute(
         "SELECT id, time, lat, lon, depth, COALESCE(mw, mag) AS mag, "
         f"       mw IS NOT NULL AS homogenised, {flag} AS mainshock, place "

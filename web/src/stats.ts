@@ -6,9 +6,6 @@
  */
 
 import type { Tier } from "./catalog";
-// The trend p-value is the correlation between count and year, which is the
-// same test the correlations page runs against temperature and sunspots.
-import { correlationP } from "./correlate";
 
 export const DAYS = 365;
 
@@ -841,4 +838,31 @@ export function shareBands(total: number, share: number,
     out.push({ low, high });
   }
   return out;
+}
+
+/* The trend p-value is the correlation between count and year. */
+
+/** Standard normal upper tail, Abramowitz & Stegun 26.2.17. Six-figure accurate. */
+function normalTail(z: number): number {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937
+            + t * (-1.821255978 + t * 1.330274429))));
+  const tail = Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI) * poly;
+  return z >= 0 ? tail : 1 - tail;
+}
+
+/**
+ * How often {n} pairs of unrelated numbers would
+ * give a correlation at least this strong, in either direction.
+ *
+ * The t statistic is mapped to a normal deviate rather than integrating the t
+ * density; the error is under a thousandth for the degrees of freedom here.
+ */
+export function correlationP(r: number, n: number): number {
+  const df = n - 2;
+  if (df < 1) return 1;
+  const rr = Math.min(Math.abs(r), 0.999999);
+  const t = rr * Math.sqrt(df / (1 - rr * rr));
+  const z = t * (1 - 1 / (4 * df)) / Math.sqrt(1 + (t * t) / (2 * df));
+  return Math.min(1, 2 * normalTail(z));
 }

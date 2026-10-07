@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-07T21:02:22.586963+00:00",
+  "generated": "2026-10-07T21:18:51.094878+00:00",
   "source": "USGS ComCat via FDSN event service",
   "minMagnitude": 4.5,
   "eventType": "earthquake",
@@ -22,17 +22,6 @@
   },
   "homogenised": true,
   "tiers": [
-    {
-      "threshold": 5.0,
-      "name": "m5",
-      "count": 91514,
-      "mainshocks": 44553,
-      "homogenised": 25775,
-      "hasDetail": false,
-      "bytes": 1006654,
-      "firstTime": 6226830,
-      "lastTime": 1786796079321
-    },
     {
       "threshold": 6.0,
       "name": "m6",

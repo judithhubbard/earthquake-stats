@@ -14,7 +14,6 @@ export default defineConfig({
         // links made before the move -- ?date= included -- still land.
         root: resolve(__dirname, "index.html"),
         main: resolve(__dirname, "unusual/index.html"),
-        correlations: resolve(__dirname, "correlations.html"),
       },
     },
   },

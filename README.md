@@ -63,7 +63,6 @@ python3 pipeline/fetch.py --backfill   # ~10 min, once
 python3 pipeline/magnitudes.py         # ~25 min, once — see "Homogenising magnitudes"
 python3 pipeline/decluster.py          # ~40 s over the full catalogue
 python3 pipeline/build.py
-python3 pipeline/context.py            # temperature, sunspots, Oklahoma
 cd web && npm install && npm run dev
 ```
 
@@ -74,7 +73,6 @@ python3 pipeline/fetch.py
 python3 pipeline/magnitudes.py --start $(( $(date -u +%Y) - 1 ))
 python3 pipeline/decluster.py
 python3 pipeline/build.py
-python3 pipeline/context.py
 ```
 
 Moment tensors arrive within days to weeks of an event, so recent years keep
@@ -235,15 +233,12 @@ removing background as well as aftershocks — the 2012 M7.7 Sea of Okhotsk
 event, 583 km deep, went as a Tohoku aftershock 1,297 km away. Shifting the
 fitted threshold by ±0.5 moves the mainshock rate by 5–9 a year.
 
-**Below M6: Gardner–Knopoff windows** (`pipeline/decluster.py`), into the
-original `mainshock` column, used by the M5 tier — the correlations page's
-day, month and moon panels. The distance window is the larger of the GK radius
-and twice the Wells & Coppersmith rupture length; the time window is GK's.
-Nearest neighbour over the ~90,000 M5+ events is O(n²) in stdlib Python and
-needs pruning before it can replace this.
+**Gardner–Knopoff windows** did the job for every magnitude until October 2026,
+and below M6 for the correlations page's M5+ panels until that page was taken
+down. Nothing reads them now, and they are in git history.
 
-**Both are forward-only.** An event is dependent only if it links (or falls in
-the window of) an *earlier* event at least as large. A symmetric scheme also
+**It is forward-only.** An event is dependent only if it links to an
+*earlier* event at least as large. A symmetric scheme also
 removes foreshocks, but biases the end of the catalogue: a current-year event
 can only be claimed by earlier neighbours, while a mid-catalogue event can be
 claimed from both sides. The symmetric GK version put 2026 M5+ mainshocks at
@@ -342,73 +337,22 @@ block in `web/src/copy.ts`, `pipeline/sequences.py` and
 entry to `vite.config.ts`, linking to it, and putting the pipeline step in the
 workflow behind a daily gate.
 
-## The correlations page
+## The correlations page (removed)
 
-`/correlations.html` answers the questions the front page invites: the moon, the
-seasons, the weather, the sun, and whether people cause earthquakes. It is a
-separate page with its own URL rather than a toggle on the front page, because
-each question is a thing someone will want to link to.
+`/correlations.html` asked whether the moon, the seasons, the weather or the
+sun set earthquakes off. It was unlinked from the front page on 2026-10-07
+(the link is in `web/attic/correlations-link`) and taken off the site the same
+day, at the author's request, after the switch to nearest-neighbour
+declustering moved its sunspot panel from p = 0.12 to p = 0.04 -- a result
+that depends on how aftershocks are removed is not one to publish as a
+finding.
 
-The page grades itself on a combined p-value over **four** questions — the
-month, the moon, temperature and sunspots — using Šidák. Day of the week is
-shown and graded on its own p-value but deliberately left out of that
-combination: earthquakes cannot know what day it is, so it is a calibration
-test rather than a claim about the Earth, and counting it would hold the four
-real questions to a stricter standard against an answer nobody is looking for.
-
-**It is not headlined "do earthquakes correlate with anything?"** — that draft
-title was simply false. Earthquakes correlate strongly with faults and with each
-other; aftershock clustering is about the most reliable relationship in the
-subject, and this page *removes* it before it starts looking. The page asks
-whether anything **outside** the Earth sets them off. The headline answer is
-*No.* — it used to add "but they do follow each other", which went when the
-aftershocks page it pointed at was removed.
-
-Every panel is the same shape — bars against a shaded band of what chance alone
-produces — so a reader never has to judge whether 3% is a lot, only whether a bar
-leaves the grey.
-
-**Three decisions carry the statistics:**
-
-*Mainshocks only, everywhere.* Aftershocks arrive in bursts and land in whichever
-bin their mainshock fell in. Leaving them in would break the independence the
-error bands assume and make every null look better than it is.
-
-*M5+ for the within-year bins, M6+ for the year-over-year scatters.* Day of week,
-month and moon phase compare bins drawn from the same span of years, so the
-catalogue's changing completeness hits every bin equally and cancels — which
-frees the page to use M5+ and buy real power (a 1.8% detectable effect against
-6.2% at M6+). Temperature and sunspots compare whole years, where completeness
-does not cancel, so those use the homogenised M6+ series.
-
-*The moon panel does not claim a finding, on purpose.* A spring-tide/neap-tide
-comparison gives +1.5% at M4.5+, +1.9% at M5+ and +1.5% at M6+ — consistent in
-sign, but clearing significance at only one of the three. And that directional
-test was chosen *after* an eight-bin test came out messy, which is post-hoc test
-selection. Bradley & Hubbard's series on tidal triggering is precisely about how
-that kind of selective analysis manufactures results, so committing it while
-explaining it would be poor form. The panel reports the gap and says it is not
-solid.
-
-It then answers the question people actually mean. "Does the moon set off
-earthquakes" is usually a question about *warning*, and there the answer is
-clean: across 79 great thrust earthquakes, about 5% showed a tidal signal
-beforehand — exactly the share random data gives. The panel links to the series.
-
-Charts here plot **deviation from average, not raw counts**. Counts were
-unreadable: every bar stood ~5,000 tall while the whole question lived in the
-top 3%, so the error band was a hairline near the top and the bars looked
-identical. Centring on zero puts the answer where the eye already is. Individual
-bars are never highlighted either — with seven or twelve bins, one poking out of
-a 2-sigma band is ordinary, and colouring it would imply a finding the
-whole-chart test does not support.
-
-Seasons and "earthquake weather" are separate claims and get separate answers.
-The month chart covers seasons. Earthquake weather needs no chart: earthquakes
-start ten kilometres down, where the weather cannot reach.
-
-Oklahoma is the punchline: an average of 3 M3+ earthquakes a year until 2008,
-930 in 2015, and a fall after wastewater injection was restricted.
+It went whole: `web/correlations.html`, `web/src/correlations.ts`,
+`web/src/correlate.ts` (its one function the front page needs,
+`correlationP`, moved to `stats.ts`), the `correlations` block of
+`web/src/copy.ts`, `flipTable` in `verdict.ts`, `pipeline/context.py` and its
+`context.json`, the M5+ tier it alone read, and the workflow's context step.
+All of it is in git history.
 
 ## Still to build
 
