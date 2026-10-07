@@ -37,7 +37,14 @@
           <p class="answer" id="answer">Loading the catalog…</p>
         </div>
         <p class="sr-only" id="answer-summary"></p>
-        <p class="scale-basis" id="scale-basis"></p>
+        <div class="basis-row">
+          <p class="scale-basis" id="scale-basis"></p>
+          <div class="as-of">
+            <label for="as-of" id="as-of-label">Year ending</label>
+            <input type="date" id="as-of" min="1977-01-01" />
+            <button type="button" class="as-of-today" id="as-of-today" hidden>Back to today</button>
+          </div>
+        </div>
 
         <div class="verdict-cols">
           <div class="verdict">

@@ -62,16 +62,16 @@ export const copy = {
     answerNothingYet: "<strong>No.</strong>",
 
     headlineShareCount: "{n}",
-    headlineShareMore: "of {peers} past windows had more",
+    headlineShareMore: "of {peers} other windows had more",
     headlineCaption: "{threshold} earthquakes per 365 days, since {from}",
 
     /** The same answers for the rolling window, which is complete rather than
         part-way through, so "running" and "so far" would both be wrong. */
-    rollingBusiest: "<strong>Yes.</strong> The last year beat almost every year since {from}.",
-    rollingQuietest: "<strong>No — fewer.</strong> The last year was quieter.",
-    rollingBusy: "<strong>No.</strong> The last year was busy, but not unusual.",
-    rollingQuiet: "<strong>No.</strong> The last year was on the quiet side.",
-    rollingAverage: "<strong>No.</strong> The last year was about average.",
+    rollingBusiest: "<strong>Yes.</strong> {span} beat almost every year since {from}.",
+    rollingQuietest: "<strong>No — fewer.</strong> {span} was quieter.",
+    rollingBusy: "<strong>No.</strong> {span} was busy, but not unusual.",
+    rollingQuiet: "<strong>No.</strong> {span} was on the quiet side.",
+    rollingAverage: "<strong>No.</strong> {span} was about average.",
 
     /* The same five answers as fragments, for the table beside the histogram.
        There the range in the next column already supplies the subject, so the
@@ -79,16 +79,25 @@ export const copy = {
        all begin "The last year was" is five times the reading for one word of
        difference. The rolling set above stays intact: it is also the headline,
        where a bare "No -- fewer." would say nothing. */
+    /* What {span} and {window} say above: the live view, and a date picked in
+       the "Year ending" field, where {date} is that date. */
+    spanLive: "The last year",
+    spanPast: "The year to {date}",
+    windowLive: "the last 365 days",
+    windowPast: "the 365 days to {date}",
+    asOfLabel: "Year ending",
+    asOfToday: "Back to today",
+
     scaleAnsBusiest: "<strong>Yes.</strong>",
     scaleAnsBusy: "<strong>No.</strong> Busy, but not unusual",
     scaleAnsAverage: "<strong>No.</strong> About average",
     scaleAnsQuiet: "<strong>No.</strong> On the quiet side",
     scaleAnsQuietest: "<strong>No — fewer.</strong>",
     detailCountRolling:
-      "{count} {threshold} {kind} in the last 365 days — usual is {median} — {above}% of years " +
+      "{count} {threshold} {kind} in {window} — usual is {median} — {above}% of years " +
       "since {from} had more {kind}",
     detailMomentRolling:
-      "{count} released in the last 365 days — as much as a single M{equivalent} earthquake — " +
+      "{count} released in {window} — as much as a single M{equivalent} earthquake — " +
       "usual is {median} — {above}% of years since {from} released more",
 
     /** The sentence under the answer. */
@@ -130,7 +139,9 @@ export const copy = {
     cumulativeSubjectMoment: "moment release from {threshold} earthquakes",
     annualBand:
       "In 90% of years, we expect to see between {lo} and {hi} {threshold} earthquakes. " +
-      "In the last 365 days, there have been {n}.",
+      "{actual}",
+    annualBandActualLive: "In the last 365 days, there have been {n}.",
+    annualBandActualPast: "In the 365 days to {date}, there were {n}.",
 
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
@@ -141,11 +152,11 @@ export const copy = {
 
     /* The small print under the cumulative chart. */
     noteBand:
-      "Each faint line is one of the {years} previous years. The inner band spans the middle " +
+      "Each faint line is one of the {years} other years. The inner band spans the middle " +
       "50% of those years and the outer band the middle 90%. A line inside the shading falls " +
-      "within the range of previous years.",
+      "within the range of other years.",
     noteSigma:
-      "Each faint line is one of the {years} previous years. The band is the mean plus " +
+      "Each faint line is one of the {years} other years. The band is the mean plus " +
       "and minus two standard deviations — the range a normal distribution would put " +
       "95.45% of the data in. It is measured over every window of this length anywhere " +
       "in the record, not over the calendar years.",
@@ -192,7 +203,9 @@ export const copy = {
     scaleRowLow: "{n} or fewer",
     scaleRowHigh: "{n} or more",
     scaleNow: "{year}, right now",
+    scaleNowPast: "{year}, to {date}",
     scaleColCount: "Earthquakes in the last year",
+    scaleColCountPast: "Earthquakes in the year",
     scaleColAnswer: "The answer",
     scaleBasis: "Calculated based on all {threshold} earthquakes worldwide since {from}",
     legendSigma: "±2σ — 95.45% under a normal fit",
@@ -238,6 +251,12 @@ export const copy = {
       "the calendar year, which is then compared against the same date in every past year. " +
       "The chart of yearly counts is always 365-day windows, so every bar on it is complete " +
       "and directly comparable." +
+
+      "\n\n**Other dates.** The \"Year ending\" field moves the whole page to the 365 " +
+      "days ending on any day since 1977. That year is then ranked against every other " +
+      "complete year in the record, after it as well as before, so a year in the 1980s is " +
+      "judged against as many others as this one is. The live feed is left out, since it " +
+      "only covers the last day." +
 
       "\n\n**Magnitudes are converted to Mw.** Moment magnitude, or Mw, is the gold standard " +
       "for measuring earthquake size. However, before around 1984, the USGS used other kinds " +

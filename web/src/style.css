@@ -1772,6 +1772,56 @@ footer p { margin: 0 0 0.4rem; }
    that names rather than states. */
 /* Directly under the rule that closes the question band. It qualifies the
    whole answer, not the table it used to sit beneath. */
+/* The basis line on the left, the date it is read as of on the right. */
+.basis-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem 1.5rem;
+  margin: 0.7rem 0 0;
+}
+.basis-row .scale-basis { margin: 0; }
+
+.as-of {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.as-of input {
+  font: inherit;
+  font-size: var(--t-cap);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.2rem 0.4rem;
+}
+/* Picked a past date: the field says so, in the accent the current year uses. */
+.as-of.is-past input {
+  border-color: var(--series-1);
+  color: var(--series-1);
+}
+.as-of-today {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--series-1);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .scale-basis {
   margin: 0.7rem 0 0;
   font-family: var(--mono);

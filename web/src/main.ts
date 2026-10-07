@@ -85,6 +85,8 @@ interface State {
   /** Year -> colour slot. Slots are held until a year is deselected, so
       removing one highlight never repaints the others. */
   highlights: Map<number, number>;
+  /** A picked "Year ending" date as YYYY-MM-DD, or null for live. */
+  asOf: string | null;
 }
 
 const state: State = {
@@ -101,7 +103,42 @@ const state: State = {
   annualRange: "off",
   catalogMode: "all",
   highlights: new Map(),
+  asOf: null,
 };
+
+const DAY_MS = 86_400_000;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Today in UTC as YYYY-MM-DD -- the day every window is cut on. */
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * The moment the page is read as of. Live, that is now. A picked date reads as
+ * the last millisecond of that UTC day, so calendarShift lands on the day after
+ * it and the window runs through the whole day picked.
+ */
+function asOfMs(): number {
+  return state.asOf === null ? Date.now() : Date.parse(state.asOf) + DAY_MS - 1;
+}
+
+/** "March 11, 2011" for a picked date, in the reader's own date order. */
+function asOfLabel(): string {
+  return new Date(asOfMs()).toLocaleDateString(undefined, {
+    year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+}
+
+/** A date from the URL or the field, or null if it is today, later, or junk. */
+function parseAsOf(value: string | null): string | null {
+  if (!value || !ISO_DATE.test(value) || !Number.isFinite(Date.parse(value))) return null;
+  if (value >= todayIso()) return null;
+  return value < AS_OF_MIN ? AS_OF_MIN : value;
+}
+
+/**
+ * The first date whose window lies wholly inside the record: the 365 days
+ * ending 1 January 1977 start on 2 January 1976.
+ */
+const AS_OF_MIN = "1977-01-01";
 
 /**
  * How far to slide the calendar so the window starts behaving like 1 January.
@@ -113,7 +150,7 @@ const state: State = {
  */
 function calendarShift(window: State["window"] = state.window): number {
   if (window === "calendar") return 0;
-  const now = new Date();
+  const now = new Date(asOfMs());
   const tomorrow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
   return tomorrow - Date.UTC(now.getUTCFullYear(), 0, 1);
 }
@@ -170,6 +207,10 @@ const el = {
   range: document.getElementById("range-control")!,
   annualRange: document.getElementById("annual-range-control")!,
   scaleNow: document.getElementById("scale-now")!,
+  asOf: document.getElementById("as-of")!,
+  asOfWrap: document.querySelector(".as-of") as HTMLElement,
+  asOfLabel: document.getElementById("as-of-label")!,
+  asOfToday: document.getElementById("as-of-today") as HTMLButtonElement,
   scaleBasis: document.getElementById("scale-basis")!,
   scaleRows: document.getElementById("scale-rows")!,
   generated: document.getElementById("generated")!,
@@ -277,7 +318,9 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
     label.textContent = String(current);
     const said = document.createElement("span");
     said.className = "scale-said";
-    said.textContent = fill(copy.home.scaleNow, { year });
+    said.textContent = state.asOf === null
+      ? fill(copy.home.scaleNow, { year })
+      : fill(copy.home.scaleNowPast, { year, date: asOfLabel() });
     li.append(document.createElement("i"), label, said);
     el.scaleNow.append(li);
   }
@@ -295,7 +338,8 @@ function buildAnswerScale(pct: number | null, year: string, peers: number[],
   head.className = "scale-head";
   const headWhen = document.createElement("span");
   headWhen.className = "scale-range";
-  headWhen.textContent = copy.home.scaleColCount;
+  headWhen.textContent = state.asOf === null
+    ? copy.home.scaleColCount : copy.home.scaleColCountPast;
   const headSays = document.createElement("span");
   headSays.className = "scale-said";
   headSays.textContent = copy.home.scaleColAnswer;
@@ -469,11 +513,58 @@ function buildControls() {
       // "2025" means the calendar year in one mode and August-to-August in the
       // other. Carrying a selection across would quietly point it elsewhere.
       state.highlights.clear();
-      claimSlot(dayIndex(Date.now(), calendarShift()).year);
+      claimSlot(dayIndex(asOfMs(), calendarShift()).year);
     });
   buildSegmented(el.catalog, CATALOG_MODES.map((c) => ({ id: c.id, label: c.label })),
     () => state.catalogMode, (id) => { state.catalogMode = id as State["catalogMode"]; });
   wireYearPicker();
+  wireAsOf();
+}
+
+/**
+ * The "Year ending" field. Every figure on the page reads its date from
+ * asOfMs(), so changing it is a matter of setting state and redrawing; the URL
+ * carries it so a post can link to the page as it stood on a given day.
+ */
+function wireAsOf() {
+  const input = el.asOf as HTMLInputElement;
+  input.min = AS_OF_MIN;
+
+  // The URL is rewritten here too, so a date clamped or dropped on the way in
+  // (?date=1900-01-01, ?date=tomorrow) does not stay in the address bar
+  // disagreeing with the page.
+  const sync = () => {
+    input.max = todayIso();
+    input.value = state.asOf ?? todayIso();
+    el.asOfToday.hidden = state.asOf === null;
+    el.asOfWrap.classList.toggle("is-past", state.asOf !== null);
+    const url = new URL(window.location.href);
+    if (state.asOf === null) url.searchParams.delete("date");
+    else url.searchParams.set("date", state.asOf);
+    if (url.href !== window.location.href) window.history.replaceState(null, "", url);
+  };
+  const set = (value: string | null) => {
+    state.asOf = parseAsOf(value);
+    // Same reason as the window switch: the year being read has moved, so the
+    // old highlight would point at a different window from the one named.
+    state.highlights.clear();
+    claimSlot(dayIndex(asOfMs(), calendarShift()).year);
+    sync();
+    void update();
+  };
+
+  // Typing a year fires "change" on the way, digit by digit: 0001, 0019, 0198,
+  // then 1989. Those fall outside the field's range and are let pass, rather
+  // than clamped and written back into the field under the reader's cursor.
+  input.addEventListener("change", () => {
+    const value = input.value;
+    if (!value || value < input.min || value > input.max) return;
+    set(value);
+  });
+  el.asOfToday.addEventListener("click", () => set(null));
+  el.asOfLabel.textContent = copy.home.asOfLabel;
+  el.asOfToday.textContent = copy.home.asOfToday;
+  sync();
 }
 
 /* ---------------- live feed ---------------- */
@@ -534,6 +625,8 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
   let sorted = 0;
   for (const event of liveEvents) {
     if (event.mag < minMag || event.time <= cutoff) continue;
+    // A picked date ends before the feed begins, or part-way into it.
+    if (event.time > asOfMs()) continue;
     // Counted before the skip: the note under the chart is about how many live
     // events were sorted here, mainshocks and aftershocks alike.
     sorted++;
@@ -800,6 +893,26 @@ async function writeLatest(minMag: number) {
 
 let lastRender: (() => void) | null = null;
 
+/**
+ * The years a reading is ranked against: every other year in the record whose
+ * window has run as far as the reading's has.
+ *
+ * Live, that is every year before this one, as it always was. For a picked
+ * date it reaches forward too -- 1990 is judged against 2005 as well as 1985 --
+ * but stops at the first window still running today, which would be ranked
+ * part-finished against whole ones.
+ */
+function comparableYears(curves: YearCurves, current: number, shift: number,
+                         through: number): number[] {
+  const now = Date.now();
+  return curves.years.filter((y) => {
+    if (y < REFERENCE_START || y === current) return false;
+    const start = Date.UTC(y, 0, 1);
+    const length = Date.UTC(y + 1, 0, 1) - start;
+    return start + shift + ((through + 1) / DAYS) * length <= now;
+  });
+}
+
 async function update() {
   const minMag = state.minMag;
 
@@ -823,7 +936,7 @@ async function update() {
   techValues.major = magLabel(MAJOR_MAGNITUDE);
 
   const shift = calendarShift();
-  const { year: currentYear, day: dayOfYear } = dayIndex(Date.now(), shift);
+  const { year: currentYear, day: dayOfYear } = dayIndex(asOfMs(), shift);
   // A rolling window always ends today, so it is complete: the current "year"
   // runs the full 365 days and is compared only against equally complete ones.
   // A calendar year is part-way through, and is compared against the same date
@@ -836,7 +949,7 @@ async function update() {
     tier, minMag, REFERENCE_START, mainshocksOnly, state.measure, shift);
   const liveSorted = applyLive(curves, tier, minMag, shift, state.measure, mainshocksOnly);
 
-  const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
+  const refYears = comparableYears(curves, currentYear, shift, today);
   const percentiles = empiricalBand(curves, refYears, state.measure);
   techValues.years = refYears.length;
   // The sigma view takes its spread from every window in the record, not from
@@ -874,10 +987,14 @@ async function update() {
   };
   const aCurves = annualCurvesFor(MIN_MAGNITUDE, false);
   const aMajor = annualCurvesFor(MAJOR_MAGNITUDE, false);
-  const { year: aYear } = dayIndex(Date.now(), annualShift);
+  const { year: aYear } = dayIndex(asOfMs(), annualShift);
   const aToday = DAYS - 1;
-  const aRefYears = aCurves.years.filter((y) => y >= REFERENCE_START && y < aYear);
-  const counts = annualCounts(aCurves, aMajor, aYear, aToday, aRefYears, "count");
+  const aRefYears = comparableYears(aCurves, aYear, annualShift, aToday);
+  // Only the years on the comparison and the year being read. With a picked
+  // date the record runs on past it, and the window still running today would
+  // be drawn as a short bar among whole ones.
+  const counts = annualCounts(aCurves, aMajor, aYear, aToday, aRefYears, "count")
+    .filter((c) => c.year === aYear || aRefYears.includes(c.year));
   // Its own band, measured on the series the first question's chart draws --
   // the one with aftershocks kept, which is what the answer above it counts.
   const annualWindows = state.annualRange === "sigma"
@@ -910,12 +1027,11 @@ async function update() {
   // it against the full totals of past years, which put the marker at 95
   // against peers of 110 and up.
   const headlineShift = calendarShift("rolling");
-  const { year: headlineYear } = dayIndex(Date.now(), headlineShift);
+  const { year: headlineYear } = dayIndex(asOfMs(), headlineShift);
   const headlineCurves = cumulativeByYear(
     headlineTier, MIN_MAGNITUDE, REFERENCE_START, false, "count", headlineShift);
   applyLive(headlineCurves, headlineTier, MIN_MAGNITUDE, headlineShift, "count");
-  const headlineRef = headlineCurves.years.filter(
-    (y) => y >= REFERENCE_START && y < headlineYear);
+  const headlineRef = comparableYears(headlineCurves, headlineYear, headlineShift, DAYS - 1);
   const headline = verdict(headlineCurves, headlineRef, headlineYear, DAYS - 1, "count");
   const headlinePct = headline ? headline.percentile * 100 : null;
 
@@ -935,20 +1051,26 @@ async function update() {
       lo: Math.round(quantile(headlinePeers, 0.05)) + 1,
       hi: Math.round(quantile(headlinePeers, 0.95)),
       threshold: magLabel(MIN_MAGNITUDE),
-      n: headline.count,
+      actual: state.asOf === null
+        ? fill(copy.home.annualBandActualLive, { n: headline.count })
+        : fill(copy.home.annualBandActualPast, { n: headline.count, date: asOfLabel() }),
     });
   writeNote(refYears.length, liveSorted);
   writeAnnualNote(aYear, false, true);
 
+  const lastCompared = refYears.length ? Math.max(...refYears) : currentYear - 1;
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
-    subject, from: REFERENCE_START, to: currentYear - 1,
+    subject, from: REFERENCE_START, to: lastCompared,
   });
   el.annualChartTitle.textContent = fill(copy.home.axisAnnualCount,
                                          { threshold: magLabel(MIN_MAGNITUDE) });
 
   lastRender = () => {
     const theme = readTheme(document.body);
-    buildYearPicker(curves.years, theme);
+    // The years on the chart: with a picked date the record runs on past it,
+    // and the window still running today is not one of them.
+    buildYearPicker(curves.years.filter((y) => y === currentYear || refYears.includes(y)),
+                    theme);
 
     if (band.length === 0 || refYears.length === 0) {
       el.chart.replaceChildren(errorBox(copy.home.errorNoHistory));
@@ -1069,7 +1191,7 @@ async function update() {
                      ...highlights.map((h) => curves.curves.get(h.year)?.[h.through] ?? 0)),
     });
     el.chart.replaceChildren(figure);
-    figure.after(buildLegend(theme, highlights, REFERENCE_START, currentYear - 1));
+    figure.after(buildLegend(theme, highlights, REFERENCE_START, lastCompared));
 
 
     el.annualChart.replaceChildren(renderAnnualChart({
@@ -1148,6 +1270,11 @@ function buildLegend(theme: ReturnType<typeof readTheme>, highlights: Highlight[
  * beside it, the charts, the table -- all of which say which setting they are
  * showing.
  */
+/** The live phrasing, or the picked-date one with the date filled in. */
+function periodText(live: string, past: string): string {
+  return state.asOf === null ? live : fill(past, { date: asOfLabel() });
+}
+
 function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
                        headlinePct: number | null) {
   const kind = effectiveMainshocksOnly() ? "mainshocks" : "earthquakes";
@@ -1164,9 +1291,11 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
   }
 
   el.answer.innerHTML = fill(answerFor(headlinePct ?? result.percentile * 100, true),
-                             { year: yearLabel(currentYear), from: REFERENCE_START });
+                             { year: yearLabel(currentYear), from: REFERENCE_START,
+                               span: periodText(copy.home.spanLive, copy.home.spanPast) });
 
   const shared = {
+    window: periodText(copy.home.windowLive, copy.home.windowPast),
     from: REFERENCE_START, to: currentYear - 1,
     above: Math.round(result.aboveShare * 100),
   };
@@ -1222,9 +1351,13 @@ function writeAnnualNote(currentYear: number, splitMajor: boolean, rolling: bool
   const cutoff = new Date();
   el.annualNote.textContent = fill(template,
     { major: magLabel(MAJOR_MAGNITUDE),
-      when: cutoff.toLocaleString(undefined, {
-        month: "long", day: "numeric", hour: "numeric", minute: "2-digit",
-      }),
+      // A picked date has no time of day: its window runs to the end of it.
+      when: state.asOf !== null
+        ? new Date(asOfMs()).toLocaleDateString(undefined, {
+            month: "long", day: "numeric", timeZone: "UTC" })
+        : cutoff.toLocaleString(undefined, {
+            month: "long", day: "numeric", hour: "numeric", minute: "2-digit",
+          }),
       year: yearLabel(currentYear, state.annualWindow) });
 }
 
@@ -1293,10 +1426,11 @@ async function boot() {
   if (problem) showProblem(problem);
 
   store = new CatalogStore(meta);
+  state.asOf = parseAsOf(new URL(window.location.href).searchParams.get("date"));
   buildControls();
   // Seeded once, not per render, so "Clear all" leaves the chart showing just
   // the reference backdrop instead of snapping the current year back on.
-  claimSlot(dayIndex(Date.now(), calendarShift()).year);
+  claimSlot(dayIndex(asOfMs(), calendarShift()).year);
 
   if (!meta.declustered) {
     const control = el.catalog.closest("fieldset");
