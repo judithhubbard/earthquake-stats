@@ -55,7 +55,7 @@ export const copy = {
   home: {
     /** The one-word answer. Whichever line fits the year is used. */
     answerBusiest: "<strong>Yes.</strong> {year} is ahead of almost every year since {from}.",
-    answerQuietest: "<strong>No — less.</strong> {year} is quieter.",
+    answerQuietest: "<strong>No — fewer.</strong> {year} is quieter.",
     answerBusy: "<strong>No.</strong> {year} is busy, but not unusual.",
     answerQuiet: "<strong>No.</strong> {year} is running on the quiet side.",
     answerAverage: "<strong>No.</strong> {year} is running about average.",
@@ -68,7 +68,7 @@ export const copy = {
     /** The same answers for the rolling window, which is complete rather than
         part-way through, so "running" and "so far" would both be wrong. */
     rollingBusiest: "<strong>Yes.</strong> The last year beat almost every year since {from}.",
-    rollingQuietest: "<strong>No — less.</strong> The last year was quieter.",
+    rollingQuietest: "<strong>No — fewer.</strong> The last year was quieter.",
     rollingBusy: "<strong>No.</strong> The last year was busy, but not unusual.",
     rollingQuiet: "<strong>No.</strong> The last year was on the quiet side.",
     rollingAverage: "<strong>No.</strong> The last year was about average.",
@@ -78,12 +78,12 @@ export const copy = {
        sentence only has to supply the verdict -- and five full sentences that
        all begin "The last year was" is five times the reading for one word of
        difference. The rolling set above stays intact: it is also the headline,
-       where a bare "No -- less." would say nothing. */
+       where a bare "No -- fewer." would say nothing. */
     scaleAnsBusiest: "<strong>Yes.</strong>",
     scaleAnsBusy: "<strong>No.</strong> Busy, but not unusual",
     scaleAnsAverage: "<strong>No.</strong> About average",
     scaleAnsQuiet: "<strong>No.</strong> On the quiet side",
-    scaleAnsQuietest: "<strong>No — less.</strong>",
+    scaleAnsQuietest: "<strong>No — fewer.</strong>",
     detailCountRolling:
       "{count} {threshold} {kind} in the last 365 days — usual is {median} — {above}% of years " +
       "since {from} had more {kind}",
@@ -134,6 +134,7 @@ export const copy = {
 
     /* Axis labels. */
     axisCumulativeCount: "{threshold} events this year",
+    axisCumulativeCountRolling: "{threshold} events, cumulative",
     axisCumulativeMoment: "Moment this year, as a single earthquake",
     axisAnnualCount: "{threshold} earthquakes per year",
     axisAnnualMoment: "Moment per year, as a single earthquake",
@@ -210,7 +211,7 @@ export const copy = {
     techBody:
       "**Where the data come from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
-      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes, and your " +
+      "non-tectonic events are excluded. The catalog is rebuilt several times a day, and your " +
       "browser reads the USGS feed of the last day directly, so an earthquake from an hour " +
       "ago is already counted here." +
 
@@ -638,7 +639,7 @@ export const copy = {
     techBody:
       "**Where the data come from.** Every earthquake here is from the USGS ComCat catalog, " +
       "pulled through the FDSN event service. Quarry blasts, explosions and other " +
-      "non-tectonic events are excluded. The catalog is rebuilt every 15 minutes. The three " +
+      "non-tectonic events are excluded. The catalog is rebuilt several times a day. The three " +
       "binned panels use everything in it, up to and including the incomplete current year; " +
       "the two yearly comparisons use complete years only." +
 

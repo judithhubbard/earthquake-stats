@@ -1047,7 +1047,9 @@ async function update() {
       curves, band, refYears, highlights, today, theme, width, dayToDate,
       yLabel: state.measure === "moment"
         ? copy.home.axisCumulativeMoment
-        : fill(copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),
+        : fill(state.window === "rolling"
+          ? copy.home.axisCumulativeCountRolling
+          : copy.home.axisCumulativeCount, { threshold: magLabel(minMag) }),
       wholeNumbers: state.measure === "count",
       bandMode: state.range,
       yMax: Math.max(0, ...band.map((b) => b.hi), ...band.map((b) => b.sdHi),
