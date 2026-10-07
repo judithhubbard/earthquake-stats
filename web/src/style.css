@@ -195,6 +195,14 @@ main {
 }
 
 .question-title { max-width: 17ch; }
+/* A picked date roughly doubles the question. Smaller and wider, so it stays
+   at three or four lines instead of running to six beside the answer. */
+.question-title.is-past {
+  /* Floored on phones, where 7vw * 0.7 came out smaller than the answer
+     beneath it and the question read as the lesser of the two. */
+  font-size: max(calc(var(--t-display) * 0.7), 1.6rem);
+  max-width: 24ch;
+}
 .answer { max-width: 24ch; }
 
 /* The word itself, at headline scale. Everything after it is the qualifier. */

@@ -86,6 +86,8 @@ export const copy = {
     windowLive: "the last 365 days",
     windowPast: "the 365 days to {date}",
     asOfLabel: "Year ending",
+    /** The headline once a date is picked. The live one is in unusual/index.html. */
+    questionPast: "Were there more earthquakes than usual in the year to {date}?",
     asOfToday: "Back to today",
 
     scaleAnsBusiest: "<strong>Yes.</strong>",

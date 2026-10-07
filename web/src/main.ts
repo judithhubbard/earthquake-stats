@@ -207,6 +207,7 @@ const el = {
   range: document.getElementById("range-control")!,
   annualRange: document.getElementById("annual-range-control")!,
   scaleNow: document.getElementById("scale-now")!,
+  questionTitle: document.getElementById("question-title")!,
   asOf: document.getElementById("as-of")!,
   asOfWrap: document.querySelector(".as-of") as HTMLElement,
   asOfLabel: document.getElementById("as-of-label")!,
@@ -526,6 +527,29 @@ function buildControls() {
  * asOfMs(), so changing it is a matter of setting state and redrawing; the URL
  * carries it so a post can link to the page as it stood on a given day.
  */
+/** The live headline and tab title, as the HTML ships them. */
+const liveQuestion = { html: "", title: "" };
+
+/**
+ * The headline asks about the year being shown. Live it is the HTML's own
+ * "this year"; with a picked date it is past tense and carries the date, so a
+ * screenshot of 2011 says it is 2011. The tab title follows, for history and
+ * bookmarks -- link previews read the HTML before this runs and still say
+ * "this year".
+ */
+function writeQuestion() {
+  if (!liveQuestion.title) {
+    liveQuestion.html = el.questionTitle.innerHTML;
+    liveQuestion.title = document.title;
+  }
+  const past = state.asOf !== null;
+  const question = past ? fill(copy.home.questionPast, { date: asOfLabel() }) : "";
+  if (past) el.questionTitle.textContent = question;
+  else el.questionTitle.innerHTML = liveQuestion.html;
+  el.questionTitle.classList.toggle("is-past", past);
+  document.title = past ? question : liveQuestion.title;
+}
+
 function wireAsOf() {
   const input = el.asOf as HTMLInputElement;
   input.min = AS_OF_MIN;
@@ -534,6 +558,7 @@ function wireAsOf() {
   // (?date=1900-01-01, ?date=tomorrow) does not stay in the address bar
   // disagreeing with the page.
   const sync = () => {
+    writeQuestion();
     input.max = todayIso();
     input.value = state.asOf ?? todayIso();
     el.asOfToday.hidden = state.asOf === null;
