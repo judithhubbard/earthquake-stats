@@ -41,7 +41,14 @@
           </div>
           <div class="as-of">
             <label for="as-of" id="as-of-label">Year ending</label>
-            <input type="date" id="as-of" min="1977-01-01" />
+            <!-- The date is shown written out ("May 3, 2026"): a date input
+                 displays in the reader's locale, so 03/05/2026 is March to
+                 some readers and May to others. The real input sits on top,
+                 invisible, so a click still opens the browser's calendar. -->
+            <span class="as-of-field">
+              <span class="as-of-text" id="as-of-text" aria-hidden="true"></span>
+              <input type="date" id="as-of" min="1977-01-01" />
+            </span>
             <button type="button" class="as-of-today" id="as-of-today" hidden>Back to today</button>
           </div>
         </div>

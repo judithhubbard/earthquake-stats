@@ -179,13 +179,12 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 1.5rem 3rem;
-  /* The last baseline, not the box's bottom edge. `end` lined up the two
-     boxes, which left the two final lines of type sitting at different
-     heights -- descenders and half-leading differ between 3.1rem and 1.7rem.
-     `last baseline` puts "usual this year?" and "average." on one line. The
-     `end` above it is the fallback for browsers without it. */
-  align-items: end;
-  align-items: last baseline;
+  /* Tops, not last baselines. Lining up the last lines held "usual this
+     year?" level with "average.", but it slid the question down whenever the
+     answer ran a line longer -- and the 30-day answer usually does, so the
+     question jumped every time the "Over" switch was flipped. Pinned to the
+     top, it stays put under the switch. */
+  align-items: start;
   padding-bottom: 1.75rem;
   border-bottom: 1px solid var(--axis);
 }
@@ -1801,19 +1800,45 @@ footer p { margin: 0 0 0.4rem; }
   text-transform: uppercase;
   color: var(--text-muted);
 }
-.as-of input {
-  font: inherit;
+.as-of-field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: system-ui, sans-serif;
   font-size: var(--t-cap);
   letter-spacing: 0;
   text-transform: none;
   color: var(--text-primary);
-  background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  padding: 0.2rem 0.4rem;
+  padding: 0.25rem 0.55rem;
+  white-space: nowrap;
 }
+/* A small calendar mark, drawn rather than fetched. */
+.as-of-field::after {
+  content: "";
+  width: 0.7rem;
+  height: 0.62rem;
+  border: 1.5px solid currentColor;
+  border-top-width: 3px;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+/* The real input, over the whole field and invisible. */
+.as-of-field input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+.as-of-field:focus-within { outline: 2px solid var(--series-1); outline-offset: 2px; }
 /* Picked a past date: the field says so, in the accent the current year uses. */
-.as-of.is-past input {
+.as-of.is-past .as-of-field {
   border-color: var(--series-1);
   color: var(--series-1);
 }

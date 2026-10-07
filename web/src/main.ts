@@ -239,6 +239,7 @@ const el = {
   asOfWrap: document.querySelector(".as-of") as HTMLElement,
   asOfLabel: document.getElementById("as-of-label")!,
   asOfToday: document.getElementById("as-of-today") as HTMLButtonElement,
+  asOfText: document.getElementById("as-of-text")!,
   scaleBasis: document.getElementById("scale-basis")!,
   scaleRows: document.getElementById("scale-rows")!,
   generated: document.getElementById("generated")!,
@@ -608,6 +609,7 @@ function wireAsOf() {
     writeQuestion();
     input.max = todayIso();
     input.value = state.asOf ?? todayIso();
+    el.asOfText.textContent = asOfLabel();
     el.asOfToday.hidden = state.asOf === null;
     el.asOfWrap.classList.toggle("is-past", state.asOf !== null);
     writeUrl();
@@ -631,6 +633,11 @@ function wireAsOf() {
     set(value);
   });
   el.asOfToday.addEventListener("click", () => set(null));
+  // The input is invisible, so a click anywhere on it must open the calendar;
+  // left alone, Chrome opens it only from its own icon, which is hidden too.
+  input.addEventListener("click", () => {
+    try { input.showPicker?.(); } catch { /* not allowed here; focus is enough */ }
+  });
   el.asOfToday.textContent = copy.home.asOfToday;
   sync();
 }

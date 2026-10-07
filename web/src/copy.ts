@@ -298,8 +298,9 @@ export const copy = {
       "cannot move it: {threshold} earthquakes, aftershocks included, counted over the 365 " +
       "days ending today, and ranked against the same 365-day stretch of every year back to " +
       "{from}. The histogram under the answer draws those past windows, so the bar the " +
-      "marker sits on is the count the sentence is about. Selecting {major} or mainshocks " +
-      "changes the charts below; it does not change the answer." +
+      "marker sits on is the count the sentence is about. The 30-day view reads the same " +
+      "series over 30 days. In both, selecting {major} or mainshocks changes the charts " +
+      "below; it does not change the answer." +
 
       "\n\n**The five answers, and where their edges are.** The table beside the histogram " +
       "is a fixed scale, not a reading: it says what this page would answer for any count, " +
@@ -307,7 +308,9 @@ export const copy = {
       "75th and 95th percentiles of the past windows, so the middle band is half of all " +
       "years and the two outer ones are five years in a hundred each. Because they are " +
       "percentiles of the record rather than fixed numbers, they move as the record grows. " +
-      "The counts printed in the table are those percentiles rounded to whole earthquakes." +
+      "The counts printed in the table are those percentiles rounded to whole earthquakes. " +
+      "In the 30-day view, where counts are small, each whole count is put through the same " +
+      "rule that picks the answer, so the row the table marks always matches the answer." +
 
       "\n\n**A year here is 365 days ending today.** Comparing a part-finished calendar " +
       "year against whole ones would flatter or punish it depending on the date, so the " +
@@ -317,8 +320,8 @@ export const copy = {
       "The chart of yearly counts is always 365-day windows, so every bar on it is complete " +
       "and directly comparable." +
 
-      "\n\n**Other dates.** The \"Year ending\" field moves the whole page to the 365 " +
-      "days ending on any day since 1977. That year is then ranked against every other " +
+      "\n\n**Other dates.** The date field moves the whole page to the year, or the 30 " +
+      "days, ending on any day since 1977. That year is then ranked against every other " +
       "complete year in the record, after it as well as before, so a year in the 1980s is " +
       "judged against as many others as this one is. The live feed is left out, since it " +
       "only covers the last day." +
@@ -340,11 +343,16 @@ export const copy = {
       "exists. About {mwShare}% of {threshold} events carry an Mw." +
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
-      "hundreds of smaller ones with it. **Mainshocks only** removes them — the operation " +
-      "is called declustering — using Gardner-Knopoff windows, " +
-      "widened to twice the Wells and Coppersmith rupture length wherever that is larger: " +
-      "53 km at M6, 87 km at M7. The windows run forward in time only, so an earthquake is " +
-      "removed if a larger one came before it and never if a larger one followed." +
+      "hundreds of smaller ones with it. **Mainshocks only** removes them. The operation is " +
+      "called declustering, and this site uses Gardner-Knopoff windows: an earthquake is " +
+      "removed if an earlier one at least as large lies within a set distance and time of it. " +
+      "The distance is Gardner-Knopoff's, widened to twice the Wells and Coppersmith rupture " +
+      "length wherever that is larger: 53 km at M6, 87 km at M7, 330 km at M8. The time is " +
+      "Gardner-Knopoff's unchanged: about 500 days after an M6, and two and a half to three " +
+      "years after anything of M6.5 or more. Depth is not used. The windows run forward in " +
+      "time only, so an earthquake is never removed because of a larger one that followed " +
+      "it. Earthquakes from the live feed are sorted the same way in your browser, and " +
+      "checked again at the next rebuild." +
 
       "\n\n**The record starts in {from},** when the Global CMT catalog begins — the earliest " +
       "date from which moment magnitudes are broadly available. Only {threshold} and {major} " +
@@ -352,12 +360,7 @@ export const copy = {
       "seismometers were running that year, so counts cannot be compared across decades." +
 
       "\n\n**The shaded ranges.** The bands on the cumulative chart show where the middle " +
-      "50% and middle 90% of past windows fell on each day of the window." +
-
-      "\n\n**What this page cannot tell you.** It counts earthquakes. It does not measure " +
-      "their consequences. The two are related, but loosely: an M7 on the Mid-Atlantic Ridge " +
-      "will have no human effects, while an M7 below Los Angeles will cause widespread " +
-      "damage.",
+      "50% and middle 90% of past windows fell on each day of the window.",
 
     /* Footer and failures. */
     latest: "latest {threshold}: {when}, M{mag} {place}",
@@ -424,9 +427,9 @@ export const copy = {
       "which was checked rather than assumed. The month of the year and the lunar cycle are " +
       "two clocks that do not divide into one another, so where an earthquake falls on one " +
       "says nothing about where it falls on the other. The two yearly comparisons share a " +
-      "count of earthquakes, so they were tested together by shuffling the years: the " +
-      "correlation between them came out at 0.01. The combined number is the same to four " +
-      "decimal places either way.",
+      "count of earthquakes, so they were checked together, once, by shuffling the years: " +
+      "the correlation between them came out at about 0.01, close enough to zero to treat " +
+      "them as independent.",
 
     legendBand: "±2σ band — should contain 95.45%",
     legendAbove: "More earthquakes than average",
@@ -739,17 +742,19 @@ export const copy = {
       "Mw where we can, to make earthquakes comparable across years. We use W-phase first, " +
       "then GCMT centroid, then body-wave, then any other Mw — and fall back only where none " +
       "exists. About {mwShare}% of {threshold} events carry an Mw. Only about {binMwShare}% " +
-      "of {binThreshold} events do: below M6 most earthquakes have never had a moment " +
-      "magnitude published, so the {binThreshold} panels run largely on ComCat's preferred " +
-      "magnitude." +
+      "of {binThreshold} events do, because the search for published Mw values reaches down " +
+      "only to M5.5: below that, the {binThreshold} panels use ComCat's preferred magnitude, " +
+      "which for recent earthquakes is usually a moment magnitude already." +
 
       "\n\n**Aftershocks are removed.** A year containing one great earthquake carries " +
-      "hundreds of smaller ones with it. They are removed everywhere on this page — the " +
-      "operation is called declustering — using Gardner-Knopoff windows, widened to twice " +
-      "the Wells and Coppersmith rupture length wherever that is larger: 53 km at M6, 87 km " +
-      "at M7. The windows run forward in time only, so " +
-      "an earthquake is removed if a larger one came before it and never if a larger one " +
-      "followed." +
+      "hundreds of smaller ones with it. They are removed everywhere on this page except the " +
+      "Oklahoma panel, which counts every earthquake. The operation is called declustering, " +
+      "and this site uses Gardner-Knopoff windows: an earthquake is removed if an earlier " +
+      "one at least as large lies within a set distance and time of it. The distance is " +
+      "Gardner-Knopoff's, widened to twice the Wells and Coppersmith rupture length wherever " +
+      "that is larger: 53 km at M6, 87 km at M7, 330 km at M8. The time is Gardner-Knopoff's " +
+      "unchanged: about 500 days after an M6, and two and a half to three years after " +
+      "anything of M6.5 or more. Depth is not used. The windows run forward in time only." +
 
       "\n\n**The record starts in {from},** when the Global CMT catalog begins — the " +
       "earliest date from which moment magnitudes are broadly available." +
@@ -766,7 +771,7 @@ export const copy = {
       "panel is graded on its own p-value; the page as a whole is graded on the combined one. " +
       "Times are taken in UTC throughout. Both p-values come from closed-form approximations " +
       "— Wilson-Hilferty for chi-square, a normal approximation for t — which agree with the " +
-      "exact distributions to about a thousandth over the range used here." +
+      "exact distributions to within a few thousandths over the range used here." +
 
       "\n\n**Day of the week.** A chi-square goodness-of-fit test over seven bins, on six " +
       "degrees of freedom, with the week starting on Monday. Every weekday is the same " +
@@ -795,7 +800,7 @@ export const copy = {
       "using Šidák's formula. That formula needs the {testsWord} to be independent, and they " +
       "are: the month of the year and the lunar cycle are two clocks of 365.25 and 29.53 " +
       "days, neither of which divides into the other, and the two yearly comparisons were " +
-      "checked against each other by shuffling the years." +
+      "checked against each other once, by shuffling the years." +
 
       "\n\n**The day of the week is not one of the {testsWord}.** It is a calibration test: " +
       "earthquakes cannot know what day it is, so a result there would say something about " +
@@ -806,8 +811,8 @@ export const copy = {
 
       "\n\n**A p-value is not the probability that there is no pattern.** It is how often " +
       "chance alone would produce a result this strong. It also says nothing about size: with " +
-      "{kept} earthquakes, a difference of two or three percent is enough to pass a 5% " +
-      "cutoff. A result that crosses is worth looking at, not a finding." +
+      "{kept} earthquakes, a difference of a few percent, depending on how many bins it is " +
+      "spread over, is enough to pass a 5% cutoff. A result that crosses is worth looking at, not a finding." +
 
       "\n\n**What these tests cannot do.** A chi-square across bins can say a distribution is " +
       "uneven; it cannot say what makes it uneven. A correlation can say two series move " +
