@@ -48,16 +48,12 @@ const CATALOG_MODES = [
 ] as const;
 // How the reference years are described. Percentiles say what those years did;
 // sigma says what a normal fit to them predicts. See BandPoint in stats.ts.
+// The switch between them is parked in attic/sigma-toggles; state.range is
+// pinned to "percentile", and the type still names both.
 const RANGES = [
   { id: "percentile", label: "50 / 90%" },
   { id: "sigma", label: "±2σ (95.45%)" },
 ] as const;
-// The annual chart has no percentile band to switch between, so its control is
-// a plain show/hide -- and it is its own state, not a mirror of the cumulative
-// chart's, so the two can be read against each other. One button rather than
-// two: "Off" was an option you could select, which is a strange way to say
-// that nothing is drawn.
-const ANNUAL_SIGMA_LABEL = "±2σ (95.45%)";
 /* What the "Over" switch flips the page between. The year first: it is what
    the page opens on. */
 const SPANS = [
@@ -225,8 +221,6 @@ const el = {
   annualNote: document.getElementById("annual-note")!,
   annualChartTitle: document.getElementById("annual-chart-title")!,
   annualBand: document.getElementById("annual-band")!,
-  range: document.getElementById("range-control")!,
-  annualRange: document.getElementById("annual-range-control")!,
   scaleNow: document.getElementById("scale-now")!,
   questionTitle: document.getElementById("question-title")!,
   span: document.getElementById("span-control")!,
@@ -453,23 +447,6 @@ function buildSegmented(host: HTMLElement, options: { id: string; label: string 
   }
 }
 
-/** A single button that is either pressed or not, rather than a pair. */
-function buildToggle(host: HTMLElement, label: string,
-                     pressed: () => boolean, onToggle: (on: boolean) => void) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "segmented-option";
-  button.textContent = label;
-  button.setAttribute("aria-pressed", String(pressed()));
-  button.addEventListener("click", () => {
-    const next = !pressed();
-    onToggle(next);
-    button.setAttribute("aria-pressed", String(next));
-    void update();
-  });
-  host.replaceChildren(button);
-}
-
 function setPickerOpen(open: boolean) {
   el.yearPanel.hidden = !open;
   el.yearToggle.setAttribute("aria-expanded", String(open));
@@ -551,11 +528,6 @@ function wireYearPicker() {
 function buildControls() {
   buildSegmented(el.mag, MAGNITUDES.map((m) => ({ id: String(m), label: magLabel(m) })),
     () => String(state.minMag), (id) => { state.minMag = Number(id); });
-  buildSegmented(el.range, RANGES.map((r) => ({ id: r.id, label: r.label })),
-    () => state.range, (id) => { state.range = id as State["range"]; });
-  buildToggle(el.annualRange, ANNUAL_SIGMA_LABEL,
-    () => state.annualRange === "sigma",
-    (on) => { state.annualRange = on ? "sigma" : "off"; });
   buildSegmented(el.window, WINDOWS.map((w) => ({ id: w.id, label: w.label })),
     () => state.window, (id) => {
       state.window = id as State["window"];
