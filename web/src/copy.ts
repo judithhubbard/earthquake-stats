@@ -155,7 +155,8 @@ export const copy = {
     noteMainshocks:
       "Aftershocks have been removed, so each earthquake sequence counts once.",
     noteLiveUnclassified:
-      "{n} event{s} from the last day {is} too recent to have been sorted, and counted as separate.",
+      "{n} event{s} from the last day {was} sorted into mainshocks and aftershocks on this " +
+      "page, and will be checked again at the next rebuild.",
 
     /* The small print under the annual chart. Two versions: the M7+ share line
        is meaningless when M7+ is the selected threshold, since it would then be

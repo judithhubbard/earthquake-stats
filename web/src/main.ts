@@ -14,6 +14,7 @@ import { renderTech } from "./tech";
 import { installHintGuard } from "./verdict";
 import { checkCatalog, showProblem } from "./integrity";
 import { startAnalytics } from "./analytics";
+import { classifyLive } from "./decluster";
 
 /**
  * First year of the reference window, and the earliest year shown anywhere.
@@ -138,6 +139,8 @@ interface LiveEvent {
   lon: number;
   mag: number;
   place: string;
+  /** Claimed by an earlier, larger mainshock -- decided here, not by the pipeline. */
+  dependent: boolean;
 }
 let liveEvents: LiveEvent[] = [];
 
@@ -495,7 +498,7 @@ async function pollLive(afterMs: number) {
     // behave the same. A genuinely quiet day shrinks the feed gradually, not to
     // a fraction of what it held a minute ago.
     if (liveEvents.length && features.length < liveEvents.length / 2) return;
-    liveEvents = features
+    const fresh: LiveEvent[] = features
       .filter((f: any) => f?.properties?.type === "earthquake"
         && typeof f.properties.mag === "number"
         && f.properties.time > afterMs)
@@ -506,24 +509,35 @@ async function pollLive(afterMs: number) {
         lat: f.geometry.coordinates[1],
         mag: f.properties.mag,
         place: String(f.properties.place ?? ""),
+        dependent: false,
       }));
+    // Sorted against the M6+ tier, which holds every event that could claim
+    // anything the page counts. See decluster.ts.
+    const sortable = fresh.filter((e) => e.mag >= MIN_MAGNITUDE);
+    if (sortable.length) {
+      const flags = classifyLive(sortable, await store.load(MIN_MAGNITUDE));
+      for (const [event, dependent] of flags) event.dependent = dependent;
+    }
+    liveEvents = fresh;
   } catch {
     // A failed poll is not worth surfacing: the static baseline is still correct.
   }
 }
 
 /**
- * Live events are counted in both catalog modes. They are too recent to have
- * been declustered, and treating them as dependent would make the current
- * year's count fall the moment the user switches to mainshocks -- so they are
- * presumed independent, matching how build.py treats unclassified events.
+ * Live events are declustered in the browser as they arrive (pollLive), so in
+ * mainshocks mode the dependent ones are left out exactly as the catalog's are.
  */
 function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number,
-                   measure: Measure): number {
+                   measure: Measure, mainshocksOnly = false): number {
   const cutoff = tier.info.lastTime ?? 0;
-  let added = 0;
+  let sorted = 0;
   for (const event of liveEvents) {
     if (event.mag < minMag || event.time <= cutoff) continue;
+    // Counted before the skip: the note under the chart is about how many live
+    // events were sorted here, mainshocks and aftershocks alike.
+    sorted++;
+    if (mainshocksOnly && event.dependent) continue;
     const { year, day } = dayIndex(event.time, shift);
     // Created on demand. cumulativeByYear only makes a year's bucket once the
     // catalog holds an event in it, so on 1 January -- before the pipeline has
@@ -543,9 +557,8 @@ function applyLive(curves: YearCurves, tier: Tier, minMag: number, shift: number
     // so it reached the headline as well as the chart.
     const amount = measure === "moment" ? seismicMoment(event.mag) : 1;
     for (let d = day; d < DAYS; d++) curve[d] += amount;
-    added++;
   }
-  return added;
+  return sorted;
 }
 
 /**
@@ -821,7 +834,7 @@ async function update() {
   const mainshocksOnly = effectiveMainshocksOnly();
   const curves = cumulativeByYear(
     tier, minMag, REFERENCE_START, mainshocksOnly, state.measure, shift);
-  const liveAdded = applyLive(curves, tier, minMag, shift, state.measure);
+  const liveSorted = applyLive(curves, tier, minMag, shift, state.measure, mainshocksOnly);
 
   const refYears = curves.years.filter((y) => y >= REFERENCE_START && y < currentYear);
   const percentiles = empiricalBand(curves, refYears, state.measure);
@@ -856,7 +869,7 @@ async function update() {
   const annualCurvesFor = (threshold: number, declustered: boolean) => {
     const c = cumulativeByYear(
       annualTier, threshold, REFERENCE_START, declustered, "count", annualShift);
-    applyLive(c, annualTier, threshold, annualShift, "count");
+    applyLive(c, annualTier, threshold, annualShift, "count", declustered);
     return c;
   };
   const aCurves = annualCurvesFor(MIN_MAGNITUDE, false);
@@ -924,7 +937,7 @@ async function update() {
       threshold: magLabel(MIN_MAGNITUDE),
       n: headline.count,
     });
-  writeNote(refYears.length, liveAdded);
+  writeNote(refYears.length, liveSorted);
   writeAnnualNote(aYear, false, true);
 
   el.chartTitle.textContent = fill(copy.home.cumulativeTitle, {
@@ -1169,7 +1182,7 @@ function writeHeadline(result: ReturnType<typeof verdict>, currentYear: number,
       });
 }
 
-function writeNote(refCount: number, liveAdded: number) {
+function writeNote(refCount: number, liveSorted: number) {
   const notes: string[] = [
     state.range === "sigma"
       ? fill(copy.home.noteSigma, { years: refCount })
@@ -1180,9 +1193,9 @@ function writeNote(refCount: number, liveAdded: number) {
 
   if (effectiveMainshocksOnly()) {
     notes.push(copy.home.noteMainshocks);
-    if (liveAdded > 0) {
+    if (liveSorted > 0) {
       notes.push(fill(copy.home.noteLiveUnclassified, {
-        n: liveAdded, s: liveAdded === 1 ? "" : "s", is: liveAdded === 1 ? "is" : "are",
+        n: liveSorted, s: liveSorted === 1 ? "" : "s", was: liveSorted === 1 ? "was" : "were",
       }));
     }
   }
@@ -1237,7 +1250,7 @@ function newestTime(): number {
 /**
  * Pick up a rebuilt catalog without a page reload.
  *
- * The pipeline republishes every fifteen minutes, but a tab that stayed open
+ * The pipeline republishes several times a day, but a tab that stayed open
  * kept whatever it loaded at first paint. That was not merely stale: the live
  * feed only reaches back a day, so once an event aged out of it, a tab whose
  * catalog predated that event dropped it from the page entirely. Counts went

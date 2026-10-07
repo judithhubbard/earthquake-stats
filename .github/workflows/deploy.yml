@@ -16,11 +16,11 @@ name: Build and deploy
 on:
   push:
     branches: [main]
-  # Every fifteen minutes. The browser polls the USGS one-day feed itself, so
-  # new events appear between runs -- but they arrive unclassified, and after a
-  # large earthquake the aftershocks are counted as separate mainshocks until a
-  # rebuild has declustered them. That is what this is for, and it is why the
-  # loop is fast.
+  # Every fifteen minutes, asked for. GitHub treats schedules as best-effort and
+  # in practice runs this every three to eight hours. That is tolerable because
+  # the browser polls the USGS one-day feed itself and declusters what it finds
+  # (web/src/decluster.ts), so neither the counts nor the mainshock view wait on
+  # a rebuild -- but it is why integrity.ts allows twenty hours, not six.
   #
   # Fifteen minutes is affordable because the expensive parts are not on this
   # path: see the stamps in the refresh step. A full run is a couple of minutes;

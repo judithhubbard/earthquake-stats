@@ -21,15 +21,18 @@ import type { Meta } from "./catalog";
 const MIN_HOMOGENISED = 0.9;
 
 /**
- * A catalog older than this is not being rebuilt; it publishes every 15 min.
+ * A catalog older than this is about to leave a gap.
  *
- * Six hours, not the three days this used to allow. The browser reads the USGS
- * one-day feed itself, which reaches back exactly 24 hours, so between the feed
- * running out and a three-day banner there was a 48-hour window where events
- * were in neither the catalog nor the feed and the page said nothing. Six hours
- * is already twenty-four missed rebuilds.
+ * The browser reads the USGS one-day feed itself, which reaches back exactly 24
+ * hours, so nothing is missing until the catalog is a day old -- and the banner
+ * says things are missing. Twenty hours leaves the warning ahead of the gap.
+ *
+ * It was six, on the theory that the workflow rebuilds every fifteen minutes.
+ * GitHub runs that schedule every three to eight hours, so six raised a false
+ * "totals are too low" on an ordinary afternoon. Three days, before that, was
+ * wrong the other way: 48 hours of events in neither the catalog nor the feed.
  */
-const MAX_AGE_HOURS = 6;
+const MAX_AGE_HOURS = 20;
 
 export function checkCatalog(meta: Meta, now = Date.now()): string | null {
   const tier = meta.tiers.find((t) => t.threshold === 6);
@@ -56,8 +59,8 @@ export function checkCatalog(meta: Meta, now = Date.now()): string | null {
     const age = hours < 48
       ? `${Math.round(hours)} hours`
       : `${Math.round(hours / 24)} days`;
-    return `The catalog was last rebuilt ${age} ago, and should rebuild every fifteen `
-      + "minutes. Earthquakes since then are missing from the counts and charts below, so "
+    return `The catalog was last rebuilt ${age} ago, and should rebuild several `
+      + "times a day. Earthquakes since then are missing from the counts and charts below, so "
       + "this year's totals are too low.";
   }
   return null;
