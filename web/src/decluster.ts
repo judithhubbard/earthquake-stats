@@ -1,101 +1,120 @@
 /**
  * Declustering for the live feed, in the browser.
  *
- * pipeline/decluster.py flags the catalog, but only when the site is rebuilt,
- * and GitHub runs the rebuild every few hours rather than on its 15-minute
- * schedule. Until then a fresh aftershock was counted as a mainshock -- worst
- * in the hours after a great earthquake, which is exactly when people look.
+ * pipeline/nearest.py flags the M6+ catalog by nearest neighbour (Zaliapin &
+ * Ben-Zion), but only when the site is rebuilt, which GitHub does every few
+ * hours. Until then a fresh aftershock would count as a mainshock -- worst in
+ * the hours after a great earthquake, which is exactly when people look. So
+ * the page links each live event itself, with the same metric, the same
+ * fitted threshold (meta.json carries it) and the same forward-only rule.
  *
- * The page can do the same job itself, exactly, because of how the windows
- * work: an event is claimed only by an earlier mainshock at least as large.
- * Whether an M6+ event is a mainshock therefore depends on M6+ events alone,
- * and the browser already holds all of them with their flags. Smaller events
- * never enter into it.
+ * Only M6+ events link to M6+ events, and the browser holds all of them, so
+ * the result matches the pipeline's up to the binary's rounding (magnitude to
+ * 0.1, location to 0.01 degrees); the next rebuild replaces it either way.
  *
- * Keep the formulas in step with decluster.py. They differ from it only in
- * that catalog magnitudes here are quantised to 0.1 and live ones are USGS's
- * preferred magnitude rather than a harvested Mw; the next rebuild replaces
- * whatever this decides.
+ * Keep this in step with nearest.py.
  */
 
 import type { Tier } from "./catalog";
 
-const DAY_MS = 86_400_000;
 const EARTH_RADIUS_KM = 6371.0;
+const YEAR_MS = 365.25 * 86_400_000;
 
-/** Aftershock-zone radius in km: Gardner-Knopoff, widened to 2x Wells & Coppersmith RLD. */
-export function spaceWindowKm(mag: number): number {
-  const gardnerKnopoff = 10 ** (0.1238 * mag + 0.983);
-  const ruptureLength = 10 ** (0.58 * mag - 2.42);
-  return Math.max(gardnerKnopoff, 2 * ruptureLength);
-}
-
-/** Gardner & Knopoff time window, unmodified. */
-export function timeWindowDays(mag: number): number {
-  return mag >= 6.5 ? 10 ** (0.032 * mag + 2.7389) : 10 ** (0.5409 * mag - 0.547);
-}
-
-function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const r = Math.PI / 180;
-  const sinDLat = Math.sin((lat2 - lat1) * r * 0.5);
-  const sinDLon = Math.sin((lon2 - lon1) * r * 0.5);
-  const a = sinDLat * sinDLat
-    + Math.cos(lat1 * r) * Math.cos(lat2 * r) * sinDLon * sinDLon;
-  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(a)));
-}
-
-/** Whether a mainshock at (time, lat, lon, mag) claims a later event. */
-function claims(time: number, lat: number, lon: number, mag: number,
-                target: { time: number; lat: number; lon: number; mag: number }): boolean {
-  if (mag < target.mag || time > target.time) return false;
-  if (target.time - time > timeWindowDays(mag) * DAY_MS) return false;
-  return distanceKm(lat, lon, target.lat, target.lon) <= spaceWindowKm(mag);
+export interface NearestParams {
+  minMagnitude: number;
+  df: number;
+  b: number;
+  minDistanceKm: number;
+  /** null until the pipeline has fitted it; nothing is linked then. */
+  log10Eta0: number | null;
 }
 
 export interface Classifiable {
   time: number;
   lat: number;
   lon: number;
+  depth: number;
   mag: number;
 }
+
+type Point = Classifiable;
+
+/** The nearest-neighbour distance from a parent to a later child. */
+function eta(parent: Point, child: Point, p: NearestParams): number {
+  const dt = (child.time - parent.time) / YEAR_MS;
+  if (dt <= 0) return Infinity;
+  const r = Math.PI / 180;
+  const sinLat = Math.sin(((child.lat - parent.lat) * r) / 2);
+  const sinLon = Math.sin(((child.lon - parent.lon) * r) / 2);
+  const a = sinLat * sinLat
+    + Math.cos(parent.lat * r) * Math.cos(child.lat * r) * sinLon * sinLon;
+  const epicentral = 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(a)));
+  const dist = Math.max(p.minDistanceKm, Math.hypot(epicentral, child.depth - parent.depth));
+  return dt * dist ** p.df * 10 ** (-p.b * parent.mag);
+}
+
+const tierPoint = (tier: Tier, i: number): Point => ({
+  time: tier.time[i], lat: tier.lat[i], lon: tier.lon[i], depth: tier.depth[i], mag: tier.mag[i],
+});
 
 /**
  * Flags each live event as dependent (true) or a mainshock (false).
  *
- * `tier` must reach down to the smallest live magnitude being classified --
- * the M6+ tier for everything the page offers. Live events all postdate the
- * catalog, and windows run forward only, so nothing live can change a
- * catalog event's flag; only the reverse needs checking.
- *
- * Live events are taken largest first, as decluster.py takes everything, and
- * ties go to the earlier event -- so a live M7 claims its own live aftershocks,
- * but only if the catalog had not already claimed the M7.
+ * `tier` must be the M6+ tier. A live event is dependent when its nearest
+ * earlier neighbour is close enough to count as a link, and the chain of links
+ * behind it holds an event at least as large -- so a big earthquake that
+ * follows a smaller foreshock stays a mainshock, as in the pipeline.
  */
-export function classifyLive<E extends Classifiable>(events: E[], tier: Tier): Map<E, boolean> {
+export function classifyLive<E extends Classifiable>(events: E[], tier: Tier,
+                                                     p: NearestParams): Map<E, boolean> {
   const dependent = new Map<E, boolean>();
-  const order = [...events].sort((a, b) => b.mag - a.mag || a.time - b.time);
-  const earliest = Math.min(...events.map((e) => e.time))
-    - timeWindowDays(10) * DAY_MS;
+  if (p.log10Eta0 === null) {
+    for (const e of events) dependent.set(e, false);
+    return dependent;
+  }
+  const threshold = p.log10Eta0;
+  const linked = (value: number) => value > 0 && Math.log10(value) < threshold;
 
-  for (const event of order) {
-    let claimed = false;
-    for (let i = tier.n - 1; i >= 0 && tier.time[i] >= earliest; i--) {
-      if (tier.dependent[i]) continue;
-      if (claims(tier.time[i], tier.lat[i], tier.lon[i], tier.mag[i], event)) {
-        claimed = true;
-        break;
-      }
+  // The largest magnitude among a catalog event's linked ancestors, found by
+  // walking back through nearest neighbours. Memoised: a chain is a handful
+  // of links, each an O(n) scan, and the same ancestors recur.
+  const memo = new Map<number, number>();
+  const catalogChainMax = (k: number): number => {
+    const known = memo.get(k);
+    if (known !== undefined) return known;
+    const child = tierPoint(tier, k);
+    let best = Infinity, parent = -1;
+    for (let i = 0; i < k; i++) {
+      const value = eta(tierPoint(tier, i), child, p);
+      if (value < best) { best = value; parent = i; }
     }
-    if (!claimed) {
-      for (const [other, otherDependent] of dependent) {
-        if (otherDependent || other === event) continue;
-        if (claims(other.time, other.lat, other.lon, other.mag, event)) {
-          claimed = true;
-          break;
-        }
-      }
+    const result = parent >= 0 && linked(best)
+      ? Math.max(tier.mag[parent], catalogChainMax(parent)) : 0;
+    memo.set(k, result);
+    return result;
+  };
+
+  const order = [...events].sort((a, b) => a.time - b.time);
+  const liveChainMax = new Map<E, number>();
+  for (const [j, event] of order.entries()) {
+    let best = Infinity;
+    let chain = 0;
+    for (let i = 0; i < tier.n && tier.time[i] < event.time; i++) {
+      const value = eta(tierPoint(tier, i), event, p);
+      if (value < best) { best = value; chain = -1 - i; }   // negative: a catalog index
     }
-    dependent.set(event, claimed);
+    for (let i = 0; i < j; i++) {
+      const value = eta(order[i], event, p);
+      if (value < best) { best = value; chain = i; }
+    }
+    let chainMax = 0;
+    if (linked(best)) {
+      chainMax = chain < 0
+        ? Math.max(tier.mag[-1 - chain], catalogChainMax(-1 - chain))
+        : Math.max(order[chain].mag, liveChainMax.get(order[chain]) ?? 0);
+    }
+    liveChainMax.set(event, chainMax);
+    dependent.set(event, chainMax >= event.mag);
   }
   return dependent;
 }

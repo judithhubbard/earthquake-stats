@@ -31,6 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import nearest
 import store
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,9 +71,14 @@ def fetch_tier(conn, threshold: float) -> list[tuple]:
     -- which is the whole point of the homogenisation, and why the mirror is
     queried below the reporting threshold.
     """
+    # M6+ tiers carry the nearest-neighbour flags, the M5 tier the windowed
+    # ones (see decluster.py). COALESCE so a mirror declustered before the
+    # nearest-neighbour column existed still builds.
+    flag = ("COALESCE(mainshock_nn, mainshock)" if threshold >= nearest.MIN_MAGNITUDE
+            else "mainshock")
     return conn.execute(
         "SELECT id, time, lat, lon, depth, COALESCE(mw, mag) AS mag, "
-        "       mw IS NOT NULL AS homogenised, mainshock, place "
+        f"       mw IS NOT NULL AS homogenised, {flag} AS mainshock, place "
         "FROM events "
         "WHERE COALESCE(mw, mag) >= ? AND (evtype IS NULL OR evtype = ?) "
         "ORDER BY time ASC",
@@ -189,6 +195,16 @@ def main() -> int:
             "dependentFlag": DEPENDENT_FLAG,
         },
         "declustered": store.get_meta(conn, "declustered_at") is not None,
+        # What the browser needs to classify live M6+ events the same way.
+        "nearest": {
+            "minMagnitude": nearest.MIN_MAGNITUDE,
+            "df": nearest.DF,
+            "b": nearest.B,
+            "minDistanceKm": nearest.MIN_DISTANCE_KM,
+            # null until decluster.py has run: NaN is not valid JSON.
+            "log10Eta0": (float(store.get_meta(conn, "nn_log_eta0"))
+                          if store.get_meta(conn, "nn_log_eta0") else None),
+        },
         "homogenised": store.get_meta(conn, "magnitudes_at") is not None,
         "tiers": tiers,
         "recent": recent_significant(conn),

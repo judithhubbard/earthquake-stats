@@ -57,6 +57,9 @@ export interface Meta {
   eventType: string;
   /** False if pipeline/decluster.py has not been run against this mirror. */
   declustered: boolean;
+  /** How pipeline/nearest.py declustered M6+, so live events can be linked
+      the same way. Missing from catalogs built before it existed. */
+  nearest?: import("./decluster").NearestParams;
   encoding: Encoding;
   tiers: TierInfo[];
   recent: RecentEvent[];

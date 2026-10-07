@@ -206,27 +206,58 @@ statistic and is not dimensionless on moment.
 
 ## Declustering
 
-`pipeline/decluster.py` flags dependent events. Two decisions are load-bearing:
+Two methods, by magnitude.
 
-**Distance windows are not stock Gardner–Knopoff.** GK's scaling was calibrated
-on southern California and allows a M9 only ~125 km, when the aftershock zone
-runs past 1000 km. The window here is the larger of the GK radius and twice the
-Wells & Coppersmith rupture length. This is a pragmatic scheme, not a
-literature-standard one; nearest-neighbour (Zaliapin & Ben-Zion) is the intended
-replacement.
+**M6 and up: nearest neighbour** (`pipeline/nearest.py`, Zaliapin & Ben-Zion).
+Each event is linked to the earlier event minimising
+η = t · r^1.6 · 10^(−m_parent), with t in years and r the *hypocentral*
+distance in km. log₁₀η is cleanly bimodal on this catalog (background mode near
+−3.8, clustered near −6.9) and the threshold between them is fitted each run
+by a two-component Gaussian mixture: −5.23 at the time of writing, carried in
+`meta.json` as `nearest.log10Eta0`. It runs on M6+ alone, where the catalog is
+complete and on one magnitude scale from 1976, so its reach cannot drift with
+network growth. The result goes in its own column, `mainshock_nn`, which the
+M6 and M7 tiers emit.
 
-**Windows run forward in time only.** A symmetric window also removes foreshocks,
-but it biases the end of the catalogue — a current-year event can only be claimed
-by earlier neighbours, while a mid-catalogue event can be claimed from both
-sides. The symmetric version put 2026 M5+ mainshocks at the **100th percentile**
-of all reference years, i.e. it manufactured exactly the "earthquakes are
-increasing" conclusion the site exists to test.
+It replaced Gardner–Knopoff windows for M6+ in October 2026. Measured against
+them on the same catalog:
 
-Variance-to-mean ratio of annual counts, global (1.0 = no clustering):
-
-| | all events | mainshocks only |
+| | GK windows | nearest neighbour |
 |---|---:|---:|
-| M6+ | 3.55 | 1.57 |
+| M6+ events removed | 35% | 21% |
+| mainshocks per year | 92.3 | 111.8 |
+| variance/mean of yearly mainshock counts | 1.28 | 1.18 |
+| removals more than 100 days after their parent | 50% | 9% |
+| removals more than a year after | 31% | 4% |
+
+GK's time windows (2.5–3 years at M6.5+) with globally widened radii were
+removing background as well as aftershocks — the 2012 M7.7 Sea of Okhotsk
+event, 583 km deep, went as a Tohoku aftershock 1,297 km away. Shifting the
+fitted threshold by ±0.5 moves the mainshock rate by 5–9 a year.
+
+**Below M6: Gardner–Knopoff windows** (`pipeline/decluster.py`), into the
+original `mainshock` column, used by the M5 tier — the correlations page's
+day, month and moon panels. The distance window is the larger of the GK radius
+and twice the Wells & Coppersmith rupture length; the time window is GK's.
+Nearest neighbour over the ~90,000 M5+ events is O(n²) in stdlib Python and
+needs pruning before it can replace this.
+
+**Both are forward-only.** An event is dependent only if it links (or falls in
+the window of) an *earlier* event at least as large. A symmetric scheme also
+removes foreshocks, but biases the end of the catalogue: a current-year event
+can only be claimed by earlier neighbours, while a mid-catalogue event can be
+claimed from both sides. The symmetric GK version put 2026 M5+ mainshocks at
+the **100th percentile** of all reference years, i.e. it manufactured exactly
+the "earthquakes are increasing" conclusion the site exists to test. For
+nearest neighbour the forward-only rule replaces the usual "largest event in
+the cluster is the mainshock", which reclassifies foreshocks once their
+mainshock arrives. The cost, as with the windows: a foreshock smaller than its
+mainshock survives, so that sequence counts twice.
+
+Live events are classified in the browser with the same metric and threshold
+(`web/src/decluster.ts`), matching the pipeline on 833 of 836 events in the
+three days after every M7.5+ since 1990; the misses are the binary's 0.1
+magnitude rounding at the threshold.
 
 ## The map
 
@@ -295,10 +326,6 @@ wholesale to the W-phase solution around 2010: 46% of M6+ events carried a
 generic Mw in the 1990s against 95% Mww since 2020. Offsets between those scales
 run to a few hundredths of a unit, enough to move counts near a threshold by
 roughly a tenth. This is a second reason no trend line is drawn.
-
-**This is not a git repository.** Several deliberate removals (regions,
-projections, magnitude tiers) deleted working, tested code with no way back.
-`git init` before the next round of changes.
 
 ## The aftershocks page (removed)
 

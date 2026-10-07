@@ -24,10 +24,14 @@ the max(), so the widening only takes effect at the magnitudes it was meant
 for. These figures are what space_window() returns; the table above them used
 to predate the 2.0 factor, and the site quoted it.
 
-This is a pragmatic hybrid, not a literature-standard scheme. Nearest-neighbour
-declustering (Zaliapin & Ben-Zion) is the more defensible choice and does not
-need a hand-tuned window; it is the intended replacement. Swap `space_window`
-below to change the behaviour -- nothing else depends on the window shape.
+This is a pragmatic hybrid, not a literature-standard scheme, and it is now
+used only below M6: the M5+ tier, which the correlations page's day, month
+and moon panels read. M6 and up -- everything the front page counts -- is
+declustered by nearest neighbour (nearest.py) into its own column,
+`mainshock_nn`, because these windows run 2.5-3 years at M6.5+ and removed a
+great deal of background with the aftershocks. See nearest.py for the numbers.
+Running nearest neighbour on M5+ too is the obvious next step; in stdlib
+Python it is O(n^2) over 90,000 events, which needs pruning first.
 """
 
 from __future__ import annotations
@@ -41,6 +45,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import nearest
 import store
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -157,6 +162,30 @@ def main() -> int:
     )
     store.set_meta(conn, "declustered_at", str(int(timer.time())))
     conn.commit()
+
+    # Nearest neighbour over M6+, into its own column.
+    nn_rows = conn.execute(
+        "SELECT id, time, lat, lon, COALESCE(depth, 10) AS depth, COALESCE(mw, mag) AS mag "
+        "FROM events WHERE evtype = 'earthquake' AND COALESCE(mw, mag) >= ? ORDER BY time ASC",
+        (nearest.MIN_MAGNITUDE,),
+    ).fetchall()
+    print(f"Nearest-neighbour over {len(nn_rows):,} M{nearest.MIN_MAGNITUDE:g}+ events…", flush=True)
+    started = timer.monotonic()
+    nn_mags = [r["mag"] for r in nn_rows]
+    eta, parent = nearest.nearest_neighbours(
+        [r["time"] for r in nn_rows], [r["lat"] for r in nn_rows], [r["lon"] for r in nn_rows],
+        [r["depth"] for r in nn_rows], nn_mags)
+    log_threshold = nearest.fit_threshold(eta)
+    nn_flags = nearest.classify(eta, parent, nn_mags, log_threshold)
+    conn.execute("UPDATE events SET mainshock_nn = NULL")
+    conn.executemany(
+        "UPDATE events SET mainshock_nn = ? WHERE id = ?",
+        [(1 if flag else 0, row["id"]) for row, flag in zip(nn_rows, nn_flags)],
+    )
+    store.set_meta(conn, "nn_log_eta0", f"{log_threshold:.4f}")
+    conn.commit()
+    print(f"  log10 eta0 = {log_threshold:.2f}; {sum(nn_flags):,} mainshocks / {len(nn_rows):,} "
+          f"({100 * sum(nn_flags) / len(nn_rows):.0f}% kept) in {timer.monotonic() - started:.0f}s")
 
     kept = sum(flags)
     print(f"  {kept:,} mainshocks / {len(rows):,} events ({100 * kept / len(rows):.0f}% kept) "

@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS events (
     updated   INTEGER,            -- epoch ms, UTC
     mainshock INTEGER,            -- 1 = independent, 0 = dependent, NULL = not yet run
     mw        REAL,               -- homogenised moment magnitude, NULL if none exists
-    mw_type   TEXT                -- which Mw flavour mw came from (mww/mwc/mwb/mw)
+    mw_type   TEXT,               -- which Mw flavour mw came from (mww/mwc/mwb/mw)
+    mainshock_nn INTEGER          -- nearest-neighbour flag, M6+ only; NULL below or not yet run
 );
 CREATE INDEX IF NOT EXISTS idx_events_time ON events(time);
 CREATE INDEX IF NOT EXISTS idx_events_mag  ON events(mag);
@@ -63,7 +64,8 @@ def connect(path: str | Path) -> sqlite3.Connection:
 def _migrate(conn: sqlite3.Connection) -> None:
     """Add columns introduced after a mirror was first built."""
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(events)")}
-    for name, decl in (("mainshock", "INTEGER"), ("mw", "REAL"), ("mw_type", "TEXT")):
+    for name, decl in (("mainshock", "INTEGER"), ("mw", "REAL"), ("mw_type", "TEXT"),
+                       ("mainshock_nn", "INTEGER")):
         if name not in existing:
             conn.execute(f"ALTER TABLE events ADD COLUMN {name} {decl}")
     conn.commit()

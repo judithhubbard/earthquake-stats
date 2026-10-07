@@ -1,5 +1,5 @@
 import { CatalogStore, loadMeta, type Meta, type Tier } from "./catalog";
-import { renderAnnualChart, renderChart, renderDistribution, renderRolling, renderTimeline,
+import { renderAnnualChart, renderChart, renderDistribution, renderStretches, renderTimeline,
          readTheme, type Highlight, type TimelineEvent } from "./chart";
 import {
   DAYS, MAGNITUDES, MAJOR_MAGNITUDE, MIN_MAGNITUDE, annualCounts, cumulativeByYear,
@@ -192,8 +192,10 @@ interface LiveEvent {
   lat: number;
   lon: number;
   mag: number;
+  /** km; the feed's third coordinate. */
+  depth: number;
   place: string;
-  /** Claimed by an earlier, larger mainshock -- decided here, not by the pipeline. */
+  /** Linked to an earlier, at least as large event -- decided here, not by the pipeline. */
   dependent: boolean;
 }
 let liveEvents: LiveEvent[] = [];
@@ -673,15 +675,18 @@ async function pollLive(afterMs: number) {
         time: f.properties.time,
         lon: f.geometry.coordinates[0],
         lat: f.geometry.coordinates[1],
+        depth: Number(f.geometry.coordinates[2] ?? 10),
         mag: f.properties.mag,
         place: String(f.properties.place ?? ""),
         dependent: false,
       }));
-    // Sorted against the M6+ tier, which holds every event that could claim
-    // anything the page counts. See decluster.ts.
+    // Linked against the M6+ tier: nearest neighbour runs on M6+ alone, and
+    // the browser holds all of it. See decluster.ts.
     const sortable = fresh.filter((e) => e.mag >= MIN_MAGNITUDE);
     if (sortable.length) {
-      const flags = classifyLive(sortable, await store.load(MIN_MAGNITUDE));
+      const flags = meta.nearest
+        ? classifyLive(sortable, await store.load(MIN_MAGNITUDE), meta.nearest)
+        : new Map(sortable.map((e) => [e, false] as const));
       for (const [event, dependent] of flags) event.dependent = dependent;
     }
     liveEvents = fresh;
@@ -1508,7 +1513,8 @@ async function updateThirty() {
     }));
 
     el.rollingLegend.replaceChildren(...[
-      { color: theme.series[0], label: copy.home.thirtyLegendLine, kind: "accent" },
+      { color: theme.series[0], label: copy.home.thirtyLegendLine, kind: "band" },
+      { color: theme.history, label: copy.home.thirtyLegendEarlier, kind: "band" },
       { color: theme.rangeInner, label: copy.home.thirtyLegendInner, kind: "band" },
       { color: theme.rangeOuter, label: copy.home.thirtyLegendOuter, kind: "band" },
     ].map(({ color, label, kind }) => {
@@ -1520,10 +1526,16 @@ async function updateThirty() {
       return item;
     }));
     if (selReading) {
-      const points: { date: Date; n: number }[] = [];
-      for (let d = from; d <= end; d++) points.push({ date: new Date(start + d * DAY_MS), n: selSums[d] });
-      el.rolling.replaceChildren(renderRolling({
-        points, p5: selReading.p5, p25: selReading.p25, median: selReading.median,
+      // Back to back from the stretch being read, so the last bar is the
+      // answer's own 30 days and no two bars share a day.
+      const bars: { start: Date; end: Date; n: number }[] = [];
+      for (let d = end; d >= from; d -= WINDOW_DAYS) {
+        bars.push({ start: new Date(start + (d - WINDOW_DAYS + 1) * DAY_MS),
+                    end: new Date(start + (d + 1) * DAY_MS), n: selSums[d] });
+      }
+      bars.reverse();
+      el.rolling.replaceChildren(renderStretches({
+        bars, p5: selReading.p5, p25: selReading.p25, median: selReading.median,
         p75: selReading.p75, p95: selReading.p95, theme, width,
       }));
     }

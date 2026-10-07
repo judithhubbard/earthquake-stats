@@ -965,47 +965,57 @@ export function renderTimeline(opts: TimelineOptions): SVGSVGElement | HTMLEleme
   });
 }
 
-export interface RollingOptions {
-  /** The count in the 30 days ending on each date. */
-  points: { date: Date; n: number }[];
+export interface StretchOptions {
+  /** Back-to-back 30-day stretches, oldest first; the last is the one being read. */
+  bars: { start: Date; end: Date; n: number }[];
   p5: number; p25: number; median: number; p75: number; p95: number;
   theme: Theme;
   width: number;
 }
 
 /**
- * The 30-day count, day by day, against the range every 30-day stretch since
- * 1976 has covered. The band is flat because it is measured over the whole
- * record, not over the window drawn: earthquakes keep no calendar, so there is
- * no season for it to follow.
+ * Back-to-back 30-day stretches as bars, against the range every 30-day
+ * stretch since 1976 has covered.
+ *
+ * Bars, not a sliding line. A 30-day count recomputed every day is a moving
+ * sum: each earthquake lifts the line for exactly 30 days and drops it again,
+ * and smoothing random data that way draws bumps a month wide that look like
+ * a rhythm (Slutsky-Yule) when there is none. Stretches that share no days
+ * are independent of one another, and the last bar is exactly the count the
+ * answer is about. The band is flat because it is measured over the whole
+ * record: earthquakes keep no calendar, so there is no season to follow.
  */
-export function renderRolling(opts: RollingOptions): SVGSVGElement | HTMLElement {
-  const { points, theme, width } = opts;
-  const first = points[0].date, last = points[points.length - 1].date;
-  const long = (+last - +first) > 6 * 365 * 86_400_000;
+export function renderStretches(opts: StretchOptions): SVGSVGElement | HTMLElement {
+  const { bars, theme, width } = opts;
+  const first = bars[0].start, last = bars[bars.length - 1].end;
+  const current = bars[bars.length - 1];
+  const fmt = (d: Date) => d.toLocaleDateString(undefined,
+    { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
   return Plot.plot({
     width, height: Math.round(Math.min(230, width * 0.28)),
     marginLeft: 34, marginRight: 12,
     style: { background: "transparent", color: theme.text, fontSize: "11px" },
-    x: { type: "utc", label: null },
-    y: { domain: [0, Math.max(opts.p95, ...points.map((d) => d.n)) + 1],
+    x: { type: "utc", domain: [first, last], label: null },
+    y: { domain: [0, Math.max(opts.p95, ...bars.map((d) => d.n)) + 1],
          label: null, grid: true, nice: false },
     marks: [
       Plot.rect([0], { x1: () => first, x2: () => last, y1: opts.p5, y2: opts.p95,
                        fill: theme.rangeOuter }),
       Plot.rect([0], { x1: () => first, x2: () => last, y1: opts.p25, y2: opts.p75,
                        fill: theme.rangeInner }),
+      Plot.rectY(bars, {
+        x1: "start", x2: "end", y: "n",
+        fill: (d: { start: Date }) => d === current ? theme.series[0] : theme.history,
+        fillOpacity: (d: { start: Date }) => d === current ? 1 : 0.75,
+        // A gap between stretches, unless there are too many to afford one.
+        insetLeft: bars.length > 120 ? 0 : 0.6, insetRight: bars.length > 120 ? 0 : 0.6,
+      }),
       Plot.ruleY([opts.median], { stroke: theme.median, strokeDasharray: "3,3" }),
-      Plot.lineY(points, { x: "date", y: "n", stroke: theme.series[0],
-                           strokeWidth: long ? 0.8 : 1.6, curve: "step-after" }),
-      Plot.dot([points[points.length - 1]], { x: "date", y: "n", fill: theme.series[0], r: 3.5 }),
-      Plot.ruleX(points, Plot.pointerX({ x: "date", stroke: theme.muted })),
-      Plot.tip(points, Plot.pointerX({
-        x: "date", y: "n", fill: theme.surface, stroke: theme.axis,
-        title: (d: { date: Date; n: number }) => `30 days ending `
-          + d.date.toLocaleDateString(undefined,
-              { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })
-          + `: ${d.n}`,
+      Plot.ruleY([0], { stroke: theme.axis }),
+      Plot.tip(bars, Plot.pointerX({
+        x1: "start", x2: "end", y: "n", fill: theme.surface, stroke: theme.axis,
+        title: (d: { start: Date; end: Date; n: number }) =>
+          `30 days ending ${fmt(new Date(+d.end - 86_400_000))}: ${d.n}`,
       })),
     ],
   });

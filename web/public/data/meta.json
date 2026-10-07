@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-15T18:47:51.983025+00:00",
+  "generated": "2026-10-07T21:02:22.586963+00:00",
   "source": "USGS ComCat via FDSN event service",
   "minMagnitude": 4.5,
   "eventType": "earthquake",
@@ -13,6 +13,13 @@
     "dependentFlag": 128
   },
   "declustered": true,
+  "nearest": {
+    "minMagnitude": 6.0,
+    "df": 1.6,
+    "b": 1.0,
+    "minDistanceKm": 1.0,
+    "log10Eta0": -5.2259
+  },
   "homogenised": true,
   "tiers": [
     {
@@ -30,7 +37,7 @@
       "threshold": 6.0,
       "name": "m6",
       "count": 7993,
-      "mainshocks": 5275,
+      "mainshocks": 6348,
       "homogenised": 7950,
       "hasDetail": true,
       "bytes": 87923,
@@ -41,7 +48,7 @@
       "threshold": 7.0,
       "name": "m7",
       "count": 785,
-      "mainshocks": 632,
+      "mainshocks": 698,
       "homogenised": 785,
       "hasDetail": true,
       "bytes": 8635,

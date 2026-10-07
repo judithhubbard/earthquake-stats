@@ -145,11 +145,12 @@ export const copy = {
       "{window}: {n} {threshold} earthquake{s}, {main} mainshock{ms} and {after} " +
       "aftershock{as}.{largest}",
     thirtyTimelineLargest: " The largest was M{mag}, {place}, on {date}.",
-    thirtyRollingTitle: "{threshold} {kind} in every 30-day stretch",
+    thirtyRollingTitle: "{threshold} {kind} in each 30-day stretch",
     thirtyRollingNote:
-      "Each point is the number of earthquakes in the 30 days ending that day. The shading " +
+      "Each bar is one 30-day stretch, back to back, so no two share a day. The shading " +
       "is the middle half and the middle 90% of every 30-day stretch since {from}.",
-    thirtyLegendLine: "30-day count",
+    thirtyLegendLine: "The 30 days being read",
+    thirtyLegendEarlier: "Earlier 30-day stretches",
     thirtyLegendInner: "Middle half of all 30-day stretches",
     thirtyLegendOuter: "Middle 90%",
 
@@ -344,15 +345,17 @@ export const copy = {
 
       "\n\n**Aftershocks can be removed.** A year containing one great earthquake carries " +
       "hundreds of smaller ones with it. **Mainshocks only** removes them. The operation is " +
-      "called declustering, and this site uses Gardner-Knopoff windows: an earthquake is " +
-      "removed if an earlier one at least as large lies within a set distance and time of it. " +
-      "The distance is Gardner-Knopoff's, widened to twice the Wells and Coppersmith rupture " +
-      "length wherever that is larger: 53 km at M6, 87 km at M7, 330 km at M8. The time is " +
-      "Gardner-Knopoff's unchanged: about 500 days after an M6, and two and a half to three " +
-      "years after anything of M6.5 or more. Depth is not used. The windows run forward in " +
-      "time only, so an earthquake is never removed because of a larger one that followed " +
-      "it. Earthquakes from the live feed are sorted the same way in your browser, and " +
-      "checked again at the next rebuild." +
+      "called declustering, and this site uses the nearest-neighbour method of Zaliapin and " +
+      "Ben-Zion. Each earthquake is linked to the earlier earthquake closest to it in a " +
+      "measure that combines time, distance (in three dimensions, so depth counts) and the " +
+      "earlier one's magnitude. Across the catalog these links fall into two clear groups, " +
+      "aftershocks sitting close to a large parent and background earthquakes scattered " +
+      "independently, and the dividing line between them is fitted to the data rather than " +
+      "set by hand. It runs on {threshold} and up, where the catalog is complete since " +
+      "{from}. An earthquake is removed only if it links back to an earlier one at least as " +
+      "large, so nothing is ever removed because of an earthquake that came after it, and " +
+      "this year is sorted exactly as every earlier year was. Earthquakes from the live feed " +
+      "are sorted the same way in your browser, and checked again at the next rebuild." +
 
       "\n\n**The record starts in {from},** when the Global CMT catalog begins — the earliest " +
       "date from which moment magnitudes are broadly available. Only {threshold} and {major} " +
@@ -749,12 +752,17 @@ export const copy = {
       "\n\n**Aftershocks are removed.** A year containing one great earthquake carries " +
       "hundreds of smaller ones with it. They are removed everywhere on this page except the " +
       "Oklahoma panel, which counts every earthquake. The operation is called declustering, " +
-      "and this site uses Gardner-Knopoff windows: an earthquake is removed if an earlier " +
-      "one at least as large lies within a set distance and time of it. The distance is " +
-      "Gardner-Knopoff's, widened to twice the Wells and Coppersmith rupture length wherever " +
-      "that is larger: 53 km at M6, 87 km at M7, 330 km at M8. The time is Gardner-Knopoff's " +
-      "unchanged: about 500 days after an M6, and two and a half to three years after " +
-      "anything of M6.5 or more. Depth is not used. The windows run forward in time only." +
+      "and it is done two ways. The two yearly comparisons, at {threshold}, use the " +
+      "nearest-neighbour method of Zaliapin and Ben-Zion, as the front page does: each " +
+      "earthquake is linked to the earlier one closest to it in time, three-dimensional " +
+      "distance and magnitude, with the cut between aftershocks and background fitted to the " +
+      "data. The three binned panels, at {binThreshold}, still use Gardner-Knopoff windows: " +
+      "an earthquake is removed if an earlier one at least as large lies within a set " +
+      "distance and time of it, the distance widened to twice the Wells and Coppersmith " +
+      "rupture length at large magnitudes and the time running two and a half to three " +
+      "years at M6.5 and above. Those windows remove more than they should, but a binned " +
+      "panel compares bins against each other, so what they remove falls evenly across the " +
+      "bins. Both methods work forward in time only." +
 
       "\n\n**The record starts in {from},** when the Global CMT catalog begins — the " +
       "earliest date from which moment magnitudes are broadly available." +

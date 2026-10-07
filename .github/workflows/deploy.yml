@@ -78,7 +78,8 @@ jobs:
       # back, and the site deploys with data that is stale rather than broken.
       #
       # Not everything runs every time. Measured on a real run: fetch 2s,
-      # magnitudes 10s, decluster 18s, build 1s, context 116s. Only the first,
+      # magnitudes 10s, decluster ~70s (nearest neighbour over M6+ is 50 of it),
+      # build 1s, context 116s. Only the first,
       # third and fourth have to keep up with a new earthquake; the other two
       # chase things that move over days and months, and running them every
       # quarter of an hour would be four minutes of work and a lot of traffic
