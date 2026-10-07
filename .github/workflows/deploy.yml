@@ -322,6 +322,44 @@ jobs:
           npm ci
           npm run build
 
+      # Pages tells browsers to keep the HTML for ten minutes, and every deploy
+      # replaces /assets with newly hashed files. A reader who loaded the page
+      # just before a code change, then reloaded, got the cached HTML asking for
+      # files the deploy had deleted: no stylesheet, no script, a bare page
+      # stuck on "Loading the catalog". So the outgoing build's assets ride
+      # along with the new ones for one more deploy. Hashed names never
+      # collide, and anything already in dist is left alone.
+      #
+      # Best effort: a first deploy, or a site that cannot be reached, just
+      # ships without them.
+      - name: Keep the previous build's assets
+        continue-on-error: true
+        working-directory: web/dist
+        run: |
+          [[ -f CNAME ]] || exit 0
+          site="https://$(tr -d '[:space:]' < CNAME)"
+          base="${{ steps.base.outputs.value }}"
+          queue=$(for page in "" unusual/ correlations.html; do
+                    curl -fsS --max-time 20 "$site$base$page" || true
+                  done | grep -oE 'assets/[A-Za-z0-9._-]+' | sort -u)
+          seen=""
+          kept=0
+          while [[ -n "$queue" ]]; do
+            next=""
+            for asset in $queue; do
+              [[ " $seen " == *" $asset "* ]] && continue
+              seen="$seen $asset"
+              if [[ ! -f "$asset" ]]; then
+                curl -fsS --max-time 20 -o "$asset" "$site$base$asset" && kept=$((kept + 1)) || rm -f "$asset"
+              fi
+              # A script can import further chunks by name; follow them once.
+              [[ -f "$asset" && "$asset" == *.js ]] &&
+                next="$next $(grep -oE 'assets/[A-Za-z0-9._-]+' "$asset" | sort -u | tr '\n' ' ')"
+            done
+            queue="$next"
+          done
+          echo "::notice::Kept $kept asset(s) from the previous deploy"
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
