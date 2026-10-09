@@ -183,8 +183,13 @@ def read_post(post: dict) -> list[dict] | None:
     time.sleep(PAUSE_S)
     if full.get("audience") != "everyone" or not full.get("body_html"):
         return None
+    return rows_from_html(post, full["body_html"], "body")
+
+
+def rows_from_html(post: dict, html: str, source: str) -> list[dict]:
+    """A post's rows from its full text: every USGS event page it links to."""
     rows, seen = [], set()
-    for event_id in dict.fromkeys(i.lower() for i in EVENT_LINK.findall(full["body_html"])):
+    for event_id in dict.fromkeys(i.lower() for i in EVENT_LINK.findall(html)):
         event = comcat_event(event_id)
         if event is None:
             print(f"  {post['slug']}: {event_id} is not in ComCat; skipped")
@@ -192,9 +197,34 @@ def read_post(post: dict) -> list[dict] | None:
         if event["event"] in seen:      # two of its ids linked
             continue
         seen.add(event["event"])
-        rows.append({"slug": post["slug"], **event, "source": "body"})
+        rows.append({"slug": post["slug"], **event, "source": source})
     assign_roles(rows, post)
-    return rows or [{"slug": post["slug"], "source": "body"}]
+    return rows or [{"slug": post["slug"], "source": source}]
+
+
+def import_export(directory: Path, posts: list[dict], rows: dict[str, list[dict]]) -> None:
+    """Replace title matches and old-map points with the links in a Substack export.
+
+    The export (Settings > Exports) has the full text of every post as
+    posts/<id>.<slug>.html. Rows read here or by hand are left alone; so is a
+    post that links no event, which keeps whatever placed it.
+    """
+    files = {f.name.split(".", 1)[1].removesuffix(".html"): f for f in (directory / "posts").glob("*.html")}
+    replaced = kept = 0
+    for post in posts:
+        mine = rows.get(post["slug"], [])
+        if any(r.get("source") in ("hand", "body") for r in mine) or post["slug"] not in files:
+            continue
+        fresh = rows_from_html(post, files[post["slug"]].read_text(encoding="utf-8"), "export")
+        if any(r.get("event") for r in fresh):
+            rows[post["slug"]] = fresh
+            replaced += 1
+        elif not any(r.get("lat") for r in mine):
+            rows[post["slug"]] = fresh
+        else:
+            kept += 1
+    print(f"Export: {replaced} posts now placed by their own links; "
+          f"{kept} link no event and keep their earlier placement")
 
 
 def fill_hand_rows(rows: list[dict]) -> None:
@@ -245,6 +275,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--offline", action="store_true",
                     help="rebuild posts.json from posts.csv and the last archive, without reading posts")
+    ap.add_argument("--export", type=Path, metavar="DIR",
+                    help="an unzipped Substack export: take links for older posts from its full text")
     args = ap.parse_args()
 
     rows = read_rows()
@@ -272,6 +304,8 @@ def main() -> int:
             if rows.get(post["slug"]) != fresh:
                 print(f"  read {post['slug']}: {linked} event(s) linked")
             rows[post["slug"]] = fresh
+        if args.export:
+            import_export(args.export, posts, rows)
         for slug_rows in rows.values():
             fill_hand_rows(slug_rows)
         write_rows(rows)

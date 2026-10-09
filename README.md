@@ -297,10 +297,12 @@ Kyle's hand-updated Leaflet map (kyleedwardbradley.github.io/earthquake_insights
 - Events from the fortnight before a post are its **subject** and are drawn;
   older ones it cites are **context**, drawn as dashed rings only while the post
   is selected.
-- The back catalogue was seeded from title matching (magnitude, date and a
-  place name against ComCat; source `title`) and from the old map's hand-placed
-  points (source `oldmap`). A Substack export, which has the full text of every
-  post, should replace those with real links (source `export`).
+- The back catalogue comes from a Substack export (Settings > Exports), which
+  has the full text of every post: `python3 pipeline/posts.py --export <unzipped
+  dir>` (source `export`). Imported 9 October 2026. Posts that link no event
+  keep their earlier placement: a title match (source `title`) or the old map's
+  hand-placed point (source `oldmap`). **An export includes the subscriber
+  email list; keep it out of the repo** (`/*.zip` is ignored for that reason).
 - **To fix a post by hand**, replace its rows in `posts.csv` with rows whose
   source is `hand`: an event id (the rest is filled in from ComCat on the next
   run) or a lat/lon and a place label. Hand rows are never overwritten.

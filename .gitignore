@@ -20,3 +20,6 @@ __pycache__/
 
 # Scratch arrays from null-distribution checks.
 *.npy
+
+# Substack exports: they include the subscriber email list. Never commit one.
+/*.zip
