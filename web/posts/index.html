@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Earthquake Insights posts, mapped</title>
+    <meta name="description" content="Every Earthquake Insights post about a particular earthquake, on a map, linked to the USGS events it discusses." />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="posts-page">
+    <main>
+      <header class="hero">
+        <div class="masthead">
+          <p class="eyebrow">The Earthquake Insights archive</p>
+          <a class="brand" data-track="substack-masthead" href="https://earthquakeinsights.substack.com/"
+             target="_blank" rel="noopener noreferrer">
+            <img src="/earthquake-insights.png" width="44" height="44" alt="" />
+            <span>Earthquake<br />Insights</span>
+          </a>
+        </div>
+        <h1 class="question-title posts-title">Where we've written about earthquakes</h1>
+        <p class="hero-intro" id="posts-intro">
+          Every post we have written about a particular earthquake, placed where
+          it happened. New posts are free to read for their first 30 days.
+        </p>
+      </header>
+
+      <section class="posts-map-section">
+        <p class="posts-legend" id="posts-legend"></p>
+        <div id="posts-map" class="posts-map"><p class="posts-loading">Loading the posts…</p></div>
+        <p class="chart-note" id="posts-map-note">Select a circle to see the posts about that earthquake.</p>
+        <div id="posts-selected" class="posts-selected" hidden></div>
+      </section>
+
+      <section class="posts-list-section">
+        <div class="posts-filter">
+          <input type="search" id="posts-search" placeholder="Search titles and places" aria-label="Search posts" />
+          <span class="segmented" id="posts-show"></span>
+        </div>
+        <p class="posts-count" id="posts-count"></p>
+        <div id="posts-list" class="posts-list"></div>
+      </section>
+
+      <nav class="read-next">
+        <a class="explore" data-track="substack-footer" href="https://earthquakeinsights.substack.com/"
+           target="_blank" rel="noopener noreferrer">
+          We write about earthquakes every week <span class="arrow">&rarr;</span>
+        </a>
+        <a class="explore" href="../unusual/">
+          Are there more earthquakes than usual this year? <span class="arrow">&rarr;</span>
+        </a>
+      </nav>
+
+      <footer>
+        <p>
+          Each post is placed at the USGS earthquakes it links to. Posts written
+          before this page existed were placed from their titles or from our
+          earlier map. Plate boundaries: Bird (2003), PB2002, compiled by Hugo
+          Ahlenius (ODC-BY).
+        </p>
+        <p id="generated"></p>
+      </footer>
+    </main>
+    <script type="module" src="/src/posts.ts"></script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
 
-// Two pages, not a single-page app with a view toggle: each question needs its
+// Separate pages, not a single-page app with a view toggle: each question needs its
 // own URL so it can be linked to and found by search.
 export default defineConfig({
   // "/" for a root deploy (Cloudflare Pages, Netlify, a user.github.io site);
@@ -14,6 +14,7 @@ export default defineConfig({
         // links made before the move -- ?date= included -- still land.
         root: resolve(__dirname, "index.html"),
         main: resolve(__dirname, "unusual/index.html"),
+        posts: resolve(__dirname, "posts/index.html"),
       },
     },
   },

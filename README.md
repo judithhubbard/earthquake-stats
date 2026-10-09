@@ -270,12 +270,36 @@ box cover **12.38 of the sphere's 12.57 steradians** — filling the world and
 punching the region out as a hole. Reverse the ring, and subdivide its edges so
 they follow parallels rather than great circles.
 
-## Linking to Earthquake Insights
+## The posts page
 
-`web/public/data/posts.json` maps ComCat event ids to post URLs, and the event
-panel shows a "Read our analysis" link for any event listed there. It is
-hand-maintained and **not** written by the pipeline, so entries survive a
-rebuild; it ships empty.
+`/posts/` maps every Earthquake Insights post at the USGS earthquakes it links
+to, with the whole archive as a searchable list under the map. It replaces
+Kyle's hand-updated Leaflet map (kyleedwardbradley.github.io/earthquake_insights_map).
+
+`pipeline/posts.py` builds it on every run, and its docstring has the detail:
+
+- Titles, dates, cover images and paywall status come from Substack's public
+  archive API, fresh each run.
+- **Links come from the posts themselves, during their free month.** Substack
+  only serves the full text of a free post, and new posts are free for 30
+  days, so each run reads every post that is free now and records the USGS
+  event pages it links to in `pipeline/posts.csv`, which CI commits back. After
+  the paywall the rows stay as last read.
+- Events from the fortnight before a post are its **subject** and are drawn;
+  older ones it cites are **context**, drawn as dashed rings only while the post
+  is selected.
+- The back catalogue was seeded from title matching (magnitude, date and a
+  place name against ComCat; source `title`) and from the old map's hand-placed
+  points (source `oldmap`). A Substack export, which has the full text of every
+  post, should replace those with real links (source `export`).
+- **To fix a post by hand**, replace its rows in `posts.csv` with rows whose
+  source is `hand`: an event id (the rest is filled in from ComCat on the next
+  run) or a lat/lon and a place label. Hand rows are never overwritten.
+
+The page is not linked from `/unusual/` yet.
+
+Plate boundaries (`web/public/data/plates.json`) are Bird (2003) PB2002 from
+github.com/fraxen/tectonicplates (ODC-BY), rounded to 0.1°.
 
 ## Editing the text
 

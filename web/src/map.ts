@@ -57,6 +57,32 @@ export function loadLand(): Promise<LandFeature> {
   return landPromise;
 }
 
+/**
+ * The projection both maps share: Equal Earth on the Pacific, clipped to the
+ * band the catalogue occupies. See PROJECTION_TYPE and CENTRE_LON.
+ */
+export function worldProjection() {
+  return {
+    type: PROJECTION_TYPE as never,
+    rotate: [-CENTRE_LON, 0],
+    // The clip box is given in rotated coordinates, so its corners are the
+    // frame edges rather than the antimeridian: a box still written as
+    // -180..180 of true longitude would be a half-turn out and clip the
+    // Pacific away.
+    domain: {
+      type: "Polygon",
+      coordinates: [[
+        [CENTRE_LON - 180, CLIP.latMin], [CENTRE_LON - 90, CLIP.latMin],
+        [CENTRE_LON, CLIP.latMin], [CENTRE_LON + 90, CLIP.latMin],
+        [CENTRE_LON + 179.99, CLIP.latMin],
+        [CENTRE_LON + 179.99, CLIP.latMax], [CENTRE_LON + 90, CLIP.latMax],
+        [CENTRE_LON, CLIP.latMax], [CENTRE_LON - 90, CLIP.latMax],
+        [CENTRE_LON - 180, CLIP.latMax], [CENTRE_LON - 180, CLIP.latMin],
+      ]],
+    } as never,
+  };
+}
+
 export interface MapEvent {
   lat: number;
   lon: number;
@@ -121,25 +147,7 @@ export function renderMap(opts: MapOptions): SVGSVGElement | HTMLElement {
 
   return Plot.plot({
     width,
-    projection: {
-      type: PROJECTION_TYPE as never,
-      rotate: [-CENTRE_LON, 0],
-      // The clip box is given in rotated coordinates, so its corners are the
-      // frame edges rather than the antimeridian: a box still written as
-      // -180..180 of true longitude would be a half-turn out and clip the
-      // Pacific away.
-      domain: {
-        type: "Polygon",
-        coordinates: [[
-          [CENTRE_LON - 180, CLIP.latMin], [CENTRE_LON - 90, CLIP.latMin],
-          [CENTRE_LON, CLIP.latMin], [CENTRE_LON + 90, CLIP.latMin],
-          [CENTRE_LON + 179.99, CLIP.latMin],
-          [CENTRE_LON + 179.99, CLIP.latMax], [CENTRE_LON + 90, CLIP.latMax],
-          [CENTRE_LON, CLIP.latMax], [CENTRE_LON - 90, CLIP.latMax],
-          [CENTRE_LON - 180, CLIP.latMax], [CENTRE_LON - 180, CLIP.latMin],
-        ]],
-      } as never,
-    },
+    projection: worldProjection(),
     style: { background: "transparent", color: theme.text, fontSize: "11px" },
     color: { type: "identity" },
     r: { type: "identity" },
