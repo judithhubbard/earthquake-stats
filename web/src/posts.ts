@@ -241,13 +241,17 @@ function wireZoom() {
     zoomBy(ev.shiftKey ? 0.5 : 2, dx, dy);
   });
 
-  // A trackpad pinch arrives as a wheel event with ctrlKey set. A plain wheel
-  // is left alone, so scrolling down the page never gets caught by the map.
+  // The wheel zooms. A trackpad pinch arrives as a wheel event with ctrlKey
+  // set and small deltas, so it gets a stronger rate than a mouse notch
+  // (deltaY ~100, about 1.2x a notch). At the whole-world view, scrolling down
+  // -- zooming out -- is left to the page, so a reader scrolling past the map
+  // is not caught by it; only scrolling up over the map starts a zoom.
   el.map.addEventListener("wheel", (ev) => {
-    if (!ev.ctrlKey && !ev.metaKey) return;
+    const delta = ev.deltaY * (ev.deltaMode === 1 ? 33 : ev.deltaMode === 2 ? 400 : 1);
+    if (state.view.k <= 1 && delta > 0) return;
     ev.preventDefault();
     const { dx, dy } = centreOffset(ev.clientX, ev.clientY);
-    zoomBy(Math.exp(-ev.deltaY * 0.01), dx, dy);
+    zoomBy(Math.exp(-delta * (ev.ctrlKey ? 0.01 : 0.002)), dx, dy);
   }, { passive: false });
 
   // Drag to pan, two fingers to pinch.
