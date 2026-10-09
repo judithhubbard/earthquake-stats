@@ -283,8 +283,17 @@ Kyle's hand-updated Leaflet map (kyleedwardbradley.github.io/earthquake_insights
 - **Links come from the posts themselves, during their free month.** Substack
   only serves the full text of a free post, and new posts are free for 30
   days, so each run reads every post that is free now and records the USGS
-  event pages it links to in `pipeline/posts.csv`, which CI commits back. After
-  the paywall the rows stay as last read.
+  event pages it links to in `pipeline/posts.csv`. After the paywall the rows
+  stay as last read.
+- **It runs on a Mac, not in CI.** Substack's Cloudflare answers 403 to
+  GitHub's servers for everything (API, feed, pages). `pipeline/read-posts.sh`
+  works in its own clone under `~/Library/Application Support/earthquake-posts`,
+  runs `posts.py`, and pushes `posts.csv` and `posts.json`; the push triggers
+  the deploy. launchd runs it at 9:00 and 21:00 (missed runs happen on wake),
+  and `~/Desktop/Update posts map.command` runs it by hand after publishing.
+  Install or reinstall with `pipeline/read-posts.sh --install`; the log is
+  `~/Library/Logs/earthquake-posts.log`. A post only has to be read once in its
+  30 free days, so the Mac being off for a few days costs nothing.
 - Events from the fortnight before a post are its **subject** and are drawn;
   older ones it cites are **context**, drawn as dashed rings only while the post
   is selected.

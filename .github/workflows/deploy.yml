@@ -277,34 +277,10 @@ jobs:
           git pull --rebase --autostash
           git push
 
-      # The posts page (web/posts/). A new post is free for its first 30 days
-      # and Substack only serves the full text of a free post, so this is the
-      # one chance to read which USGS events it links to -- pipeline/posts.py
-      # explains. What it finds goes in the repo, like the magnitudes above,
-      # because after the paywall nothing can rebuild it.
-      #
-      # After the catalog fallback, which restores web/public/data and would
-      # otherwise put back the previous posts.json. Allowed to fail: Substack
-      # being down leaves the committed posts.json, a few hours stale.
-      - name: Read new Earthquake Insights posts
-        id: posts
-        continue-on-error: true
-        run: python3 pipeline/posts.py
-
-      - name: Commit post links
-        if: steps.posts.outcome == 'success'
-        continue-on-error: true
-        run: |
-          if git diff --quiet -- pipeline/posts.csv web/public/data/posts.json; then
-            echo "No new posts or links."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pipeline/posts.csv web/public/data/posts.json
-          git commit -m "Link new posts to their earthquakes"
-          git pull --rebase --autostash
-          git push
+      # The posts page reads Substack from a Mac, not here: Substack's
+      # Cloudflare answers 403 to GitHub's servers for every URL it has. See
+      # pipeline/read-posts.sh. Its pushes land as commits to posts.csv and
+      # posts.json, which this workflow simply builds.
 
       - name: Save catalog mirror
         if: steps.refresh.outcome == 'success' && steps.refresh.outputs.save == 'true'

@@ -14,8 +14,10 @@ paywall, and Substack's API only returns the full text of a free post. So
 every run reads the full text of every post that is free *now*, collects the
 USGS event pages it links to, and writes them to posts.csv. After the paywall
 comes down nothing more can be learned, and the rows stay as they were last
-read. GitHub runs this every few hours, so each post gets a hundred-odd reads
-in its free month; edits made in that month are picked up, later ones are not.
+read. It runs on a Mac (pipeline/read-posts.sh) twice a day and by hand after
+publishing -- not in CI, because Substack's Cloudflare blocks GitHub's servers.
+Each post gets dozens of reads in its free month; edits made in that month
+are picked up, later ones are not.
 
 Posts from before this existed came from a Substack export (full text of
 every post) and from the old Leaflet map's hand-placed points, and are tagged
