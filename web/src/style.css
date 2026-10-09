@@ -2081,8 +2081,44 @@ body:not(.span-thirty) .only-thirty { display: none !important; }
 .posts-swatch.is-ring { background: var(--surface-1); border: 1.6px solid var(--posts-paid); }
 .posts-swatch.is-plate { width: 16px; height: 0; border-radius: 0; border-top: 2px solid var(--posts-plate); background: none; }
 
-.posts-map { min-height: 12rem; }
+.posts-map-wrap { position: relative; }
+.posts-map { min-height: 12rem; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .posts-map svg { display: block; cursor: pointer; }
+/* Zoomed, a drag pans, so the page must not scroll under a finger either. */
+.posts-map.is-zoomed { touch-action: none; }
+.posts-map.is-zoomed svg { cursor: grab; }
+.posts-map.is-zoomed svg:active { cursor: grabbing; }
+
+.posts-zoom {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  box-shadow: var(--lift-2);
+  overflow: hidden;
+}
+
+.posts-zoom button {
+  appearance: none;
+  border: 0;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.45rem;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--t-lead);
+  line-height: 1;
+  cursor: pointer;
+}
+.posts-zoom button:hover { background: var(--band-outer); }
+.posts-zoom button:disabled { color: var(--axis); cursor: default; background: var(--surface-1); }
+.posts-zoom #zoom-reset { font-size: var(--t-cap); font-weight: 600; }
 .posts-loading { color: var(--text-muted); font-size: var(--t-body); }
 
 .posts-selected {

@@ -36,7 +36,7 @@ const CLIP = { latMin: -78, latMax: 88 };
  * seam on the prime meridian and split Britain, France and Spain down the
  * middle.
  */
-const CENTRE_LON = 170;
+export const CENTRE_LON = 170;
 
 type LandFeature = { type: string; [key: string]: unknown };
 let landPromise: Promise<LandFeature> | null = null;
@@ -81,6 +81,19 @@ export function worldProjection() {
       ]],
     } as never,
   };
+}
+
+let detailedPromise: Promise<LandFeature> | null = null;
+
+/** 1:50m coastlines, for zoomed-in views; about ten times the 1:110m file. */
+export function loadDetailedLand(): Promise<LandFeature> {
+  detailedPromise ??= import("world-atlas/land-50m.json")
+    .then((mod) => {
+      const topology = ((mod as { default?: unknown }).default ?? mod) as never;
+      const objects = (topology as unknown as { objects: { land: never } }).objects;
+      return topojson.feature(topology, objects.land) as unknown as LandFeature;
+    });
+  return detailedPromise;
 }
 
 export interface MapEvent {

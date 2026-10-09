@@ -15,7 +15,7 @@
 import * as Plot from "@observablehq/plot";
 import { DATA_BASE } from "./catalog";
 import { readTheme } from "./chart";
-import { loadLand, worldProjection } from "./map";
+import { CENTRE_LON, loadLand, loadDetailedLand, worldProjection } from "./map";
 import { startAnalytics } from "./analytics";
 
 interface Post {
@@ -77,6 +77,11 @@ const state = {
   land: null as unknown,
   plates: null as unknown,
   selected: null as Point | null,
+  /** Zoom: k = 1 is the whole world; lon/lat is the centre of the view. */
+  view: { k: 1, lon: CENTRE_LON, lat: 0 },
+  /** The world map's height, held while zoomed so the frame does not jump. */
+  height: 0,
+  detailedLand: null as unknown,
   query: "",
   show: "all" as Show,
 };
@@ -142,6 +147,154 @@ function whereOf(post: Post): string {
   return post.place?.label ?? "";
 }
 
+// ---------- zoom ----------
+
+const MAX_K = 32;
+/** Above this, the 1:110m coastlines are visibly crude; switch to 1:50m. */
+const DETAIL_K = 3;
+
+/** Half the view's width and height, in degrees. */
+function halfSpan() {
+  const width = el.map.clientWidth || 800;
+  const w = 180 / state.view.k;
+  return { w, h: (w * (state.height || width / 2)) / width };
+}
+
+/**
+ * Zoomed, the projection is re-centred on the view, so whatever is in the
+ * middle is drawn with Equal Earth's least distortion -- Turkey, at 40°E,
+ * would be badly sheared on a map still centred on 170°E. The view is fitted
+ * to a grid of points rather than a polygon: d3 reads a polygon's inside from
+ * its winding, which is how a box once covered the whole sphere (see map.ts).
+ */
+function projection() {
+  const { k, lon, lat } = state.view;
+  if (k <= 1.001) return worldProjection();
+  const { w, h } = halfSpan();
+  const coordinates: [number, number][] = [];
+  for (const fx of [-1, -0.5, 0, 0.5, 1]) {
+    for (const fy of [-1, 0, 1]) coordinates.push([lon + fx * w, lat + fy * h]);
+  }
+  return { type: "equal-earth" as never, rotate: [-lon, 0] as [number, number],
+           domain: { type: "MultiPoint", coordinates } as never };
+}
+
+function clampView() {
+  const v = state.view;
+  v.k = Math.min(MAX_K, Math.max(1, v.k));
+  if (v.k <= 1.001) { v.k = 1; v.lon = CENTRE_LON; v.lat = 0; return; }
+  const { h } = halfSpan();
+  v.lat = Math.min(85 - h, Math.max(-78 + h, v.lat));
+  if (85 - h < -78 + h) v.lat = 0;
+  v.lon = ((v.lon + 540) % 360) - 180;
+}
+
+/** Degrees under a pixel offset from the map's centre (near enough for zooming). */
+function offsetToDegrees(dx: number, dy: number) {
+  const width = el.map.clientWidth || 800;
+  const height = state.height || width / 2;
+  const { w, h } = halfSpan();
+  return { dLon: (dx / width) * 2 * w, dLat: (-dy / height) * 2 * h };
+}
+
+/** Zoom by a factor, keeping the point at pixel offset (dx, dy) from the centre fixed. */
+function zoomBy(factor: number, dx = 0, dy = 0) {
+  const before = offsetToDegrees(dx, dy);
+  const anchor = { lon: state.view.lon + before.dLon, lat: state.view.lat + before.dLat };
+  const k0 = state.view.k;
+  state.view.k = Math.min(MAX_K, Math.max(1, k0 * factor));
+  const ratio = k0 / state.view.k;
+  state.view.lon = anchor.lon - before.dLon * ratio;
+  state.view.lat = anchor.lat - before.dLat * ratio;
+  clampView();
+  scheduleRender();
+}
+
+function zoomTo(lon: number, lat: number, k: number) {
+  state.view = { k, lon, lat };
+  clampView();
+  renderMap();
+}
+
+let frame = 0;
+function scheduleRender() {
+  if (frame) return;
+  frame = requestAnimationFrame(() => { frame = 0; renderMap(); });
+}
+
+/** Set by a drag, so the click that ends it does not select a circle. */
+let dragged = false;
+
+function wireZoom() {
+  $("zoom-in").addEventListener("click", () => zoomBy(2));
+  $("zoom-out").addEventListener("click", () => zoomBy(0.5));
+  $("zoom-reset").addEventListener("click", () => zoomTo(CENTRE_LON, 0, 1));
+
+  const centreOffset = (x: number, y: number) => {
+    const r = el.map.getBoundingClientRect();
+    return { dx: x - r.left - r.width / 2, dy: y - r.top - r.height / 2 };
+  };
+
+  el.map.addEventListener("dblclick", (ev) => {
+    ev.preventDefault();
+    const { dx, dy } = centreOffset(ev.clientX, ev.clientY);
+    zoomBy(ev.shiftKey ? 0.5 : 2, dx, dy);
+  });
+
+  // A trackpad pinch arrives as a wheel event with ctrlKey set. A plain wheel
+  // is left alone, so scrolling down the page never gets caught by the map.
+  el.map.addEventListener("wheel", (ev) => {
+    if (!ev.ctrlKey && !ev.metaKey) return;
+    ev.preventDefault();
+    const { dx, dy } = centreOffset(ev.clientX, ev.clientY);
+    zoomBy(Math.exp(-ev.deltaY * 0.01), dx, dy);
+  }, { passive: false });
+
+  // Drag to pan, two fingers to pinch.
+  const pointers = new Map<number, { x: number; y: number }>();
+  let startX = 0, startY = 0, pinch = 0;
+  el.map.addEventListener("pointerdown", (ev) => {
+    pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (pointers.size === 1) { startX = ev.clientX; startY = ev.clientY; dragged = false; }
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinch = Math.hypot(a.x - b.x, a.y - b.y);
+    }
+  });
+  el.map.addEventListener("pointermove", (ev) => {
+    const last = pointers.get(ev.pointerId);
+    if (!last) return;
+    const now = { x: ev.clientX, y: ev.clientY };
+    pointers.set(ev.pointerId, now);
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch > 0) {
+        const { dx, dy } = centreOffset((a.x + b.x) / 2, (a.y + b.y) / 2);
+        zoomBy(d / pinch, dx, dy);
+      }
+      pinch = d;
+      dragged = true;
+      return;
+    }
+    if (state.view.k <= 1) return;
+    if (!dragged && Math.hypot(now.x - startX, now.y - startY) < 4) return;
+    dragged = true;
+    el.map.setPointerCapture(ev.pointerId);
+    const { dLon, dLat } = offsetToDegrees(now.x - last.x, now.y - last.y);
+    state.view.lon -= dLon;
+    state.view.lat -= dLat;
+    clampView();
+    scheduleRender();
+  });
+  const end = (ev: PointerEvent) => {
+    pointers.delete(ev.pointerId);
+    if (pointers.size < 2) pinch = 0;
+  };
+  el.map.addEventListener("pointerup", end);
+  el.map.addEventListener("pointercancel", end);
+}
+
 // ---------- map ----------
 
 function renderMap() {
@@ -173,14 +326,20 @@ function renderMap() {
   }
 
   const width = el.map.clientWidth || 800;
+  const zoomed = state.view.k > 1;
+  if (zoomed && state.view.k >= DETAIL_K && !state.detailedLand) {
+    void loadDetailedLand().then((land) => { state.detailedLand = land; scheduleRender(); });
+  }
+  const land = zoomed && state.view.k >= DETAIL_K && state.detailedLand ? state.detailedLand : state.land;
   const plot = Plot.plot({
     width,
-    projection: worldProjection(),
+    ...(zoomed ? { height: state.height } : {}),
+    projection: projection(),
     style: { background: "transparent", color: theme.text, fontSize: "11px" },
     marks: [
       Plot.geo({ type: "Sphere" } as never, { fill: theme.mapOcean, stroke: theme.mapCoast, strokeWidth: 0.6 }),
       Plot.graticule({ stroke: theme.mapCoast, strokeWidth: 0.4, strokeOpacity: 0.35 }),
-      Plot.geo(state.land as never, { fill: theme.mapLand, stroke: theme.mapCoast, strokeWidth: 0.5 }),
+      Plot.geo(land as never, { fill: theme.mapLand, stroke: theme.mapCoast, strokeWidth: 0.5 }),
       Plot.geo(state.plates as never, { stroke: plateInk, strokeWidth: 0.9, strokeOpacity: 0.75 }),
       Plot.dot(places, {
         x: "lon", y: "lat", r: radius, sort: null,
@@ -215,9 +374,15 @@ function renderMap() {
   // The tip's pointer sets plot.value to the circle under the cursor (or the
   // finger), so a click selects whatever the tip is showing.
   plot.addEventListener("click", () => {
+    if (dragged) { dragged = false; return; }
     const p = (plot as unknown as { value: Point | null }).value;
     select(p && p !== state.selected ? p : null, false);
   });
+  if (!zoomed) state.height = Number(plot.getAttribute("height")) || state.height;
+  $("zoom-reset").hidden = !zoomed;
+  ($("zoom-out") as HTMLButtonElement).disabled = !zoomed;
+  ($("zoom-in") as HTMLButtonElement).disabled = state.view.k >= MAX_K;
+  el.map.classList.toggle("is-zoomed", zoomed);
   el.map.replaceChildren(plot);
 }
 
@@ -264,7 +429,9 @@ function renderSelected() {
 
 function select(p: Point | null, scroll: boolean) {
   state.selected = p;
-  renderMap();
+  // From the list, fly to it; a circle clicked on the map is already in view.
+  if (scroll && p) zoomTo(p.lon, p.lat, Math.max(state.view.k, p.mag === null ? 6 : 8));
+  else renderMap();
   renderSelected();
   if (scroll && p) el.map.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -348,6 +515,7 @@ function legend() {
 
 async function start() {
   startAnalytics();
+  wireZoom();
   buildShow();
   legend();
   const [data, land, plates] = await Promise.all([
@@ -369,7 +537,15 @@ async function start() {
   });
   let lastWidth = el.map.clientWidth;
   new ResizeObserver(() => {
-    if (el.map.clientWidth !== lastWidth) { lastWidth = el.map.clientWidth; renderMap(); }
+    if (el.map.clientWidth !== lastWidth) {
+      lastWidth = el.map.clientWidth;
+      // The held height belongs to the old width; re-measure from the world view.
+      const view = state.view;
+      state.view = { k: 1, lon: CENTRE_LON, lat: 0 };
+      renderMap();
+      state.view = view;
+      if (view.k > 1) renderMap();
+    }
   }).observe(el.map);
 }
 

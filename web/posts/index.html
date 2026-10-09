@@ -32,8 +32,16 @@
 
       <section class="posts-map-section">
         <p class="posts-legend" id="posts-legend"></p>
-        <div id="posts-map" class="posts-map"><p class="posts-loading">Loading the posts…</p></div>
-        <p class="chart-note" id="posts-map-note">Select a circle to see the posts about that earthquake.</p>
+        <div class="posts-map-wrap">
+          <div id="posts-map" class="posts-map"><p class="posts-loading">Loading the posts…</p></div>
+          <div class="posts-zoom" role="group" aria-label="Zoom">
+            <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+            <button type="button" id="zoom-out" aria-label="Zoom out">&minus;</button>
+            <button type="button" id="zoom-reset" aria-label="Show the whole world" hidden>World</button>
+          </div>
+        </div>
+        <p class="chart-note" id="posts-map-note">Select a circle to see the posts about that earthquake.
+          Zoom with the buttons, a pinch, or by double-clicking; drag to move around.</p>
         <div id="posts-selected" class="posts-selected" hidden></div>
       </section>
 
