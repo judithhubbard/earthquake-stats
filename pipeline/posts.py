@@ -64,7 +64,7 @@ SUBSTACK = "https://earthquakeinsights.substack.com"
 COMCAT = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 # Substack answers 429 if asked too quickly; a second apart has been enough.
 PAUSE_S = 1.0
-HEADERS = {"User-Agent": "stats.earthquakeinsights.com post map"}
+HEADERS = {"User-Agent": "earthquakeinsights.com post map"}
 
 REVIEW_TAG = "Research analyses: permanently free to read"
 FIELDS = ["slug", "event", "role", "lat", "lon", "depth", "mag", "time", "place", "source"]
