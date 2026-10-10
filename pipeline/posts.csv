@@ -1,6 +1,6 @@
 slug,event,role,lat,lon,depth,mag,time,place,source
 2023-turkey-syria-earthquakes-cause,,subject,35.126,33.430,,,,,oldmap
-a-first-look-at-the-mw88-kamchatka,us6000qw60,subject,52.495,160.239,35,8.8,1753831492483,"2025 Kamchatka Peninsula, Russia Earthquake",export
+a-first-look-at-the-mw88-kamchatka,us6000qw60,subject,52.495,160.239,35,8.8,1753831492483,"2025 Kamchatka Peninsula, Russia Earthquake",body
 aftershocks-and-satellite-imaging,us6000t7zp,subject,10.595,-67.221,10,7.5,1782338704053,"20 km W of Catia La Mar, Venezuela",export
 aftershocks-of-deadly-earthquakes,,,,,,,,,export
 aftershocks-of-the-morocco-earthquake,us7000kufc,subject,31.058,-8.385,19,6.8,1694211061405,"Al Haouz, Morocco",hand
@@ -44,11 +44,11 @@ deadly-m61-earthquake-strikes-western,us7000ljvg,subject,35.739,102.815,12,5.9,1
 deadly-m68-earthquake-hits-morocco,us7000kufc,subject,31.058,-8.385,19,6.8,1694211061405,"Al Haouz, Morocco",export
 deadly-m68-earthquake-hits-morocco,us7000kufg,subject,31.036,-8.352,10,4.9,1694212244243,"50 km WSW of Oukaïmedene, Morocco",export
 deadly-m69-earthquake-strikes-central,us6000rdrz,subject,11.156,124.111,10,6.9,1759240783328,"8 km ESE of Calape, Philippines",export
-deadly-m71-earthquake-strikes-tibet,us6000pi9m,subject,28.937,87.219,10,4.2,1736208710965,Southern Tibetan Plateau,export
-deadly-m71-earthquake-strikes-tibet,us6000pi9w,subject,28.604,87.378,10,7.1,1736211916734,2025 Southern Tibetan Plateau Earthquake,export
-deadly-m71-earthquake-strikes-tibet,usp000g1w2,context,35.490,81.467,10,7.2,1206052377930,"226 km SE of Hotan, China",export
+deadly-m71-earthquake-strikes-tibet,us6000pi9m,subject,28.937,87.219,10,4.2,1736208710965,Southern Tibetan Plateau,body
+deadly-m71-earthquake-strikes-tibet,us6000pi9w,subject,28.604,87.378,10,7.1,1736211916734,2025 Southern Tibetan Plateau Earthquake,body
+deadly-m71-earthquake-strikes-tibet,usp000g1w2,context,35.490,81.467,10,7.2,1206052377930,"226 km SE of Hotan, China",body
 deadly-m74-earthquake-strikes-beneath,us6000tjl2,subject,4.884,-76.218,108,7.4,1786365268009,"2 km SE of San José del Palmar, Colombia",export
-deadly-m74-earthquake-strikes-taiwan,us7000m9g4,subject,23.836,121.598,40,7.4,1712102292173,"15 km S of Hualien City, Taiwan",export
+deadly-m74-earthquake-strikes-taiwan,us7000m9g4,subject,23.836,121.598,40,7.4,1712102292173,"15 km S of Hualien City, Taiwan",body
 deadly-m78-earthquake-rocks-southern,us7000srb1,subject,5.599,125.056,57,7.8,1780875461970,"25 km SW of Kablalan, Philippines",export
 deadly-m78-earthquake-rocks-southern,us7000srcg,subject,5.475,125.217,75,6.5,1780880112546,"18 km SW of Balangonan, Philippines",export
 deadly-mw73-earthquake-shakes-vanuatu,us7000nzf3,subject,-17.691,168.084,54,7.3,1734400045741,"24 km WNW of Port-Vila, Vanuatu",export
@@ -141,7 +141,7 @@ m43-earthquake-on-maacama-fault-rattles,nc75025237,subject,39.667,-123.533,3,4.3
 m43-earthquake-rattles-berkeley-ca,nc75240492,subject,37.863,-122.254,8,4.3,1758534972520,"2 km ESE of Berkeley, CA",export
 m43-earthquake-rattles-berkeley-ca,ushis139,context,37.700,-122.100,,6.8,-3193373220000,"The 1868 Hayward Fault, California Earthquake",export
 m44-earthquake-offshore-sw-cyprus-not,us7000jk0j,subject,34.591,32.501,10,4.2,1678861627949,"17 km S of Koloni, Cyprus",hand
-m44-thrust-earthquake-rattles-los,ci40699207,subject,34.083,-118.179,11,4.4,1723490424670,"4 km SSE of Highland Park, CA",export
+m44-thrust-earthquake-rattles-los,ci40699207,subject,34.083,-118.179,11,4.4,1723490424670,"4 km SSE of Highland Park, CA",body
 m45-earthquake-in-southern-california,ci40215575,subject,33.201,-115.590,2,4.3,1682838574500,"8km WSW of Niland, CA",export
 m45-earthquake-near-dhaka-felt-by,us6000k9kw,subject,23.694,90.310,10,4.3,1683244629193,"8 km WSW of Azimpur, Bangladesh",export
 m45-earthquake-rattles-san-jose,nc73866925,subject,36.801,-121.323,10,4.4,1680646997820,"1km NNW of Tres Pinos, CA",export
@@ -164,7 +164,7 @@ m47-earthquake-rattles-southern-texas,tx2024dijf,subject,28.951,-98.024,8,4.3,17
 m47-earthquake-rattles-southern-texas,tx2024dijp,subject,28.948,-98.027,7,4.5,1708151572188,"3 km SSW of Falls City, Texas",body
 m47-strikes-near-malibu-california,ci40731623,subject,34.056,-118.813,11,4.7,1726151301610,"6 km N of Malibu, CA",export
 m48-earthquake-near-california-mexico,ci39720706,subject,32.752,-115.873,9,4.8,1701416607480,"11 km E of Ocotillo, CA",export
-m48-new-jersey-earthquake-shakes,us7000ma74,subject,40.696,-74.760,3,4.8,1712327000045,"2024 Tewksbury, New Jersey Earthquake",export
+m48-new-jersey-earthquake-shakes,us7000ma74,subject,40.696,-74.760,3,4.8,1712327000045,"2024 Tewksbury, New Jersey Earthquake",body
 m48-rattles-vancouver,us7000pfbs,subject,49.693,-123.545,10,4.8,1740173192781,"28 km W of Squamish, Canada",export
 m49-aftershock-near-goksun-turkey,us7000jm54,subject,38.011,36.427,10,5.3,1679563193459,"6 km W of Göksun, Turkey",export
 m49-earthquake-at-the-cierro-prieto,ci40746912,subject,32.425,-115.240,8,4.9,1715538162200,"9 km NNW of Delta, B.C., MX",export
@@ -399,10 +399,10 @@ magnitude-63-earthquake-strikes-vanuatu,us6000u0xi,subject,-15.541,168.189,10,6.
 magnitude-64-earthquake-rocks-java,us6000mkej,subject,-5.816,112.319,10,5.6,1711081365531,"117 km N of Paciran, Indonesia",export
 magnitude-64-earthquake-rocks-java,us6000mkfz,subject,-5.875,112.365,9,6.4,1711097578999,"110 km N of Paciran, Indonesia",export
 magnitude-67-earthquake-strikes-below,us7000l7si,subject,-28.743,-71.557,34,6.6,1698755623732,"80 km WSW of Vallenar, Chile",export
-magnitude-70-earthquake-strikes-offshore,nc75095651,subject,40.374,-125.022,10,7.0,1733424261110,"2024 Offshore Cape Mendocino, California Earthquake",export
-magnitude-70-earthquake-strikes-offshore,nc75095671,subject,38.844,-122.827,0,4.3,1733424456030,"9 km WNW of Cobb, CA",export
-magnitude-73-earthquake-in-the-shumagin,us7000qd1y,subject,54.565,-160.469,38,7.3,1752698261667,"2025 Sand Point, Alaska Earthquake",export
-magnitude-73-earthquake-in-the-shumagin,us6000c9hg,context,54.602,-159.626,28,7.6,1603140878950,"2020 Sand Point, Alaska Earthquake",export
+magnitude-70-earthquake-strikes-offshore,nc75095651,subject,40.374,-125.022,10,7.0,1733424261110,"2024 Offshore Cape Mendocino, California Earthquake",body
+magnitude-70-earthquake-strikes-offshore,nc75095671,subject,38.844,-122.827,0,4.3,1733424456030,"9 km WNW of Cobb, CA",body
+magnitude-73-earthquake-in-the-shumagin,us7000qd1y,subject,54.565,-160.469,38,7.3,1752698261667,"2025 Sand Point, Alaska Earthquake",body
+magnitude-73-earthquake-in-the-shumagin,us6000c9hg,context,54.602,-159.626,28,7.6,1603140878950,"2020 Sand Point, Alaska Earthquake",body
 major-m70-earthquake-strikes-china,us6000m5cp,subject,41.935,81.292,26,4.6,1705898000324,"118 km NE of Aksu, China",export
 major-m70-earthquake-strikes-china,us7000lsze,subject,41.255,78.654,13,7.0,1705946944340,"128 km WNW of Aykol, China",export
 march-18-2023-m68-earthquake-in-ecuador,us7000jl3s,subject,-2.783,-79.852,68,6.8,1679159572481,"14 km NNW of Baláo, Ecuador",export
@@ -464,7 +464,7 @@ printable-wall-map-of-morocco,,subject,31.854,-6.062,,,,,oldmap
 pulsed-swarm-of-seismicity-offshore,usp000azqw,subject,6.033,124.249,31,7.5,1015362969130,"Mindanao, Philippines",export
 putting-aftershocks-near-adana-into,,subject,36.991,35.331,,,,,oldmap
 rebuilding-historic-urban-areas-after,,,,,,,,,body
-remarkable-video-captures-fault-slip,us7000pn9s,subject,22.011,95.936,10,7.7,1743142852715,"2025 Mandalay, Burma (Myanmar) Earthquake",export
+remarkable-video-captures-fault-slip,us7000pn9s,subject,22.011,95.936,10,7.7,1743142852715,"2025 Mandalay, Burma (Myanmar) Earthquake",body
 report-highlights-liquefaction-in-2023,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 san-ramon-swarm-sputters-back-to,nc75305736,subject,37.756,-121.944,10,4.2,1770044473640,"4 km SE of San Ramon, CA",export
 satellite-images-suggest-slip-on,us7000kufc,subject,31.058,-8.385,19,6.8,1694211061405,"Al Haouz, Morocco",hand
@@ -504,7 +504,7 @@ sulawesi-indonesia-struck-by-m67,us10008w1z,context,-1.292,120.431,12,6.6,149606
 surface-ruptures-of-the-myanmar-m77,us7000pn9s,subject,22.011,95.936,10,7.7,1743142852715,"2025 Mandalay, Burma (Myanmar) Earthquake",export
 surface-ruptures-of-the-myanmar-m77,us7000pn9z,subject,21.698,95.969,10,6.7,1743143524777,Burma (Myanmar),export
 swarm-offshore-vancouver-island-punctuated,us7000mykj,subject,48.788,-128.710,10,6.4,1720710527169,"209 km WSW of Tofino, Canada",body
-tectonics-of-the-january-1-2024-m75,us6000m0xl,subject,37.487,137.271,10,7.5,1704093009476,"2024 Noto Peninsula, Japan Earthquake",export
+tectonics-of-the-january-1-2024-m75,us6000m0xl,subject,37.487,137.271,10,7.5,1704093009476,"2024 Noto Peninsula, Japan Earthquake",body
 the-earthquake-that-cracked-a-mountain,,subject,30.845,-8.516,,,,,oldmap
 the-great-tidal-earthquake-hypothesis,,,,,,,,,body
 the-great-tidal-earthquake-hypothesis-35b,,,,,,,,,body
