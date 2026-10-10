@@ -2184,6 +2184,53 @@ body:not(.span-thirty) .only-thirty { display: none !important; }
   vertical-align: 0.1em;
 }
 .posts-badge.is-free { border-color: var(--posts-free); color: var(--posts-free); }
+.posts-badge.is-new { border-color: var(--posts-free); background: var(--posts-free); color: #fff; }
+
+.posts-swatch.is-new { background: var(--posts-free); box-shadow: 0 0 0 2px var(--surface-1), 0 0 0 3.6px var(--posts-free); }
+
+/* The outer ring on a recent post's circle swells and fades, on a loop. */
+.posts-pulse circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: posts-pulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes posts-pulse {
+  from { transform: scale(1); opacity: 0.9; }
+  to { transform: scale(2.4); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .posts-pulse circle { animation: none; opacity: 0; }
+}
+
+/* The hover tip: the newest post's cover image, then where, title and date. */
+.posts-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 17rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  pointer-events: none;
+}
+.posts-tip[hidden] { display: none; }
+.posts-tip img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--band-outer);
+}
+.posts-tip-text { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0.75rem 0.7rem; }
+.posts-tip-where { font-family: var(--mono); font-size: var(--t-micro); color: var(--text-muted); line-height: 1.35; }
+.posts-tip-title { font-family: var(--serif); font-size: var(--t-body); font-weight: 600; line-height: 1.25; color: var(--text-primary); }
+.posts-tip-more { font-size: var(--t-fine); color: var(--text-secondary); }
 
 .posts-clear {
   margin-top: 0.8rem;

@@ -58,6 +58,8 @@ interface Point {
 type Show = "all" | "free" | "quakes" | "tectonics";
 
 const SUBSTACK = "https://earthquakeinsights.substack.com/p/";
+/** A post this new is marked on the map and in the list: its free month. */
+const RECENT_MS = 30 * 864e5;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const el = {
@@ -69,6 +71,7 @@ const el = {
   count: $<HTMLParagraphElement>("posts-count"),
   list: $<HTMLDivElement>("posts-list"),
   generated: $<HTMLParagraphElement>("generated"),
+  tip: $<HTMLDivElement>("posts-tip"),
 };
 
 const state = {
@@ -93,6 +96,11 @@ const fmtDate = (ms: number | string) =>
 
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+
+const isRecent = (post: Post) => Date.now() - Date.parse(post.date) < RECENT_MS;
+
+/** A circle's posts, newest first. */
+const newestFirst = (p: Point) => [...p.posts].sort((a, b) => b.date.localeCompare(a.date));
 
 function eventLine(e: QuakeEvent): string {
   const depth = e.depth !== null && e.depth >= 70 ? `, ${Math.round(e.depth)} km deep` : "";
@@ -317,6 +325,7 @@ function renderMap() {
 
   const quakes = state.points.filter((p) => p.mag !== null);
   const places = state.points.filter((p) => p.mag === null);
+  const recent = state.points.filter((p) => visible(p) && p.posts.some(isRecent));
 
   // The selected point's posts' context earthquakes, as hollow rings.
   const context: (QuakeEvent & { id: string })[] = [];
@@ -355,6 +364,15 @@ function renderMap() {
         fill, fillOpacity: (p: Point) => (visible(p) ? 0.85 : 0.12),
         stroke: theme.surface, strokeWidth: 0.6,
       }),
+      // Recent posts: a solid ring, and a second one that pulses outward.
+      Plot.dot(recent, {
+        x: "lon", y: "lat", r: (p: Point) => radius(p) + 3, sort: null,
+        stroke: freeInk, strokeWidth: 1.6, fill: "none",
+      }),
+      Plot.dot(recent, {
+        x: "lon", y: "lat", r: (p: Point) => radius(p) + 3, sort: null,
+        stroke: freeInk, strokeWidth: 1.6, fill: "none", className: "posts-pulse",
+      }),
       Plot.dot(context, {
         x: "lon", y: "lat", r: (e: QuakeEvent) => 2 + Math.max(0, e.mag - 4) * 1.6,
         stroke: theme.text, strokeWidth: 1.2, strokeDasharray: "2,2", fill: "none",
@@ -363,20 +381,17 @@ function renderMap() {
         x: "lon", y: "lat", r: (p: Point) => radius(p) + 3.5,
         stroke: theme.text, strokeWidth: 2, fill: "none",
       })] : []),
-      Plot.tip(state.points.filter(visible), Plot.pointer({
-        x: "lon", y: "lat", maxRadius: 20,
-        fill: theme.surface, stroke: theme.axis, textPadding: 8, fontSize: 12, lineWidth: 34,
-        title: (p: Point) => {
-          const n = p.posts.length;
-          const head = p.mag === null ? p.posts[0].title : p.label;
-          return n === 1 && p.mag !== null ? `${head}\n${p.posts[0].title}` : `${head}\n${n === 1 ? "1 post" : `${n} posts`}`;
-        },
+      // Invisible: it only finds the circle under the cursor, for the HTML tip
+      // (which can show the post's cover image) and for clicks.
+      Plot.dot(state.points.filter(visible), Plot.pointer({
+        x: "lon", y: "lat", r: radius, maxRadius: 20, fill: "none", stroke: "none",
       })),
     ],
   });
 
-  // The tip's pointer sets plot.value to the circle under the cursor (or the
+  // The pointer sets plot.value to the circle under the cursor (or the
   // finger), so a click selects whatever the tip is showing.
+  plot.addEventListener("input", () => showTip((plot as unknown as { value: Point | null }).value));
   plot.addEventListener("click", () => {
     if (dragged) { dragged = false; return; }
     const p = (plot as unknown as { value: Point | null }).value;
@@ -388,6 +403,54 @@ function renderMap() {
   ($("zoom-in") as HTMLButtonElement).disabled = state.view.k >= MAX_K;
   el.map.classList.toggle("is-zoomed", zoomed);
   el.map.replaceChildren(plot);
+}
+
+// ---------- the hover tip ----------
+
+let tipPoint: Point | null = null;
+const cursor = { x: 0, y: 0 };
+
+function showTip(p: Point | null) {
+  if (p === tipPoint) return;
+  tipPoint = p;
+  if (!p || dragged) { el.tip.hidden = true; return; }
+  const posts = newestFirst(p);
+  const post = posts[0];
+  const cover = post.cover ? `<img src="${escapeHtml(post.cover)}" alt="" />` : "";
+  const isNew = isRecent(post) ? `<span class="posts-badge is-new">New</span>` : "";
+  const more = posts.length > 1 ? `<span class="posts-tip-more">+ ${posts.length - 1} more ${posts.length === 2 ? "post" : "posts"}</span>` : "";
+  el.tip.innerHTML = `${cover}
+    <span class="posts-tip-text">
+      ${p.label ? `<span class="posts-tip-where">${escapeHtml(p.label.replace(/ · [^·]*$/, ""))}</span>` : ""}
+      <span class="posts-tip-title">${escapeHtml(post.title)}</span>
+      <span class="posts-card-meta">${fmtDate(post.date)}${isNew}</span>
+      ${more}
+    </span>`;
+  el.tip.hidden = false;
+  placeTip();
+}
+
+/** Beside the cursor, flipped left or up where it would run off the map. */
+function placeTip() {
+  if (el.tip.hidden) return;
+  const wrap = el.tip.parentElement!.getBoundingClientRect();
+  const w = el.tip.offsetWidth, h = el.tip.offsetHeight, gap = 16;
+  let x = cursor.x + gap, y = cursor.y - h / 2;
+  if (x + w > wrap.width) x = cursor.x - gap - w;
+  x = Math.max(0, x);
+  y = Math.min(Math.max(0, y), wrap.height - h);
+  el.tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+}
+
+function wireTip() {
+  el.map.addEventListener("pointermove", (ev) => {
+    const wrap = el.tip.parentElement!.getBoundingClientRect();
+    cursor.x = ev.clientX - wrap.left;
+    cursor.y = ev.clientY - wrap.top;
+    if (dragged) el.tip.hidden = true;
+    else placeTip();
+  });
+  el.map.addEventListener("pointerleave", () => { tipPoint = null; el.tip.hidden = true; });
 }
 
 // ---------- the selected circle ----------
@@ -463,7 +526,7 @@ function renderList() {
         <span class="posts-row-date">${fmtDate(post.date).replace(/, \d{4}$/, "")}</span>
         <span class="posts-row-main">
           <a data-track="posts-open" href="${SUBSTACK}${encodeURIComponent(post.slug)}" target="_blank"
-             rel="noopener noreferrer">${escapeHtml(post.title)}</a>${post.free ? ` <span class="posts-badge is-free">Free</span>` : ""}
+             rel="noopener noreferrer">${escapeHtml(post.title)}</a>${isRecent(post) ? ` <span class="posts-badge is-new">New</span>` : ""}${post.free ? ` <span class="posts-badge is-free">Free</span>` : ""}
           ${where ? `<span class="posts-row-where">${escapeHtml(where)}</span>` : ""}
         </span>
         ${onMap}
@@ -512,6 +575,7 @@ function legend() {
   el.legend.innerHTML = `
     <span class="posts-key"><i class="posts-swatch is-free"></i>Free to read now</span>
     <span class="posts-key"><i class="posts-swatch"></i>For subscribers</span>
+    <span class="posts-key"><i class="posts-swatch is-new"></i>Posted in the last 30 days</span>
     <span class="posts-key"><i class="posts-swatch is-ring"></i>A region rather than one earthquake</span>
     <span class="posts-key"><i class="posts-swatch is-plate"></i>Plate boundary</span>
     <span class="posts-key posts-key-note">Larger circles, larger earthquakes</span>`;
@@ -520,6 +584,7 @@ function legend() {
 async function start() {
   startAnalytics();
   wireZoom();
+  wireTip();
   buildShow();
   legend();
   const [data, land, plates] = await Promise.all([

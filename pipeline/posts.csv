@@ -3,21 +3,21 @@ slug,event,role,lat,lon,depth,mag,time,place,source
 a-first-look-at-the-mw88-kamchatka,us6000qw60,subject,52.495,160.239,35,8.8,1753831492483,"2025 Kamchatka Peninsula, Russia Earthquake",export
 aftershocks-and-satellite-imaging,us6000t7zp,subject,10.595,-67.221,10,7.5,1782338704053,"20 km W of Catia La Mar, Venezuela",export
 aftershocks-of-deadly-earthquakes,,,,,,,,,export
-aftershocks-of-the-morocco-earthquake,,subject,31.058,-8.385,,,,,oldmap
-aftershocks-of-turkey-syria-sequence,,subject,37.226,37.014,,,,,oldmap
+aftershocks-of-the-morocco-earthquake,us7000kufc,subject,31.058,-8.385,19,6.8,1694211061405,"Al Haouz, Morocco",hand
+aftershocks-of-turkey-syria-sequence,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 alert-level-orange-at-nevado-del-ruiz,,subject,4.892,-75.319,,,,,oldmap
 animated-3d-model-of-volcanic-seismicity,,subject,63.868,-22.413,,,,,oldmap
 another-large-subduction-earthquake,us6000sri7,subject,39.971,143.059,25,7.4,1776671578908,"102 km ENE of Miyako, Japan",export
 another-mid-m7-earthquake-in-the,us6000rgf4,subject,-60.188,-61.816,6,7.6,1760128160075,Drake Passage,export
 anthropogenic-earthquakes-along-dead,,subject,33.780,35.770,,,,,oldmap
-april-1-m45-near-near-samandag-turkey,,subject,36.003,35.817,,,,,oldmap
+april-1-m45-near-near-samandag-turkey,us6000k1cg,subject,36.066,35.813,10,4.3,1680352476956,"21 km WSW of Uzunba?, Turkey",hand
 article-highlight-gps-stations-can,,,,,,,,,export
 article-highlight-how-lastquake,,,,,,,,,export
 bangladesh-shaken-by-deadly-m55-earthquake,us6000rpht,subject,23.858,90.540,27,5.4,1763699908942,"14 km ESE of Tungi, Bangladesh",export
 bangladesh-shaken-by-deadly-m55-earthquake,iscgem911634,context,24.969,90.752,15,6.9,-1461462973270,"9 km NNE of Netrakona, Bangladesh",export
 bangladesh-shaken-by-deadly-m55-earthquake,iscgem912194,context,22.384,90.659,15,6.4,-1538660008720,"9 km WNW of L?lmohan, Bangladesh",export
 bangladesh-shaken-by-deadly-m55-earthquake,iscgem913196,context,24.656,90.801,15,7.1,-1624714671510,"24 km N of Kishorganj, Bangladesh",export
-breaking-aftershock-patterns-of-feb-6,,subject,37.226,37.014,,,,,oldmap
+breaking-aftershock-patterns-of-feb-6,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 buildings-collapse-in-nepal-due-to,us6000lcfg,subject,29.459,81.219,10,4.9,1696323350480,"34 km NE of Dipayal, Nepal",export
 buildings-collapse-in-nepal-due-to,us6000lcgj,subject,29.497,81.242,13,5.7,1696324863018,"39 km NE of Dipayal, Nepal",export
 can-we-tell-if-an-earthquake-is-going,,,,,,,,,body
@@ -55,7 +55,7 @@ deadly-mw73-earthquake-shakes-vanuatu,us7000nzf3,subject,-17.691,168.084,54,7.3,
 deadly-mw73-earthquake-shakes-vanuatu,usp000hhuc,context,-17.541,168.069,25,7.3,1281417824980,"33 km NW of Port-Vila, Vanuatu",export
 deep-m62-earthquake-offshore-southern,us7000spxm,subject,39.255,15.787,243,6.2,1780351956092,"23 km WSW of San Lucido, Italy",export
 deep-mw71-earthquake-strikes-sabah,us6000sasz,subject,6.854,116.294,629,7.1,1771779466738,"57 km NNW of Kota Belud, Malaysia",export
-did-feb-6-2023-turkey-syria-earthquake,,subject,37.226,37.014,,,,,oldmap
+did-feb-6-2023-turkey-syria-earthquake,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 did-feb-6-earthquakes-in-southeastern,,subject,41.000,39.000,,,,,oldmap
 did-feb-6-turkey-syria-earthquakes-make,,subject,35.000,36.000,,,,,oldmap
 did-the-high-atlas-really-grow-20,us7000kufc,subject,31.058,-8.385,19,6.8,1694211061405,"Al Haouz, Morocco",body
@@ -96,10 +96,10 @@ evaluating-istanbuls-seismic-hazard,,subject,41.000,29.000,,,,,oldmap
 fault-creep-in-western-sea-of-marmara,,subject,40.450,28.000,,,,,oldmap
 feb-6-earthquake-causes-aftershocks-on,,subject,35.500,35.500,,,,,oldmap
 feb-6-turkey-syria-earthquake-triggered,,subject,34.500,36.500,,,,,oldmap
-feb-6-turkey-syria-earthquakes,,subject,37.950,38.653,,,,,oldmap
+feb-6-turkey-syria-earthquakes,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 feb-6-turkey-syria-earthquakes-stressed,,,,,,,,,export
-first-paper-about-2023-turkey-syria,,subject,37.226,37.014,,,,,oldmap
-focal-mechanisms-of-2023-turkey-syria,,subject,37.226,37.014,,,,,oldmap
+first-paper-about-2023-turkey-syria,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
+focal-mechanisms-of-2023-turkey-syria,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 fossils-of-ancient-earthquakes-on-dead,,,,,,,,,export
 fourth-m63-earthquake-strikes-afghanistan,us6000lfn5,subject,34.653,62.124,9,6.3,1697340960454,"34 km NNW of Herāt, Afghanistan",body
 further-thoughts-about-the-very-long,us7000pn9s,subject,22.011,95.936,10,7.7,1743142852715,"2025 Mandalay, Burma (Myanmar) Earthquake",export
@@ -108,14 +108,14 @@ gps-tracks-movement-of-crust-since-2023,,,,,,,,,export
 hot-water-is-spewing-out-of-the-cascadia,,subject,44.600,-125.150,,,,,oldmap
 how-does-seismic-hazard-vary-across,,subject,41.013,28.975,,,,,oldmap
 how-does-stress-change-tell-us-about,,,,,,,,,export
-how-geologists-use-fault-slip-rates-to,,subject,37.226,37.014,,,,,oldmap
-how-much-do-faults-slip-in-earthquakes,,subject,37.226,37.014,,,,,oldmap
+how-geologists-use-fault-slip-rates-to,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
+how-much-do-faults-slip-in-earthquakes,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 how-seismicity-and-fault-creep-control,,subject,38.300,39.000,,,,,oldmap
 interactive-map-of-active-faults-for,,,,,,,,,export
 is-adana-at-risk-of-major-ground-shaking,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",export
-is-todays-m46-earthquake-offshore,,subject,36.436,34.417,,,,,oldmap
+is-todays-m46-earthquake-offshore,us7000jkk9,subject,36.256,34.370,10,4.3,1678996753596,"30 km SE of Kızkalesi, Turkey",hand
 istanbul-lightly-shaken-by-m4-earthquake,us7000ljqy,subject,40.730,29.059,12,4.2,1702846433586,"10 km NNW of Çınarcık, Turkey",title
-latest-paper-about-the-feb-6-kahramanmaras,,subject,37.226,37.014,,,,,oldmap
+latest-paper-about-the-feb-6-kahramanmaras,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 live-scientific-debate-announcement,,,,,,,,,body
 local-deformation-along-surface-trace,,,,,,,,,export
 m-55-earthquake-strikes-the-southern,us6000kqkr,subject,-9.508,148.913,10,5.0,1688673841219,"111 km SE of Popondetta, Papua New Guinea",export
@@ -124,7 +124,7 @@ m-78-strikes-offshore-kamchatka,us7000qx2g,subject,53.143,160.721,27,7.8,1758221
 m-78-strikes-offshore-kamchatka,us6000qw60,context,52.495,160.239,35,8.8,1753831492483,"2025 Kamchatka Peninsula, Russia Earthquake",export
 m36-earthquake-below-eastern-shore,us6000k6kx,subject,43.864,-76.020,9,3.6,1682273408198,New York,export
 m36-earthquake-below-eastern-shore,us6000jlqv,context,42.861,-78.785,6,3.8,1675682149769,"1 km NE of West Seneca, New York",export
-m41-earthquake-rattles-northern-italy,,subject,46.360,12.800,,,,,oldmap
+m41-earthquake-rattles-northern-italy,us7000m8em,subject,46.331,12.874,10,4.3,1711574377385,"6 km ENE of Tramonti di Sopra, Italy",hand
 m41-earthquake-rattles-tennessee,se60605931,subject,35.545,-83.987,25,4.1,1746882260360,"21 km SE of Greenback, Tennessee",export
 m41-earthquake-rattles-tennessee,ci10541957,context,34.005,-117.180,8,4.1,1266097146600,"6km S of Redlands, CA",export
 m41-earthquake-rattles-tennessee,nc71506865,context,37.287,-121.658,10,4.1,1294445416740,"15 km E of Seven Trees, California",export
@@ -133,14 +133,14 @@ m41-earthquake-shakes-toronto,us6000s4xb,subject,44.553,-79.124,8,4.1,1769572756
 m42-earthquake-in-syria-widely-felt,,subject,33.779,35.713,,,,,oldmap
 m42-earthquake-near-adana-march-11-2023,us7000jj67,subject,36.951,35.735,4,4.3,1678563316225,"11 km SW of Ceyhan, Turkey",title
 m42-in-san-bernardino-shakes-greater,ci39756418,subject,34.112,-117.311,16,4.2,1706154199970,"3 km SW of San Bernardino, CA",export
-m43-earthquake-in-northeast-india-is,,subject,25.814,87.170,,,,,oldmap
-m43-earthquake-in-the-pyrenees-caused,,subject,42.950,0.340,,,,,oldmap
+m43-earthquake-in-northeast-india-is,us6000k3n5,subject,26.002,87.383,10,4.0,1681257908100,Nepal-India border region,hand
+m43-earthquake-in-the-pyrenees-caused,us6000k63c,subject,42.979,0.344,10,4.0,1681738136079,"11 km SSW of La Barthe-de-Neste, France",hand
 m43-earthquake-jolts-parkfield-california,nc73922596,subject,35.934,-120.484,10,4.3,1691695038370,"6 km NW of Parkfield, CA",export
 m43-earthquake-jolts-parkfield-california,nc30228270,context,35.818,-120.366,8,6.0,1096391724250,"2004 Parkfield, California Earthquake",export
 m43-earthquake-on-maacama-fault-rattles,nc75025237,subject,39.667,-123.533,3,4.3,1719027985830,"5 km WSW of Laytonville, CA",export
 m43-earthquake-rattles-berkeley-ca,nc75240492,subject,37.863,-122.254,8,4.3,1758534972520,"2 km ESE of Berkeley, CA",export
 m43-earthquake-rattles-berkeley-ca,ushis139,context,37.700,-122.100,,6.8,-3193373220000,"The 1868 Hayward Fault, California Earthquake",export
-m44-earthquake-offshore-sw-cyprus-not,,subject,34.509,32.450,,,,,oldmap
+m44-earthquake-offshore-sw-cyprus-not,us7000jk0j,subject,34.591,32.501,10,4.2,1678861627949,"17 km S of Koloni, Cyprus",hand
 m44-thrust-earthquake-rattles-los,ci40699207,subject,34.083,-118.179,11,4.4,1723490424670,"4 km SSE of Highland Park, CA",export
 m45-earthquake-in-southern-california,ci40215575,subject,33.201,-115.590,2,4.3,1682838574500,"8km WSW of Niland, CA",export
 m45-earthquake-near-dhaka-felt-by,us6000k9kw,subject,23.694,90.310,10,4.3,1683244629193,"8 km WSW of Azimpur, Bangladesh",export
@@ -170,7 +170,7 @@ m49-aftershock-near-goksun-turkey,us7000jm54,subject,38.011,36.427,10,5.3,167956
 m49-earthquake-at-the-cierro-prieto,ci40746912,subject,32.425,-115.240,8,4.9,1715538162200,"9 km NNW of Delta, B.C., MX",export
 m49-earthquake-at-the-cierro-prieto,ci40747088,subject,32.411,-115.247,11,4.6,1715540640050,"8 km NW of Delta, B.C., MX",export
 m49-earthquake-at-the-cierro-prieto,ci40747544,subject,32.435,-115.228,12,4.2,1715572938810,"10 km NNW of Delta, B.C., MX",export
-m49-earthquake-near-antakya-is-largest,,subject,36.450,36.390,,,,,oldmap
+m49-earthquake-near-antakya-is-largest,us6000ka6g,subject,36.355,36.218,10,4.7,1683448568971,"0 km SSE of Serinyol, Turkey",hand
 m49-earthquake-near-barstow-california,ci40675215,subject,34.950,-116.787,7,4.9,1722283252590,"22 km ENE of Barstow, CA",export
 m49-earthquake-shakes-idaho,us7000m1pd,subject,44.391,-116.111,12,4.9,1708968343465,"10 km N of Smiths Ferry, Idaho",export
 m49-earthquake-strikes-inside-joshua,ci41162719,subject,33.894,-116.169,3,4.9,1768874174390,"20 km NNE of Indio, CA",export
@@ -212,7 +212,7 @@ m54-earthquake-shakes-jamaica,us7000l7jv,subject,18.190,-76.607,10,5.4,169868144
 m54-earthquake-shakes-jamaica,us60007idc,context,19.419,-78.756,15,7.7,1580238624918,"123 km NNW of Lucea, Jamaica",export
 m54-earthquake-shakes-montenegro,us6000mirj,subject,42.954,18.688,16,5.4,1710385607754,"22 km ENE of Bileća, Bosnia and Herzegovina",export
 m54-earthquake-shakes-northern-pakistan,us7000nd1m,subject,31.264,70.585,31,5.1,1726039682928,"35 km W of Karor, Pakistan",export
-m54-earthquake-shakes-portugal,,subject,38.007,-9.465,,,,,oldmap
+m54-earthquake-shakes-portugal,us7000n9fh,subject,38.022,-9.505,7,5.0,1724645497277,"56 km W of Sines, Portugal",hand
 m55-earthquake-felt-across-bangladesh,us7000lfaa,subject,23.148,90.932,45,5.5,1701488133040,"9 km ENE of Rāmganj, Bangladesh",export
 m55-earthquake-hits-turkey-more-than,us7000ki5u,subject,37.579,35.948,13,5.5,1690263891283,"18 km NE of Kozan, Turkey",export
 m55-earthquake-hits-turkey-more-than,us60007ewc,context,38.431,39.061,10,6.7,1579888514147,"13 km N of Do?anyol, Turkey",export
@@ -406,7 +406,7 @@ magnitude-73-earthquake-in-the-shumagin,us6000c9hg,context,54.602,-159.626,28,7.
 major-m70-earthquake-strikes-china,us6000m5cp,subject,41.935,81.292,26,4.6,1705898000324,"118 km NE of Aksu, China",export
 major-m70-earthquake-strikes-china,us7000lsze,subject,41.255,78.654,13,7.0,1705946944340,"128 km WNW of Aykol, China",export
 march-18-2023-m68-earthquake-in-ecuador,us7000jl3s,subject,-2.783,-79.852,68,6.8,1679159572481,"14 km NNW of Baláo, Ecuador",export
-march-29-m48-near-goksun-turkey,,subject,37.940,36.290,,,,,oldmap
+march-29-m48-near-goksun-turkey,us6000k0ne,subject,37.929,36.278,4,4.5,1680108422108,"17 km ESE of Saimbeyli, Turkey",hand
 media-feature-earthquakes-cannot-be,,,,,,,,,export
 media-feature-washington-post-major,,,,,,,,,export
 moderate-m51-earthquake-in-mongolia,us7000pljf,subject,43.364,104.065,10,5.0,1742549625914,"37 km SW of Dalandzadgad, Mongolia",export
@@ -414,7 +414,7 @@ montreal-jolted-by-m38-earthquake,us6000np1d,subject,46.044,-72.755,1,3.8,172518
 montreal-jolted-by-m38-earthquake,usp0004fxg,context,46.470,-75.590,13,4.6,656319717400,"11 km SW of Mont-Laurier, Canada",export
 montreal-jolted-by-m38-earthquake,usp0007erf,context,45.990,-74.430,18,4.5,826800146000,"7 km WNW of Saint-Adolphe-d'Howard, Canada",export
 more-machine-learning-earthquake,,,,,,,,,body
-more-than-3-months-after-turkey-syria,,subject,37.226,37.014,,,,,oldmap
+more-than-3-months-after-turkey-syria,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 mw47-earthquake-strikes-within-death,ci40964048,subject,36.604,-117.099,4,4.2,1729839128300,"4 km E of Stovepipe Wells, CA",export
 mw47-earthquake-strikes-within-death,ci40964128,subject,36.602,-117.091,4,4.7,1729843508290,"5 km E of Stovepipe Wells, CA",export
 mw47-earthquake-strikes-within-death,ci40964384,subject,36.551,-117.056,5,4.5,1729868663620,"10 km SE of Stovepipe Wells, CA",export
@@ -435,7 +435,7 @@ mw71-67-and-67-earthquakes-in-the,us7000l9h2,subject,-6.444,129.752,10,6.7,16994
 mw71-67-and-67-earthquakes-in-the,us7000l9h4,subject,-6.416,129.547,6,7.1,1699419229631,Banda Sea,export
 mw71-67-and-67-earthquakes-in-the,us7000l9ku,subject,-6.131,129.874,10,6.7,1699448526115,Banda Sea,export
 new-approach-to-modeling-plate,,subject,-41.000,175.000,,,,,oldmap
-new-paper-documents-surface-rupture,,subject,37.226,37.014,,,,,oldmap
+new-paper-documents-surface-rupture,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 new-paper-suggests-earthquakes-on,,subject,33.600,-116.000,,,,,oldmap
 no-change-in-seismic-activity-on-east,,subject,37.500,37.500,,,,,oldmap
 no-earthquakes-are-not-more-frequent-now,,,,,,,,,export
@@ -465,9 +465,9 @@ pulsed-swarm-of-seismicity-offshore,usp000azqw,subject,6.033,124.249,31,7.5,1015
 putting-aftershocks-near-adana-into,,subject,36.991,35.331,,,,,oldmap
 rebuilding-historic-urban-areas-after,,,,,,,,,body
 remarkable-video-captures-fault-slip,us7000pn9s,subject,22.011,95.936,10,7.7,1743142852715,"2025 Mandalay, Burma (Myanmar) Earthquake",export
-report-highlights-liquefaction-in-2023,,subject,37.226,37.014,,,,,oldmap
+report-highlights-liquefaction-in-2023,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 san-ramon-swarm-sputters-back-to,nc75305736,subject,37.756,-121.944,10,4.2,1770044473640,"4 km SE of San Ramon, CA",export
-satellite-images-suggest-slip-on,,subject,31.058,-8.385,,,,,oldmap
+satellite-images-suggest-slip-on,us7000kufc,subject,31.058,-8.385,19,6.8,1694211061405,"Al Haouz, Morocco",hand
 satellite-observations-reveal-surface,us6000jqcn,subject,36.162,36.025,16,6.3,1676912669747,"2 km NNW of Uzunba?, Turkey",export
 seismic-hazard-in-istanbul-is-driven-by,,subject,40.500,28.500,,,,,oldmap
 seismic-hazard-update-around-goksun,,subject,38.000,36.500,,,,,oldmap
@@ -492,13 +492,13 @@ several-large-earthquakes-strike,us6000rcta,subject,9.931,-70.766,20,4.5,1758799
 shaking-across-central-america-caused,us7000kgpb,subject,12.800,-88.080,71,6.5,1689726127656,"43 km S of Intipucá, El Salvador",export
 shallow-m50-earthquake-shakes-west,us6000nsu0,subject,-7.242,107.566,10,5.0,1726627266723,"15 km ESE of Banjar, Indonesia",export
 should-we-expect-large-earthquake-on,,subject,36.100,36.300,,,,,oldmap
-six-months-after-feb-6-kahramanmaras,,subject,36.616,36.436,,,,,oldmap
+six-months-after-feb-6-kahramanmaras,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 sometimes-earthquakes-hide-in-shaking,us6000jqcn,subject,36.162,36.025,16,6.3,1676912669747,"2 km NNW of Uzunba?, Turkey",export
 sometimes-earthquakes-hide-in-shaking,us6000jqjc,subject,36.159,35.935,10,5.5,1676912855934,"9 km WNW of Uzunba?, Turkey",export
 southern-japan-shaken-by-m63-earthquake,us7000mcpi,subject,33.250,132.365,32,6.3,1713363286694,"18 km W of Uwajima, Japan",export
 southern-japan-shaken-by-m63-earthquake,us7000gdwz,context,32.728,132.039,39,6.3,1642781317210,"27 km SSE of Saiki, Japan",export
 southern-japan-struck-by-deadly-m68,us6000tgb9,subject,32.618,130.660,8,6.8,1785223634658,"The 2026 Kumamoto Region, Japan Earthquake",export
-stress-change-models-in-wake-of-2023,,subject,37.226,37.014,,,,,oldmap
+stress-change-models-in-wake-of-2023,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 sulawesi-indonesia-struck-by-m67,us7000st95,subject,-1.173,120.125,11,6.7,1781580464276,"40 km SE of Palu, Indonesia",export
 sulawesi-indonesia-struck-by-m67,us10008w1z,context,-1.292,120.431,12,6.6,1496068521510,"37 km WNW of Poso, Indonesia",export
 surface-ruptures-of-the-myanmar-m77,us7000pn9s,subject,22.011,95.936,10,7.7,1743142852715,"2025 Mandalay, Burma (Myanmar) Earthquake",export
@@ -520,8 +520,8 @@ tracking-updates-on-the-morocco-earthquake,us7000kufc,subject,31.058,-8.385,19,6
 two-earthquakes-m59-and-m54-shake,us7000jvwe,subject,-40.260,176.532,22,5.4,1682460974546,"37 km E of Dannevirke, New Zealand",export
 two-earthquakes-m59-and-m54-shake,us7000jvwg,subject,-40.315,176.588,20,5.3,1682461141967,North Island of New Zealand,export
 two-magnitude-63-earthquakes-strike,us6000ldpm,subject,34.544,61.889,8,6.3,1696662769702,"25 km NNE of Zindah Jān, Afghanistan",title
-two-months-after-2023-turkey-syria,,subject,37.226,37.014,,,,,oldmap
-two-new-papers-published-on-the-feb,,subject,37.226,37.014,,,,,oldmap
+two-months-after-2023-turkey-syria,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
+two-new-papers-published-on-the-feb,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 ultra-deep-m71-earthquake-in-indonesia,us7000krjx,subject,-6.789,116.521,500,7.1,1693252530875,"180 km NNE of Gili Air, Indonesia",export
 understanding-tectonics-of-turkey-and,,subject,39.000,33.000,,,,,oldmap
 unusual-m45-earthquake-500-km-off,us6000k5k8,subject,32.620,-70.836,10,4.5,1681920421146,off the east coast of the United States,export
@@ -536,7 +536,7 @@ update-on-aftershocks-around-malatya,,subject,38.100,38.300,,,,,oldmap
 update-on-aftershocks-in-hatay-turkey,,subject,36.200,36.200,,,,,oldmap
 update-on-apparent-gps-detection,,,,,,,,,body
 update-on-m70-earthquake-in-china,us7000lsze,subject,41.255,78.654,13,7.0,1705946944340,"128 km WNW of Aykol, China",title
-update-on-march-16-2023-m47-earthquake,,subject,40.800,31.540,,,,,oldmap
+update-on-march-16-2023-m47-earthquake,us7000jkeb,subject,40.743,31.503,10,4.8,1678964107845,"8 km W of Bolu, Turkey",hand
 update-on-seismic-hazard-near-bingol,,subject,38.886,40.497,,,,,oldmap
 update-on-seismic-risk-in-adana,,subject,36.900,35.500,,,,,oldmap
 update-on-seismicity-near-kayseri-turkey,,subject,38.720,35.350,,,,,oldmap
@@ -553,7 +553,7 @@ very-deep-m7-earthquake-east-of-java,us6000k49j,subject,-6.041,112.048,597,7.0,1
 volcanic-earthquakes-in-iceland,,subject,63.868,-22.413,,,,,oldmap
 weeks-and-weeks-of-quiet-is-that,,,,,,,,,body
 what-happened-during-feb-6-turkey-syria,us6000jlm1,subject,37.189,36.893,10,6.7,1675646895784,"14 km E of Nurda??, Turkey",export
-whats-difference-between-double,,subject,37.226,37.014,,,,,oldmap
+whats-difference-between-double,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 why-and-how-to-talk-about-big-earthquakes,,,,,,,,,export
 why-are-some-faults-so-creepy,,,,,,,,,body
 why-communicating-science-after,,,,,,,,,export
