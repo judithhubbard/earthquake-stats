@@ -98,8 +98,10 @@ const state = {
 
 // ---------- formatting ----------
 
-const fmtDate = (ms: number | string) =>
-  new Date(ms).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+// One formatter, made once: toLocaleDateString builds a new one on every call,
+// and with a thousand dates on the page that alone took seconds.
+const DATE_FMT = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const fmtDate = (ms: number | string) => DATE_FMT.format(new Date(ms));
 
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));

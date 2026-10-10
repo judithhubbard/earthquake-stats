@@ -2123,7 +2123,28 @@ body:not(.span-thirty) .only-thirty { display: none !important; }
 .posts-mode { position: absolute; top: 0.6rem; left: 0.6rem; z-index: 2; background: var(--surface-1); }
 .posts-map svg { cursor: grab; }
 .posts-map svg:active { cursor: grabbing; }
-.posts-loading { color: var(--text-muted); font-size: var(--t-body); }
+/* Holds the map's eventual shape (Equal Earth is about 2:1) so nothing below
+   jumps when it arrives. */
+.posts-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  aspect-ratio: 2 / 1;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--t-body);
+}
+.posts-spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid var(--grid);
+  border-top-color: var(--posts-free);
+  animation: posts-spin 0.8s linear infinite;
+}
+@keyframes posts-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .posts-spinner { animation-duration: 2.4s; } }
 
 .posts-selected {
   margin-top: 1.25rem;
