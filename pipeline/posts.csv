@@ -366,6 +366,8 @@ m76-earthquake-below-east-coast-of,us7000lff4,subject,8.527,126.416,40,7.6,17015
 m76-earthquake-occurred-within-subducting,us6000kawn,subject,-15.628,-174.493,210,7.6,1683734520334,"82 km WNW of Hihifo, Tonga",export
 m76-earthquake-strikes-offshore-honshu,us6000rtdt,subject,40.998,142.184,41,7.6,1765203309896,"2025 Aomori Prefecture, Japan Earthquake",export
 m77-earthquake-strikes-flores-indonesia,us6000tkt2,subject,-8.336,121.345,10,7.8,1786744701561,"66 km NNW of Ende, Indonesia",export
+m77-earthquake-strikes-southern-panama,us6000u18k,subject,7.587,-80.769,13,7.7,1791568566036,"12 km WSW of Pitaloza Arriba, Panama",body
+m77-earthquake-strikes-southern-panama,us6000u19w,subject,7.718,-81.469,10,6.6,1791577539080,"14 km W of Río Grande, Panama",body
 m77-quake-at-the-new-hebrides-subduction,us6000kd0n,subject,-23.206,170.742,18,7.7,1684465023172,southeast of the Loyalty Islands,export
 m77-quake-at-the-new-hebrides-subduction,us6000kdce,subject,-23.042,170.560,27,7.1,1684547459158,southeast of the Loyalty Islands,export
 m77-quake-at-the-new-hebrides-subduction,usp000cg90,context,-22.015,169.766,10,7.3,1072540859450,"201 km ESE of Tadine, New Caledonia",export
