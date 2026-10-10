@@ -25,6 +25,8 @@ interface Post {
   date: string;
   free: boolean;
   section: string;
+  /** A review of a published paper (tagged on Substack). */
+  review: boolean;
   cover: string;
   events: string[];
   context: string[];
@@ -55,7 +57,8 @@ interface Point {
   posts: Post[];
 }
 
-type Show = "all" | "free" | "quakes" | "tectonics";
+type Show = "all" | "free" | "reviews";
+type Mode = "map" | "globe";
 
 const SUBSTACK = "https://earthquakeinsights.substack.com/p/";
 /** A post this new is marked on the map and in the list: its free month. */
@@ -80,7 +83,11 @@ const state = {
   land: null as unknown,
   plates: null as unknown,
   selected: null as Point | null,
-  /** Zoom: k = 1 is the whole world; lon/lat is the centre of the view. */
+  mode: "map" as Mode,
+  /** The flat world map's central meridian; dragging the world view moves it. */
+  centre: CENTRE_LON,
+  /** Zoom: k = 1 is the whole world (or hemisphere, on the globe); lon/lat is
+   *  the centre of the view. */
   view: { k: 1, lon: CENTRE_LON, lat: 0 },
   /** The world map's height, held while zoomed so the frame does not jump. */
   height: 0,
@@ -140,8 +147,7 @@ function buildPoints(data: Data): Point[] {
 
 function matches(post: Post): boolean {
   if (state.show === "free" && !post.free) return false;
-  if (state.show === "quakes" && post.section !== "Latest earthquakes") return false;
-  if (state.show === "tectonics" && post.section === "Latest earthquakes") return false;
+  if (state.show === "reviews" && !post.review) return false;
   const q = state.query.trim().toLowerCase();
   if (!q) return true;
   const where = whereOf(post);
@@ -177,7 +183,8 @@ function halfSpan() {
  */
 function projection() {
   const { k, lon, lat } = state.view;
-  if (k <= 1.001) return worldProjection();
+  if (state.mode === "globe") return globeProjection();
+  if (k <= 1.001) return worldProjection(state.centre);
   const { w, h } = halfSpan();
   const coordinates: [number, number][] = [];
   for (const fx of [-1, -0.5, 0, 0.5, 1]) {
@@ -187,10 +194,38 @@ function projection() {
            domain: { type: "MultiPoint", coordinates } as never };
 }
 
+/**
+ * The globe: orthographic, turned to face the view's centre. Zooming fits a
+ * smaller cap of the sphere -- a ring of points 90/k degrees out -- to the
+ * frame, which keeps Plot's own fitting and the far side's clipping.
+ */
+function globeProjection() {
+  const { k, lon, lat } = state.view;
+  const r = (Math.PI / 2) / k;
+  const φ0 = (lat * Math.PI) / 180, λ0 = (lon * Math.PI) / 180;
+  const coordinates: [number, number][] = [];
+  for (let i = 0; i < 24; i++) {
+    const θ = (i / 24) * 2 * Math.PI;
+    const φ = Math.asin(Math.sin(φ0) * Math.cos(r) + Math.cos(φ0) * Math.sin(r) * Math.cos(θ));
+    const λ = λ0 + Math.atan2(Math.sin(θ) * Math.sin(r) * Math.cos(φ0), Math.cos(r) - Math.sin(φ0) * Math.sin(φ));
+    coordinates.push([(λ * 180) / Math.PI, (φ * 180) / Math.PI]);
+  }
+  return { type: "orthographic" as never, rotate: [-lon, -lat] as [number, number],
+           domain: k <= 1.001 ? ({ type: "Sphere" } as never) : ({ type: "MultiPoint", coordinates } as never) };
+}
+
+/** The globe's height: square, but no taller than most screens. */
+const globeHeight = () => Math.min(el.map.clientWidth || 800, 620);
+
 function clampView() {
   const v = state.view;
   v.k = Math.min(MAX_K, Math.max(1, v.k));
-  if (v.k <= 1.001) { v.k = 1; v.lon = CENTRE_LON; v.lat = 0; return; }
+  if (state.mode === "globe") {
+    v.lat = Math.min(89, Math.max(-89, v.lat));
+    v.lon = ((v.lon + 540) % 360) - 180;
+    return;
+  }
+  if (v.k <= 1.001) { v.k = 1; v.lon = state.centre; v.lat = 0; return; }
   const { h } = halfSpan();
   v.lat = Math.min(85 - h, Math.max(-78 + h, v.lat));
   if (85 - h < -78 + h) v.lat = 0;
@@ -199,6 +234,11 @@ function clampView() {
 
 /** Degrees under a pixel offset from the map's centre (near enough for zooming). */
 function offsetToDegrees(dx: number, dy: number) {
+  if (state.mode === "globe") {
+    // Near the middle of the globe, a pixel is 1/R radians, R the drawn radius.
+    const deg = 180 / Math.PI / ((globeHeight() / 2) * state.view.k);
+    return { dLon: (dx * deg) / Math.cos((state.view.lat * Math.PI) / 180), dLat: -dy * deg };
+  }
   const width = el.map.clientWidth || 800;
   const height = state.height || width / 2;
   const { w, h } = halfSpan();
@@ -233,10 +273,33 @@ function scheduleRender() {
 /** Set by a drag, so the click that ends it does not select a circle. */
 let dragged = false;
 
+function wireMode() {
+  const box = $("posts-mode");
+  for (const [mode, label] of [["map", "Map"], ["globe", "Globe"]] as const) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    b.setAttribute("aria-pressed", String(state.mode === mode));
+    b.addEventListener("click", () => {
+      if (state.mode === mode) return;
+      // Keep the reader's place: the globe faces whatever the map was centred
+      // on, and back on the map the world view is centred where the globe was.
+      const { lon, lat, k } = state.view;
+      state.mode = mode;
+      if (mode === "globe") state.view = { k: Math.max(1, k / 2), lon, lat: k > 1 ? lat : 20 };
+      else { state.centre = lon; state.view = { k: 1, lon, lat: 0 }; }
+      clampView();
+      for (const x of box.querySelectorAll("button")) x.setAttribute("aria-pressed", String(x === b));
+      renderMap();
+    });
+    box.append(b);
+  }
+}
+
 function wireZoom() {
   $("zoom-in").addEventListener("click", () => zoomBy(2));
   $("zoom-out").addEventListener("click", () => zoomBy(0.5));
-  $("zoom-reset").addEventListener("click", () => zoomTo(CENTRE_LON, 0, 1));
+  $("zoom-reset").addEventListener("click", () => zoomTo(state.view.lon, state.mode === "globe" ? state.view.lat : 0, 1));
 
   const centreOffset = (x: number, y: number) => {
     const r = el.map.getBoundingClientRect();
@@ -289,10 +352,17 @@ function wireZoom() {
       dragged = true;
       return;
     }
-    if (state.view.k <= 1) return;
     if (!dragged && Math.hypot(now.x - startX, now.y - startY) < 4) return;
     dragged = true;
     el.map.setPointerCapture(ev.pointerId);
+    if (state.mode === "map" && state.view.k <= 1) {
+      // The whole flat map: a sideways drag slides the central meridian.
+      const width = el.map.clientWidth || 800;
+      state.centre = ((state.centre - ((now.x - last.x) / width) * 360 + 540) % 360) - 180;
+      state.view.lon = state.centre;
+      scheduleRender();
+      return;
+    }
     const { dLon, dLat } = offsetToDegrees(now.x - last.x, now.y - last.y);
     state.view.lon -= dLon;
     state.view.lat -= dLat;
@@ -346,7 +416,7 @@ function renderMap() {
   const land = zoomed && state.view.k >= DETAIL_K && state.detailedLand ? state.detailedLand : state.land;
   const plot = Plot.plot({
     width,
-    ...(zoomed ? { height: state.height } : {}),
+    ...(state.mode === "globe" ? { height: globeHeight() } : zoomed ? { height: state.height } : {}),
     projection: projection(),
     style: { background: "transparent", color: theme.text, fontSize: "11px" },
     marks: [
@@ -397,11 +467,12 @@ function renderMap() {
     const p = (plot as unknown as { value: Point | null }).value;
     select(p && p !== state.selected ? p : null, false);
   });
-  if (!zoomed) state.height = Number(plot.getAttribute("height")) || state.height;
+  if (!zoomed && state.mode === "map") state.height = Number(plot.getAttribute("height")) || state.height;
   $("zoom-reset").hidden = !zoomed;
   ($("zoom-out") as HTMLButtonElement).disabled = !zoomed;
   ($("zoom-in") as HTMLButtonElement).disabled = state.view.k >= MAX_K;
   el.map.classList.toggle("is-zoomed", zoomed);
+  el.map.classList.toggle("is-globe", state.mode === "globe");
   el.map.replaceChildren(plot);
 }
 
@@ -553,8 +624,7 @@ function buildShow() {
   const options: { id: Show; label: string }[] = [
     { id: "all", label: "All" },
     { id: "free", label: "Free to read now" },
-    { id: "quakes", label: "Latest earthquakes" },
-    { id: "tectonics", label: "Tectonics and more" },
+    { id: "reviews", label: "Paper reviews" },
   ];
   for (const o of options) {
     const b = document.createElement("button");
@@ -584,11 +654,14 @@ function legend() {
 async function start() {
   startAnalytics();
   wireZoom();
+  wireMode();
   wireTip();
   buildShow();
   legend();
   const [data, land, plates] = await Promise.all([
-    fetch(`${DATA_BASE}/posts.json`).then((r) => r.json() as Promise<Data>),
+    // no-cache: revalidate every load, or a paywall change made on Substack
+    // can sit behind GitHub Pages' ten-minute browser cache.
+    fetch(`${DATA_BASE}/posts.json`, { cache: "no-cache" }).then((r) => r.json() as Promise<Data>),
     loadLand(),
     fetch(`${DATA_BASE}/plates.json`).then((r) => r.json()),
   ]);
@@ -610,10 +683,10 @@ async function start() {
       lastWidth = el.map.clientWidth;
       // The held height belongs to the old width; re-measure from the world view.
       const view = state.view;
-      state.view = { k: 1, lon: CENTRE_LON, lat: 0 };
-      renderMap();
+      state.view = { k: 1, lon: state.centre, lat: 0 };
+      if (state.mode === "map") renderMap();
       state.view = view;
-      if (view.k > 1) renderMap();
+      if (view.k > 1 || state.mode === "globe") renderMap();
     }
   }).observe(el.map);
 }

@@ -59,12 +59,13 @@ export function loadLand(): Promise<LandFeature> {
 
 /**
  * The projection both maps share: Equal Earth on the Pacific, clipped to the
- * band the catalogue occupies. See PROJECTION_TYPE and CENTRE_LON.
+ * band the catalogue occupies. See PROJECTION_TYPE and CENTRE_LON. The posts
+ * page lets a reader drag the centre elsewhere.
  */
-export function worldProjection() {
+export function worldProjection(centre = CENTRE_LON) {
   return {
     type: PROJECTION_TYPE as never,
-    rotate: [-CENTRE_LON, 0],
+    rotate: [-centre, 0],
     // The clip box is given in rotated coordinates, so its corners are the
     // frame edges rather than the antimeridian: a box still written as
     // -180..180 of true longitude would be a half-turn out and clip the
@@ -72,12 +73,12 @@ export function worldProjection() {
     domain: {
       type: "Polygon",
       coordinates: [[
-        [CENTRE_LON - 180, CLIP.latMin], [CENTRE_LON - 90, CLIP.latMin],
-        [CENTRE_LON, CLIP.latMin], [CENTRE_LON + 90, CLIP.latMin],
-        [CENTRE_LON + 179.99, CLIP.latMin],
-        [CENTRE_LON + 179.99, CLIP.latMax], [CENTRE_LON + 90, CLIP.latMax],
-        [CENTRE_LON, CLIP.latMax], [CENTRE_LON - 90, CLIP.latMax],
-        [CENTRE_LON - 180, CLIP.latMax], [CENTRE_LON - 180, CLIP.latMin],
+        [centre - 180, CLIP.latMin], [centre - 90, CLIP.latMin],
+        [centre, CLIP.latMin], [centre + 90, CLIP.latMin],
+        [centre + 179.99, CLIP.latMin],
+        [centre + 179.99, CLIP.latMax], [centre + 90, CLIP.latMax],
+        [centre, CLIP.latMax], [centre - 90, CLIP.latMax],
+        [centre - 180, CLIP.latMax], [centre - 180, CLIP.latMin],
       ]],
     } as never,
   };

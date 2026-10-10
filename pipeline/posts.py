@@ -66,6 +66,7 @@ COMCAT = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 PAUSE_S = 1.0
 HEADERS = {"User-Agent": "stats.earthquakeinsights.com post map"}
 
+REVIEW_TAG = "Research analyses: permanently free to read"
 FIELDS = ["slug", "event", "role", "lat", "lon", "depth", "mag", "time", "place", "source"]
 
 # An event page link: earthquake.usgs.gov/earthquakes/eventpage/us7000abcd,
@@ -260,6 +261,9 @@ def page_json(posts: list[dict], rows: dict[str, list[dict]]) -> dict:
             "date": p["post_date"],
             "free": p.get("audience") == "everyone",
             "section": p.get("section_name") or "",
+            # The deep reviews of published papers, tagged on Substack; the page
+            # offers them as a filter.
+            "review": any(t.get("name") == REVIEW_TAG for t in p.get("postTags") or []),
             "cover": p.get("cover_image") or "",
             "events": subject,
             "context": context,
