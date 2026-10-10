@@ -2123,7 +2123,6 @@ body:not(.span-thirty) .only-thirty { display: none !important; }
 .posts-mode { position: absolute; top: 0.6rem; left: 0.6rem; z-index: 2; background: var(--surface-1); }
 .posts-map svg { cursor: grab; }
 .posts-map svg:active { cursor: grabbing; }
-.posts-map.is-globe { touch-action: none; }
 .posts-loading { color: var(--text-muted); font-size: var(--t-body); }
 
 .posts-selected {
