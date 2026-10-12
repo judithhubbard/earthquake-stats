@@ -57,7 +57,7 @@ interface Point {
   posts: Post[];
 }
 
-type Show = "all" | "free" | "reviews";
+type Show = "all" | "free" | "reviews" | "unplaced";
 type Mode = "map" | "globe";
 
 const SUBSTACK = "https://earthquakeinsights.substack.com/p/";
@@ -80,6 +80,8 @@ const el = {
 const state = {
   data: null as Data | null,
   points: [] as Point[],
+  /** Slugs of the posts that have a circle on the map. */
+  placed: new Set<string>(),
   land: null as unknown,
   plates: null as unknown,
   selected: null as Point | null,
@@ -150,6 +152,7 @@ function buildPoints(data: Data): Point[] {
 function matches(post: Post): boolean {
   if (state.show === "free" && !post.free) return false;
   if (state.show === "reviews" && !post.review) return false;
+  if (state.show === "unplaced" && state.placed.has(post.slug)) return false;
   const q = state.query.trim().toLowerCase();
   if (!q) return true;
   const where = whereOf(post);
@@ -581,7 +584,7 @@ function select(p: Point | null, scroll: boolean) {
 function renderList() {
   const data = state.data!;
   const shown = data.posts.filter(matches);
-  const placed = new Set(state.points.flatMap((p) => p.posts.map((x) => x.slug)));
+  const placed = state.placed;
   el.count.textContent = shown.length === data.posts.length
     ? `${data.posts.length} posts since ${fmtDate(data.posts[data.posts.length - 1].date)}`
     : `${shown.length} of ${data.posts.length} posts`;
@@ -627,6 +630,7 @@ function buildShow() {
     { id: "all", label: "All" },
     { id: "free", label: "Free to read now" },
     { id: "reviews", label: "Paper reviews" },
+    { id: "unplaced", label: "Not on the map" },
   ];
   for (const o of options) {
     const b = document.createElement("button");
@@ -671,6 +675,7 @@ async function start() {
   state.land = land;
   state.plates = plates;
   state.points = buildPoints(data);
+  state.placed = new Set(state.points.flatMap((p) => p.posts.map((x) => x.slug)));
   el.generated.textContent = `Newest post: ${fmtDate(data.posts[0].date)}.`;
   refresh();
 

@@ -69,16 +69,18 @@ export function worldProjection(centre = CENTRE_LON) {
     // The clip box is given in rotated coordinates, so its corners are the
     // frame edges rather than the antimeridian: a box still written as
     // -180..180 of true longitude would be a half-turn out and clip the
-    // Pacific away.
+    // Pacific away. Both side edges sit just inside the cut: an edge exactly
+    // on it lands on either side by rounding, and for about one centre in six
+    // the frame came out a fifth narrower, so the map jumped while dragged.
     domain: {
       type: "Polygon",
       coordinates: [[
-        [centre - 180, CLIP.latMin], [centre - 90, CLIP.latMin],
+        [centre - 179.99, CLIP.latMin], [centre - 90, CLIP.latMin],
         [centre, CLIP.latMin], [centre + 90, CLIP.latMin],
         [centre + 179.99, CLIP.latMin],
         [centre + 179.99, CLIP.latMax], [centre + 90, CLIP.latMax],
         [centre, CLIP.latMax], [centre - 90, CLIP.latMax],
-        [centre - 180, CLIP.latMax], [centre - 180, CLIP.latMin],
+        [centre - 179.99, CLIP.latMax], [centre - 179.99, CLIP.latMin],
       ]],
     } as never,
   };
