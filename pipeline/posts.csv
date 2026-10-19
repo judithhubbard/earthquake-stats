@@ -9,6 +9,7 @@ alert-level-orange-at-nevado-del-ruiz,,subject,4.892,-75.319,,,,,oldmap
 animated-3d-model-of-volcanic-seismicity,,subject,63.868,-22.413,,,,,oldmap
 another-large-subduction-earthquake,us6000sri7,subject,39.971,143.059,25,7.4,1776671578908,"102 km ENE of Miyako, Japan",export
 another-mid-m7-earthquake-in-the,us6000rgf4,subject,-60.188,-61.816,6,7.6,1760128160075,Drake Passage,export
+another-quick-update-on-the-mw77,,,,,,,,,body
 anthropogenic-earthquakes-along-dead,,subject,33.780,35.770,,,,,oldmap
 april-1-m45-near-near-samandag-turkey,us6000k1cg,subject,36.066,35.813,10,4.3,1680352476956,"21 km WSW of Uzunba?, Turkey",hand
 article-highlight-gps-stations-can,,,,,,,,,export
@@ -93,6 +94,7 @@ earthquakes-in-west-texas,tx2025iqwk,subject,31.647,-104.458,8,5.4,1746323225553
 earthquakes-in-west-texas,tx2022wmmd,context,31.637,-103.999,7,5.4,1668634364481,"Coalson Draw, Texas",body
 earthquakes-in-west-texas,tx2023vxae,context,31.622,-103.982,7,5.2,1699439269034,"Coalson Draw, Texas",body
 evaluating-istanbuls-seismic-hazard,,subject,41.000,29.000,,,,,oldmap
+false-m99-earthquake-warning-in-japan,,,,,,,,,body
 fault-creep-in-western-sea-of-marmara,,subject,40.450,28.000,,,,,oldmap
 feb-6-earthquake-causes-aftershocks-on,,subject,35.500,35.500,,,,,oldmap
 feb-6-turkey-syria-earthquake-triggered,,subject,34.500,36.500,,,,,oldmap
@@ -501,6 +503,11 @@ southern-japan-struck-by-deadly-m68,us6000tgb9,subject,32.618,130.660,8,6.8,1785
 stress-change-models-in-wake-of-2023,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 sulawesi-indonesia-struck-by-m67,us7000st95,subject,-1.173,120.125,11,6.7,1781580464276,"40 km SE of Palu, Indonesia",export
 sulawesi-indonesia-struck-by-m67,us10008w1z,context,-1.292,120.431,12,6.6,1496068521510,"37 km WNW of Poso, Indonesia",export
+surface-rupture-of-the-m77-azuero,us6000u18k,subject,7.587,-80.769,13,7.7,1791568566036,"12 km WSW of Pitaloza Arriba, Panama",body
+surface-rupture-of-the-m77-azuero,us6000u19w,subject,7.701,-81.444,24,6.6,1791577540656,"12 km W of Río Grande, Panama",body
+surface-rupture-of-the-m77-azuero,usb000jyiv,context,26.951,65.501,15,7.7,1380022187970,"113 km NW of Bela, Pakistan",body
+surface-rupture-of-the-m77-azuero,us20005iis,context,32.791,130.754,10,7.0,1460737506220,"6 km ESE of Kumamoto, Japan",body
+surface-rupture-of-the-m77-azuero,usp0009hev,context,40.758,31.161,10,7.2,942425839550,"8 km S of Düzce, Turkey",body
 surface-ruptures-of-the-myanmar-m77,us7000pn9s,subject,22.011,95.936,10,7.7,1743142852715,"2025 Mandalay, Burma (Myanmar) Earthquake",export
 surface-ruptures-of-the-myanmar-m77,us7000pn9z,subject,21.698,95.969,10,6.7,1743143524777,Burma (Myanmar),export
 swarm-offshore-vancouver-island-punctuated,us7000mykj,subject,48.788,-128.710,10,6.4,1720710527169,"209 km WSW of Tofino, Canada",body
