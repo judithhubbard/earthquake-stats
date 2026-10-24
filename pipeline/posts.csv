@@ -240,6 +240,9 @@ m56-m54-earthquakes-strike-south,us6000mwnh,subject,23.731,121.557,29,5.2,171498
 m57-earthquake-in-the-leyte-gulf,us6000mvya,subject,10.864,125.335,10,5.7,1714731383573,"27 km SSW of Balangiga, Philippines",export
 m57-earthquake-in-western-colombia,us7000kre0,subject,5.339,-76.684,24,5.7,1693172700683,"5 km E of El Cantón de San Pablo, Colombia",export
 m57-earthquake-in-western-japan-causes,us7000rmqv,subject,35.363,133.111,10,5.7,1767662328586,"13 km WSW of Yasugichō, Japan",export
+m57-earthquake-north-of-sicily-triggers,us6000u4bg,subject,38.722,14.253,10,4.9,1792749099628,"53 km WNW of Leni, Italy",body
+m57-earthquake-north-of-sicily-triggers,us6000u4bk,subject,38.720,14.152,10,5.7,1792750756729,"61 km WNW of Leni, Italy",body
+m57-earthquake-north-of-sicily-triggers,usp00017ry,context,38.482,14.252,14,5.7,328391479300,"50 km W of Leni, Italy",body
 m57-earthquake-rattles-nevada,nn00914068,subject,39.334,-119.007,5,5.7,1776130152123,"20 km ESE of Silver Springs, Nevada",export
 m57-earthquake-rattles-nevada,nn00888580,context,39.167,-119.024,8,5.7,1733785711577,"2024 Parker Butte, Nevada Earthquake",export
 m57-earthquake-shakes-hawaii,hv74103036,subject,19.187,-155.493,37,5.9,1707509191660,"2 km SW of Pāhala, Hawaii",body
