@@ -372,7 +372,7 @@ m76-earthquake-below-east-coast-of,us7000lff4,subject,8.527,126.416,40,7.6,17015
 m76-earthquake-occurred-within-subducting,us6000kawn,subject,-15.628,-174.493,210,7.6,1683734520334,"82 km WNW of Hihifo, Tonga",export
 m76-earthquake-strikes-offshore-honshu,us6000rtdt,subject,40.998,142.184,41,7.6,1765203309896,"2025 Aomori Prefecture, Japan Earthquake",export
 m77-earthquake-strikes-flores-indonesia,us6000tkt2,subject,-8.336,121.345,10,7.8,1786744701561,"66 km NNW of Ende, Indonesia",export
-m77-earthquake-strikes-southern-panama,us6000u18k,subject,7.587,-80.769,13,7.7,1791568566036,"12 km WSW of Pitaloza Arriba, Panama",body
+m77-earthquake-strikes-southern-panama,us6000u18k,subject,7.607,-80.757,10,7.7,1791568565537,"10 km WSW of Pitaloza Arriba, Panama",body
 m77-earthquake-strikes-southern-panama,us6000u19w,subject,7.701,-81.444,24,6.6,1791577540656,"12 km W of Río Grande, Panama",body
 m77-quake-at-the-new-hebrides-subduction,us6000kd0n,subject,-23.206,170.742,18,7.7,1684465023172,southeast of the Loyalty Islands,export
 m77-quake-at-the-new-hebrides-subduction,us6000kdce,subject,-23.042,170.560,27,7.1,1684547459158,southeast of the Loyalty Islands,export
@@ -401,7 +401,7 @@ magnitude-58-earthquake-strikes-near,us7000nr0n,context,19.824,-76.979,19,5.9,17
 magnitude-58-earthquake-strikes-near,us7000nr0v,context,19.797,-77.051,14,6.8,1731257390426,"42 km SSW of Bartolomé Masó, Cuba",export
 magnitude-58-earthquake-strikes-near,us6000s799,context,19.921,-74.375,10,5.5,1770552009139,"42 km SSW of Maisí, Cuba",export
 magnitude-6-earthquake-shakes-taiwan,us6000pl8h,subject,23.182,120.545,16,6.0,1737389846812,"10 km NE of Yujing, Taiwan",export
-magnitude-63-earthquake-strikes-vanuatu,us6000u0xi,subject,-15.541,168.189,10,6.3,1791450007768,"102 km NE of Norsup, Vanuatu",body
+magnitude-63-earthquake-strikes-vanuatu,us6000u0xi,subject,-15.433,168.278,19,6.3,1791450008818,"117 km NE of Norsup, Vanuatu",body
 magnitude-64-earthquake-rocks-java,us6000mkej,subject,-5.816,112.319,10,5.6,1711081365531,"117 km N of Paciran, Indonesia",export
 magnitude-64-earthquake-rocks-java,us6000mkfz,subject,-5.875,112.365,9,6.4,1711097578999,"110 km N of Paciran, Indonesia",export
 magnitude-67-earthquake-strikes-below,us7000l7si,subject,-28.743,-71.557,34,6.6,1698755623732,"80 km WSW of Vallenar, Chile",export
@@ -507,7 +507,7 @@ southern-japan-struck-by-deadly-m68,us6000tgb9,subject,32.618,130.660,8,6.8,1785
 stress-change-models-in-wake-of-2023,us6000jllz,subject,37.226,37.014,10,7.8,1675646254342,"Pazarcik earthquake, Kahramanmaras earthquake sequence",hand
 sulawesi-indonesia-struck-by-m67,us7000st95,subject,-1.173,120.125,11,6.7,1781580464276,"40 km SE of Palu, Indonesia",export
 sulawesi-indonesia-struck-by-m67,us10008w1z,context,-1.292,120.431,12,6.6,1496068521510,"37 km WNW of Poso, Indonesia",export
-surface-rupture-of-the-m77-azuero,us6000u18k,subject,7.587,-80.769,13,7.7,1791568566036,"12 km WSW of Pitaloza Arriba, Panama",body
+surface-rupture-of-the-m77-azuero,us6000u18k,subject,7.607,-80.757,10,7.7,1791568565537,"10 km WSW of Pitaloza Arriba, Panama",body
 surface-rupture-of-the-m77-azuero,us6000u19w,subject,7.701,-81.444,24,6.6,1791577540656,"12 km W of Río Grande, Panama",body
 surface-rupture-of-the-m77-azuero,usb000jyiv,context,26.951,65.501,15,7.7,1380022187970,"113 km NW of Bela, Pakistan",body
 surface-rupture-of-the-m77-azuero,us20005iis,context,32.791,130.754,10,7.0,1460737506220,"6 km ESE of Kumamoto, Japan",body
@@ -553,7 +553,7 @@ update-on-seismic-risk-in-adana,,subject,36.900,35.500,,,,,oldmap
 update-on-seismicity-near-kayseri-turkey,,subject,38.720,35.350,,,,,oldmap
 update-on-seismicity-near-kayseri-turkey_7,,subject,38.720,35.350,,,,,oldmap
 update-on-the-m68-japan-earthquake,us6000tgb9,subject,32.618,130.660,8,6.8,1785223634658,"The 2026 Kumamoto Region, Japan Earthquake",export
-update-on-the-m77-earthquake-in-panama,us6000u18k,subject,7.587,-80.769,13,7.7,1791568566036,"12 km WSW of Pitaloza Arriba, Panama",body
+update-on-the-m77-earthquake-in-panama,us6000u18k,subject,7.607,-80.757,10,7.7,1791568565537,"10 km WSW of Pitaloza Arriba, Panama",body
 update-on-the-seismic-swarm-in-greece,,,,,,,,,export
 updates-on-the-deadly-afghanistan,us7000qsvj,subject,34.711,70.809,8,6.0,1756667854124,"35 km WSW of Asadābād, Afghanistan",export
 updates-on-the-kamchatka-earthquake,us6000qw60,subject,52.495,160.239,35,8.8,1753831492483,"2025 Kamchatka Peninsula, Russia Earthquake",export
